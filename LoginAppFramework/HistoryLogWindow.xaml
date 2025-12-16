@@ -1,0 +1,227 @@
+﻿<Window x:Class="LoginAppFramework.HistoryLogWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:LoginAppFramework"
+        mc:Ignorable="d"
+        Title="Tarixçə Jurnalı"
+        Loaded="Window_Loaded"
+        WindowStartupLocation="CenterScreen"
+        Style="{StaticResource MainScreenWindowStyle}">
+
+    <Window.Resources>
+        <Style x:Key="PageButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="MinWidth" Value="30"/>
+        </Style>
+        <Style TargetType="{x:Type ListViewItem}" BasedOn="{StaticResource {x:Type ListViewItem}}">
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style x:Key="ModernNavButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#DDDDDD"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Padding" Value="15,12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Storyboard x:Key="OpenMenu">
+            <DoubleAnimation Storyboard.TargetName="SlideOutMenu" Storyboard.TargetProperty="Width" To="260" Duration="0:0:0.3"/>
+        </Storyboard>
+        <Storyboard x:Key="CloseMenu">
+            <DoubleAnimation Storyboard.TargetName="SlideOutMenu" Storyboard.TargetProperty="Width" To="0" Duration="0:0:0.3"/>
+        </Storyboard>
+    </Window.Resources>
+
+    <Grid>
+        <DockPanel>
+            <Border DockPanel.Dock="Top" Background="{StaticResource PanelBackgroundBrush}" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="0,0,0,1" Padding="15">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="MenuButton" Style="{StaticResource PrimaryActionButton}" Height="40" Padding="15,0" Click="MenuButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE700;" FontFamily="Segoe Fluent Icons" Foreground="White" FontSize="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="Menyu" Foreground="White" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                        </StackPanel>
+                    </Button>
+                    <TextBlock Grid.Column="1" Text="Tarixçə" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/>
+                </Grid>
+            </Border>
+
+            <Border DockPanel.Dock="Top" Background="{StaticResource PanelBackgroundBrush}" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="0,0,0,1" Padding="15">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock x:Name="CountTextBlock" Grid.Column="0" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="{StaticResource BodyTextBrush}" Margin="0,0,20,0"/>
+
+                    <!-- THE FIX: Updated the style of the filter controls -->
+                    <TextBox x:Name="SearchBox" Grid.Column="1" TextChanged="Filters_Changed" Tag="Axtarış..." VerticalAlignment="Center"/>
+
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="20,0,0,0">
+                        <ComboBox x:Name="ActionFilterComboBox" Width="200" SelectionChanged="Filters_Changed" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        <Button x:Name="ClearFiltersButton" Content="Filtrləri təmizlə" Click="ClearFiltersButton_Click" Margin="20,0,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Margin="25" Background="{StaticResource PanelBackgroundBrush}" CornerRadius="8">
+                    <DockPanel>
+                        <Border DockPanel.Dock="Bottom" Padding="10" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="0,1,0,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Name="PageInfoTextBlock" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Button x:Name="PrevButton" Content="&lt;&lt;" Style="{StaticResource PageButtonStyle}" Click="PrevButton_Click"/>
+                                    <StackPanel x:Name="PageNumbersPanel" Orientation="Horizontal"/>
+                                    <Button x:Name="NextButton" Content="&gt;&gt;" Style="{StaticResource PageButtonStyle}" Click="NextButton_Click"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <ListView x:Name="HistoryListView" ItemsSource="{Binding}" 
+                                  MouseDoubleClick="HistoryListView_MouseDoubleClick"
+                                  HorizontalContentAlignment="Stretch" BorderThickness="0" Background="Transparent"
+                                  AlternationCount="2">
+                            <ListView.ItemTemplate>
+                                <DataTemplate DataType="{x:Type local:HistoryLogViewModel}">
+                                    <Border BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="0,0,0,1" Padding="10,12" Cursor="Hand">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding Icon}" FontSize="24" VerticalAlignment="Center" Margin="5,0,20,0"/>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock FontWeight="SemiBold" Text="{Binding Description}" TextWrapping="Wrap" Foreground="{StaticResource BodyTextBrush}" FontSize="14"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="20,0,5,0" TextBlock.TextAlignment="Right">
+                                                <TextBlock Foreground="{StaticResource BodyTextBrush}"><Run Text="tərəfindən: "/><Run Text="{Binding ChangedBy}"/></TextBlock>
+                                                <TextBlock Foreground="{StaticResource SubtleTextBrush}" Text="{Binding Timestamp, StringFormat='yyyy-MM-dd HH:mm:ss'}"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </DockPanel>
+                </Border>
+
+                <Border Grid.Column="1" Background="{StaticResource PanelBackgroundBrush}" Padding="15" Margin="0,25,25,25" CornerRadius="8" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="Tarixə Görə Filtr" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                        <Calendar x:Name="DateFilterCalendar" SelectedDatesChanged="Filters_Changed"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </DockPanel>
+        <Border x:Name="MenuOverlay" Background="#000000" Opacity="0.3" Visibility="Collapsed" MouseDown="MenuOverlay_MouseDown"/>
+        <Grid x:Name="SlideOutMenu" HorizontalAlignment="Left" Background="{StaticResource MenuBackgroundBrush}" Width="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0" Height="60">
+                <TextBlock Text="Əsas Menyu" Foreground="White" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="20,0"/>
+                <Button x:Name="CloseMenuButton" Content="&#xE8BB;" FontFamily="Segoe Fluent Icons" Foreground="#DDDDDD" FontSize="14" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="20" Click="CloseMenuButton_Click" Style="{StaticResource ModernNavButtonStyle}"/>
+            </Grid>
+            <StackPanel Grid.Row="1" Margin="5,0">
+                <Button x:Name="DashboardButton" Click="DashboardButton_Click" Style="{StaticResource ModernNavButtonStyle}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE80F;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center"/>
+                        <TextBlock Text="İdarə Paneli" Margin="15,0,0,0"/>
+                    </StackPanel>
+                </Button>
+                <Button x:Name="UsersButton" Click="UsersButton_Click" Style="{StaticResource ModernNavButtonStyle}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE716;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center"/>
+                        <TextBlock Text="İşçilər" Margin="15,0,0,0"/>
+                    </StackPanel>
+                </Button>
+                <Button x:Name="AssetsButton" Click="AssetsButton_Click" Style="{StaticResource ModernNavButtonStyle}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE771;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center"/>
+                        <TextBlock Text="Vəsaitlər" Margin="15,0,0,0"/>
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource ModernNavButtonStyle}" Background="{StaticResource PrimaryBrushHover}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE81C;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center"/>
+                        <TextBlock Text="Tarixçə" Margin="15,0,0,0"/>
+                    </StackPanel>
+                </Button>
+                <Button x:Name="ReportsButton" Click="ReportsButton_Click" Style="{StaticResource ModernNavButtonStyle}">
+                    <StackPanel Orientation="Horizontal">
+                        <!-- Bu ikon hesabatları təmsil edir -->
+                        <TextBlock Text="&#xE9F9;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center"/>
+                        <TextBlock Text="Hesabatlar" Margin="15,0,0,0"/>
+                    </StackPanel>
+                </Button>
+                <Button x:Name="LifecycleReportButton" Click="LifecycleReportButton_Click" Style="{StaticResource ModernNavButtonStyle}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE78B;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center"/>
+                        <TextBlock Text="Həyat Dövrü Hesabatı" Margin="15,0,0,0"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+            <StackPanel Grid.Row="2" Margin="5,0,5,10">
+                <Separator Background="{StaticResource PrimaryBrushHover}" Margin="0,10"/>
+                <Button x:Name="UserProfileButton" Style="{StaticResource ModernNavButtonStyle}" Click="UserProfileButton_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="UserProfileIcon" Text="&#xE77B;" FontFamily="Segoe MDL2 Assets" FontSize="28" VerticalAlignment="Center"/>
+                        <StackPanel Margin="10,0,0,0">
+                            <TextBlock x:Name="UserProfileName" Text="Admin User" Foreground="White" FontWeight="SemiBold"/>
+                            <TextBlock Text="Onlayn" Foreground="LightGreen"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+        <Popup x:Name="UserSwitchPopup" StaysOpen="False" Placement="Top" AllowsTransparency="True" PopupAnimation="Fade" PlacementTarget="{Binding ElementName=UserProfileButton}">
+            <Border Background="{StaticResource MenuBackgroundBrush}" CornerRadius="5" BorderBrush="{StaticResource PrimaryBrushHover}" BorderThickness="1" MinWidth="250" Margin="0,0,5,5">
+                <StackPanel>
+                    <Button x:Name="SwitchUserButton" Click="SwitchUserButton_Click" Style="{StaticResource ModernNavButtonStyle}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE8D4;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="İstifadəçini Dəyiş" Margin="15,0,0,0"/>
+                        </StackPanel>
+                    </Button>
+                    <Separator Background="{StaticResource PrimaryBrushHover}" Margin="5,0"/>
+                    <Button x:Name="LogoutButton" Click="LogoutButton_Click" Style="{StaticResource ModernNavButtonStyle}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE7E8;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="Çıxış" Margin="15,0,0,0"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Border>
+        </Popup>
+    </Grid>
+</Window>

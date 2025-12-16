@@ -1,0 +1,20 @@
+﻿LoginAppFramework
+
+
+winexe
+C#
+.cs
+C:\Users\reshad\Desktop\LoginAppFramework\LoginAppFramework V2 - main\LoginAppFramework\obj\Debug\net8.0-windows\
+LoginAppFramework
+none
+false
+TRACE;DEBUG;NET;NET8_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER;WİNDOWS7_0_OR_GREATER
+C:\Users\reshad\Desktop\LoginAppFramework\LoginAppFramework V2 - main\LoginAppFramework\App.xaml
+24-1167048557
+1-913308027
+761403742153
+316-1288600793
+AddEditAssetWindow.xaml;AddEditWorkerWindow.xaml;AddMaintenanceRecordWindow.xaml;AssetDetailControl.xaml;AssetWindow.xaml;AssignmentDetailWindow.xaml;BulkEditWindow.xaml;ChangeDetailWindow.xaml;ColumnFilterControl.xaml;DashboardWindow.xaml;FilteredAssetsWindow.xaml;HistoryLogWindow.xaml;ImportMappingWindow.xaml;LifecycleReportWindow.xaml;MainWindow.xaml;PrintQrCodesWindow.xaml;ReportsWindow.xaml;SelectAssetWindow.xaml;SelectWorkerWindow.xaml;ToastNotificationControl.xaml;UserManagementWindow.xaml;WorkerAssetManager.xaml;WorkerDetailWindow.xaml;WorkerListWindow.xaml;
+
+False
+

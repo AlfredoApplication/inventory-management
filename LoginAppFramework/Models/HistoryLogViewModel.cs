@@ -1,0 +1,110 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.Json;
+
+namespace LoginAppFramework
+{
+    public class HistoryLogViewModel
+    {
+        public AssetLog Log { get; }
+        public AssignmentHistoryEntry Assignment { get; }
+
+        public string Description { get; private set; }
+        public string ChangedBy { get; set; }
+        public DateTime Timestamp { get; private set; }
+        public string Icon { get; private set; }
+        public string Status { get; private set; }
+
+        public HistoryLogViewModel(AssetLog log)
+        {
+            Log = log;
+            Timestamp = log.ChangeDate;
+            ChangedBy = log.ChangedBy ?? "Sistem/Trigger";
+            Status = log.status;
+            GenerateAssetLogSummary();
+        }
+
+        public HistoryLogViewModel(AssignmentHistoryEntry assignment, string assetName)
+        {
+            Assignment = assignment;
+            Timestamp = assignment.ChangeDate;
+            ChangedBy = assignment.ChangedBy;
+            Status = "Təhkimat";
+            Description = assignment.Action switch
+            {
+                AssignmentAction.Assigned => $"{assetName} təhkim olundu: {assignment.ToWorkerName}",
+                AssignmentAction.Unassigned => $"{assetName} təhkimdən çıxarıldı: {assignment.FromWorkerName}",
+                AssignmentAction.Reassigned => $"{assetName} yenidən təhkim olundu: {assignment.FromWorkerName} -> {assignment.ToWorkerName}",
+                _ => "Naməlum təhkimat əməliyyatı"
+            };
+            Icon = "🔄";
+        }
+
+        private void GenerateAssetLogSummary()
+        {
+            Icon = Log.status switch
+            {
+                "Yaradılan" => "✅",
+                "Dəyişdirilən" => "✏️",
+                "Silinən" => "❌",
+                _ => "ℹ️"
+            };
+
+            // --- THIS IS THE CORRECTED LOGIC ---
+            if (Log.status == "Dəyişdirilən" && !string.IsNullOrEmpty(Log.ChangeDetails))
+            {
+                var changes = new List<string>();
+                try
+                {
+                    using (JsonDocument doc = JsonDocument.Parse(Log.ChangeDetails))
+                    {
+                        var oldValues = doc.RootElement.GetProperty("OldValues").Deserialize<Dictionary<string, JsonElement>>();
+                        var newValues = doc.RootElement.GetProperty("NewValues").Deserialize<Dictionary<string, JsonElement>>();
+                        var allKeys = oldValues.Keys.Union(newValues.Keys).Distinct();
+
+                        foreach (var key in allKeys)
+                        {
+                            string oldValueStr = GetStringValue(oldValues, key);
+                            string newValueStr = GetStringValue(newValues, key);
+                            if (oldValueStr != newValueStr)
+                            {
+                                changes.Add(key); // Just add the name of the field that changed
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // If parsing fails for any reason, just show the simple description.
+                    Description = $"{Log.VesaitinAdi} - {Log.status}";
+                    return;
+                }
+
+                if (changes.Any())
+                {
+                    Description = $"{Log.VesaitinAdi} - Dəyişdirilən: {string.Join(", ", changes)}";
+                }
+                else
+                {
+                    Description = $"{Log.VesaitinAdi} - {Log.status} (dəyişiklik yoxdur)";
+                }
+            }
+            else
+            {
+                Description = $"{Log.VesaitinAdi} - {Log.status}";
+            }
+        }
+
+        private string GetStringValue(Dictionary<string, JsonElement> dict, string key)
+        {
+            if (dict.TryGetValue(key, out var element))
+            {
+                if (element.ValueKind == JsonValueKind.Null) return "";
+                return element.ToString();
+            }
+            return "";
+        }
+    }
+}

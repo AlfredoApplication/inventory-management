@@ -1,0 +1,34 @@
+﻿<Window x:Class="LoginAppFramework.ReportsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Hesabatlar" Height="300" Width="500"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{StaticResource AppBackgroundBrush}" FontFamily="Segoe UI"
+        Loaded="Window_Loaded">
+    <Grid Margin="25">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Hesabat Generatoru" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,10"/>
+
+        <TextBlock Grid.Row="1" Text="Zəhmət olmasa, yaratmaq istədiyiniz hesabat növünü seçin." TextWrapping="Wrap"/>
+
+        <ComboBox x:Name="ReportTypeComboBox" Grid.Row="2" Margin="0,15,0,0" Padding="5"/>
+
+        <TextBlock x:Name="StatusTextBlock" Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{StaticResource SubtleTextBrush}" TextWrapping="Wrap" TextAlignment="Center"/>
+
+        <Button x:Name="GenerateButton" Grid.Row="4" Content="PDF Yarat və Yadda Saxla" 
+                Style="{StaticResource PrimaryActionButton}" 
+                Padding="8"
+                Click="GenerateButton_Click"/>
+    </Grid>
+</Window>

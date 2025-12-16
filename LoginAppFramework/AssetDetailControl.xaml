@@ -1,0 +1,176 @@
+﻿<UserControl x:Class="LoginAppFramework.AssetDetailControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:LoginAppFramework"
+             mc:Ignorable="d" d:DesignHeight="700" d:DesignWidth="500"
+             FontFamily="Segoe UI" Background="{StaticResource PanelBackgroundBrush}">
+    <Grid>
+        <TextBlock x:Name="SelectAssetPrompt" Text="Məlumatları görmək üçün siyahıdan bir vəsait seçin." FontSize="18" Foreground="{StaticResource SubtleTextBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" Visibility="Visible"/>
+        <DockPanel x:Name="DetailViewPanel" Margin="20" Visibility="Collapsed">
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,15">
+                <Button x:Name="EditAssetButton" Content="Vəsaiti Dəyiş" Click="EditAssetButton_Click"/>
+                <Button x:Name="DeleteAssetButton" Content="Sil" Click="DeleteAssetButton_Click" Background="{StaticResource DangerBrush}" Foreground="{StaticResource PrimaryForegroundBrush}" Margin="10,0,0,0" ToolTip="Bu vəsait qeydini həmişəlik silin."/>
+                <Button x:Name="CloseDetailPanelButton" Content="&#xE8BB;" FontFamily="Segoe Fluent Icons" Click="CloseDetailPanelButton_Click" ToolTip="Detallı Görünüşü Bağla" Background="Transparent" BorderThickness="0" Foreground="#4A5568" FontSize="14" Width="32" Height="32" Margin="10,-5,-10,-5"/>
+            </StackPanel>
+            <TabControl>
+                <TabItem Header="Məlumatlar">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="10">
+                        <StackPanel>
+                            <TextBlock Text="Vəsait Məlumatı" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/>
+                            <Border BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="15" Margin="0,10,0,0">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" MinWidth="180"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Text="Vəsaitin Kodu:" FontWeight="SemiBold" Margin="0,0,10,10" VerticalAlignment="Center"/>
+                                    <Grid Grid.Row="0" Grid.Column="1">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock x:Name="VesaitinKoduValue" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                                        <Button x:Name="GenerateQrCodeButton" Grid.Column="1" Click="GenerateQrCodeButton_Click" Background="Transparent" BorderThickness="0" ToolTip="Bu vəsait üçün QR kod yarat">
+                                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE72D;" FontSize="18" Foreground="{StaticResource BodyTextBrush}"/>
+                                        </Button>
+                                    </Grid>
+
+                                    <TextBlock Grid.Row="1" Text="Vəsaitin Adı:" FontWeight="SemiBold" Margin="0,0,10,10" VerticalAlignment="Top"/>
+                                    <TextBlock x:Name="VesaitinAdiValue" Grid.Row="1" Grid.Column="1" TextWrapping="Wrap" VerticalAlignment="Top"/>
+
+                                    <TextBlock Grid.Row="2" Text="Seriya Nömrəsi:" FontWeight="SemiBold" Margin="0,0,10,10" VerticalAlignment="Top"/>
+                                    <TextBlock x:Name="SeriyaNomresiValue" Grid.Row="2" Grid.Column="1" TextWrapping="Wrap" VerticalAlignment="Top"/>
+
+                                    <TextBlock Grid.Row="3" Text="Kateqoriya:" FontWeight="SemiBold" Margin="0,0,10,10" VerticalAlignment="Top"/>
+                                    <TextBlock x:Name="KateqoriyaValue" Grid.Row="3" Grid.Column="1" TextWrapping="Wrap" VerticalAlignment="Top"/>
+
+                                    <TextBlock Grid.Row="4" Text="Bölmə/Şöbə:" FontWeight="SemiBold" Margin="0,0,10,10" VerticalAlignment="Top"/>
+                                    <TextBlock x:Name="DepartmentOrSectionValue" Grid.Row="4" Grid.Column="1" TextWrapping="Wrap" VerticalAlignment="Top"/>
+
+                                    <TextBlock Grid.Row="5" Text="Yerləşmə Yeri:" FontWeight="SemiBold" Margin="0,0,10,10" VerticalAlignment="Top"/>
+                                    <TextBlock x:Name="YerlesmeYeriValue" Grid.Row="5" Grid.Column="1" TextWrapping="Wrap" VerticalAlignment="Top"/>
+
+                                    <TextBlock Grid.Row="6" Text="Ərazi:" FontWeight="SemiBold" Margin="0,0,10,10" VerticalAlignment="Top"/>
+                                    <TextBlock x:Name="EraziValue" Grid.Row="6" Grid.Column="1" TextWrapping="Wrap" VerticalAlignment="Top"/>
+
+                                    <TextBlock Grid.Row="7" Text="Alınma Tarixi:" FontWeight="SemiBold" Margin="0,0,10,10" VerticalAlignment="Top"/>
+                                    <TextBlock x:Name="AlinmaTarixiValue" Grid.Row="7" Grid.Column="1" TextWrapping="Wrap" VerticalAlignment="Top"/>
+
+                                    <TextBlock Grid.Row="8" Text="Status:" FontWeight="SemiBold" Margin="0,0,10,10" VerticalAlignment="Top"/>
+                                    <TextBlock x:Name="StatusValue" Grid.Row="8" Grid.Column="1" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                                </Grid>
+                            </Border>
+                            <StackPanel x:Name="CustomFieldsSection" Margin="0,20,0,0" Visibility="Collapsed">
+                                <TextBlock Text="Kateqoriyaya Xas Məlumatlar" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/>
+                                <Border BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="15" Margin="0,10,0,0">
+                                    <StackPanel x:Name="CustomFieldsPanel"/>
+                                </Border>
+                            </StackPanel>
+                            <TextBlock Text="Təhkim Olunmuş İstifadəçi" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}" Margin="0,20,0,10"/>
+                            <Border x:Name="AssignedUserPanel" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="15" Visibility="Collapsed" MouseLeftButtonDown="AssignedUserPanel_MouseLeftButtonDown" Cursor="Hand" ToolTip="İstifadəçi məlumatlarına baxmaq üçün klikləyin">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <StackPanel Grid.Row="0" Orientation="Horizontal">
+                                        <TextBlock Text="&#xE716;" FontFamily="Segoe Fluent Icons" FontSize="48" VerticalAlignment="Center"/>
+                                        <StackPanel Margin="15,0,0,0" VerticalAlignment="Center">
+                                            <TextBlock x:Name="UserNameTextBlock" FontWeight="SemiBold" FontSize="18"/>
+                                            <TextBlock x:Name="UserPositionTextBlock" Foreground="#555"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+                                        <Button x:Name="ReassignButton" Content="Yenidən Təhkim et" Click="ReassignButton_Click"/>
+                                        <Button x:Name="UnassignButton" Content="Təhkimi Ləğv et" Click="UnassignButton_Click" Background="{StaticResource WarningBrush}" Foreground="{StaticResource PrimaryForegroundBrush}" Margin="10,0,0,0"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                            <Border x:Name="UnassignedUserPanel" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="25" Background="#FAFAFA" Visibility="Collapsed">
+                                <StackPanel>
+                                    <TextBlock Text="Bu vəsait hazırda heç kimə təhkim olunmayıb." TextAlignment="Center" Foreground="#555"/>
+                                    <Button x:Name="AssignButton" Content="İstifadəçiyə Təhkim et..." Click="AssignOrReassignButton_Click" Background="{StaticResource SuccessBrush}" Foreground="{StaticResource PrimaryForegroundBrush}" HorizontalAlignment="Center" Margin="0,15,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            <TextBlock Text="Təhkimat Tarixçəsi" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}" Margin="0,20,0,10"/>
+                            <ListView x:Name="HistoryListView" BorderThickness="1" BorderBrush="{StaticResource ControlBorderBrush}" MaxHeight="200">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="0,5">
+                                            <TextBlock><Run Text="{Binding Action, Converter={StaticResource ActionTextConverter}}"/><Run Text=" "/><Run Text="{Binding ToWorkerName}" FontWeight="Bold"/></TextBlock>
+                                            <TextBlock FontSize="11" Foreground="#777"><Run Text="tərəfindən "/><Run Text="{Binding ChangedBy, TargetNullValue='Sistem'}"/><Run Text=" - "/><Run Text="{Binding ChangeDate, StringFormat='yyyy-MM-dd hh:mm tt'}"/></TextBlock>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+                <TabItem Header="Maliyyə və Texniki Xidmət">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="10">
+                        <StackPanel>
+                            <TextBlock Text="Maliyyə Məlumatı" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/>
+                            <Border BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="15" Margin="0,10,0,0">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Alış Qiyməti:" FontWeight="SemiBold" Margin="0,0,10,10" VerticalAlignment="Top"/>
+                                    <TextBlock x:Name="PurchaseCostValue" Grid.Row="0" Grid.Column="1" VerticalAlignment="Top"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Təchizatçı:" FontWeight="SemiBold" Margin="0,0,10,10" VerticalAlignment="Top"/>
+                                    <TextBlock x:Name="SupplierValue" Grid.Row="1" Grid.Column="1" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Zəmanət Müddəti:" FontWeight="SemiBold" Margin="0,0,10,10" VerticalAlignment="Top"/>
+                                    <TextBlock x:Name="WarrantyValue" Grid.Row="2" Grid.Column="1" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="İstifadə müddəti:" FontWeight="SemiBold" Margin="0,10,10,10" VerticalAlignment="Top"/>
+                                    <TextBlock x:Name="UsefulLifeValue" Grid.Row="3" Grid.Column="1" Margin="0,10,0,0" VerticalAlignment="Top"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="İllik Amortizasiya:" FontWeight="SemiBold" Margin="0,0,10,10" VerticalAlignment="Top"/>
+                                    <TextBlock x:Name="AnnualDepreciationValue" Grid.Row="4" Grid.Column="1" VerticalAlignment="Top"/>
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Cari Dəyər:" FontWeight="SemiBold" Margin="0,0,10,10" VerticalAlignment="Top"/>
+                                    <TextBlock x:Name="CurrentValueValue" Grid.Row="5" Grid.Column="1" FontWeight="Bold" VerticalAlignment="Top"/>
+                                </Grid>
+                            </Border>
+                            <Grid Margin="0,20,0,10">
+                                <TextBlock Text="Texniki Xidmət Tarixçəsi" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}" VerticalAlignment="Center"/>
+                                <Button x:Name="AddMaintenanceButton" Content="Qeyd Əlavə et" HorizontalAlignment="Right" Click="AddMaintenanceButton_Click"/>
+                            </Grid>
+                            <ListView x:Name="MaintenanceListView" BorderThickness="1" BorderBrush="{StaticResource ControlBorderBrush}" MaxHeight="400"
+          MouseDoubleClick="MaintenanceListView_MouseDoubleClick">
+                                <ListView.View>
+                                    <GridView>
+                                        <GridViewColumn Header="Tarix" Width="120" DisplayMemberBinding="{Binding MaintenanceDate, StringFormat='yyyy-MM-dd'}"/>
+                                        <GridViewColumn Header="Növ" Width="100" DisplayMemberBinding="{Binding MaintenanceType}"/>
+                                        <GridViewColumn Header="Xərc" Width="80" DisplayMemberBinding="{Binding Cost, StringFormat=C}"/>
+                                        <GridViewColumn Header="Təsvir" Width="200" DisplayMemberBinding="{Binding Description}"/>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+            </TabControl>
+        </DockPanel>
+    </Grid>
+</UserControl>
