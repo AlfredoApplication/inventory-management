@@ -487,13 +487,6 @@ namespace LoginAppFramework
 
         #endregion
 
-        // ---- Selection helpers ----
-        private void SelectAllCheckBox_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is CheckBox headerCheckBox && headerCheckBox.IsChecked.HasValue)
-                _viewModel.SetAllVisibleChecked(headerCheckBox.IsChecked.Value);
-        }
-
         #region Menu Handlers
         private void OpenDetailPanel()
         {

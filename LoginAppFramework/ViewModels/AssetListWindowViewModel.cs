@@ -45,8 +45,11 @@ namespace LoginAppFramework
         public int CheckedCount => _allAssets.Count(vm => vm.IsChecked);
         public bool HasCheckedAssets => CheckedCount > 0;
         public string CheckedCountText => $"{CheckedCount} element işarələnib";
-        public bool AreAllVisibleChecked =>
-            VisibleAssets.Count > 0 && VisibleAssets.All(vm => vm.IsChecked);
+        public bool AreAllVisibleChecked
+        {
+            get => VisibleAssets.Count > 0 && VisibleAssets.All(vm => vm.IsChecked);
+            set => SetAllVisibleChecked(value);
+        }
 
         public void Refresh()
         {

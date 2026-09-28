@@ -230,7 +230,9 @@
                         <DataGrid.Columns>
                             <DataGridTemplateColumn Width="Auto">
                                 <DataGridTemplateColumn.Header>
-                                    <CheckBox x:Name="SelectAllCheckBox" Content="Seç" Click="SelectAllCheckBox_Click"/>
+                                    <CheckBox x:Name="SelectAllCheckBox"
+                                              Content="Seç"
+                                              IsChecked="{Binding DataContext.AreAllVisibleChecked, RelativeSource={RelativeSource AncestorType=Window}, Mode=TwoWay}"/>
                                 </DataGridTemplateColumn.Header>
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
