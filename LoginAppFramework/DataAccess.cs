@@ -25,25 +25,41 @@ namespace LoginAppFramework
         public static void SaveAppUser(AppUser user)
         {
             using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
-            if (user.Id > 0 && context.AppUsers.Any(u => u.Id != user.Id && u.Username.ToLower() == user.Username.ToLower()))
+
+            string normalizedUsername = user.Username?.Trim().ToLower();
+            bool duplicateUsername = context.AppUsers.Any(u =>
+                u.Id != user.Id &&
+                u.Username != null &&
+                u.Username.ToLower() == normalizedUsername);
+
+            if (duplicateUsername)
             {
-                throw new Exception($"An app user with the username '{user.Username}' already exists.");
+                throw new InvalidOperationException(
+                    $"An app user with the username '{user.Username}' already exists.");
             }
+
             if (user.Id > 0)
             {
                 var existingUser = context.AppUsers.Find(user.Id);
-                if (existingUser != null)
+                if (existingUser == null)
+                    throw new InvalidOperationException("The app user no longer exists.");
+
+                existingUser.Username = user.Username?.Trim();
+                existingUser.FullName = user.FullName;
+                existingUser.EmployeeCode = user.EmployeeCode;
+                existingUser.Role = user.Role;
+
+                if (!string.IsNullOrWhiteSpace(user.PasswordHash))
                 {
-                    existingUser.Username = user.Username;
-                    existingUser.FullName = user.FullName;
-                    existingUser.EmployeeCode = user.EmployeeCode;
-                    if (!string.IsNullOrWhiteSpace(user.PasswordHash))
-                    {
-                        existingUser.PasswordHash = user.PasswordHash;
-                    }
+                    existingUser.PasswordHash = user.PasswordHash;
                 }
             }
-            else { context.AppUsers.Add(user); }
+            else
+            {
+                user.Username = user.Username?.Trim();
+                context.AppUsers.Add(user);
+            }
+
             context.SaveChanges();
         }
 
