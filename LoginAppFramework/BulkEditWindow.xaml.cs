@@ -14,6 +14,17 @@ namespace LoginAppFramework
             InitializeComponent();
             InstructionText.Text = $"Seçilmiş {assetCount} element üçün dəyişdirmək istədiyiniz sahələrə YENİ dəyər daxil edin. Sahələri boş buraxmaq onların orijinal dəyərlərini saxlayacaq.";
             PopulateComboBoxes();
+            Loaded += Window_Loaded;
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (!SessionManager.CanEdit())
+            {
+                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                Close();
+                return;
+            }
         }
 
         private void PopulateComboBoxes()

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -16,6 +16,9 @@ namespace LoginAppFramework
         public event EventHandler<Asset> OnAssetDoubleClicked;
 
         private WorkerViewModel _currentWorker;
+        private bool _isReadOnlyMode = false;
+
+        public bool CanEditAssets => !_isReadOnlyMode;
 
         public WorkerAssetManager()
         {
@@ -43,7 +46,29 @@ namespace LoginAppFramework
                 DetailViewPanel.Visibility = Visibility.Collapsed;
                 DataContext = null;
             }
+            ApplyReadOnlyPermissions();
         }
+
+        public void SetReadOnlyMode(bool isReadOnly)
+        {
+            _isReadOnlyMode = isReadOnly;
+            ApplyReadOnlyPermissions();
+        }
+
+        private void ApplyReadOnlyPermissions()
+        {
+            bool canEdit = !_isReadOnlyMode;
+            AssignNewAssetButton.IsEnabled = canEdit;
+            // Force re-evaluation of CanEditAssets property for XAML bindings
+            OnPropertyChanged(nameof(CanEditAssets));
+        }
+
+        private void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+        }
+
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
 
         private void AssignedAssetsDataGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
@@ -55,11 +80,17 @@ namespace LoginAppFramework
 
         private void UnassignButton_Click(object sender, RoutedEventArgs e)
         {
+            if (_isReadOnlyMode)
+            {
+                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             if (sender is FrameworkElement { DataContext: Asset assetToUnassign } && _currentWorker != null &&
                 MessageBox.Show($"'{_currentWorker.Name}' adlı işçidən təhkimi ləğv etməyə əminsinizmi?", "Təsdiq", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
                 string oldUser = assetToUnassign.TehkimOlunanEmekdas;
-                assetToUnassign.Status = "Anbarda və İşlək";
+                assetToUnassign.Status = "Anbarda";
                 assetToUnassign.WorkerId = null;
                 assetToUnassign.TehkimOlunanEmekdas = null;
                 assetToUnassign.Vezifesi = null;
@@ -74,6 +105,12 @@ namespace LoginAppFramework
 
         private void AssignNewAssetButton_Click(object _, RoutedEventArgs e)
         {
+            if (_isReadOnlyMode)
+            {
+                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             if (_currentWorker == null) return;
             var availableAssets = AppData.GetAssets()
                    .Where(a => a.WorkerId == null && a.Status != "Arxivdə")

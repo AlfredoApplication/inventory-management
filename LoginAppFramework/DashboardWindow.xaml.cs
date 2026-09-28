@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -37,6 +37,7 @@ namespace LoginAppFramework
             _viewModel.LoadAllData(_allAssets, _allWorkers);
 
             UpdateUserDisplay();
+            ApplyRoleBasedPermissions();
             LoadingOverlay.Visibility = Visibility.Collapsed;
         }
 
@@ -152,17 +153,40 @@ namespace LoginAppFramework
         {
             if (SessionManager.CurrentUser != null)
             {
-                // This method no longer tries to change the icon, only the name.
                 UserProfileName.Text = SessionManager.CurrentUser.FullName;
+                // Display role instead of "Onlayn"
+                UserRoleDisplay.Text = SessionManager.CurrentUser.Role == "Admin" ? "Admin" : "Yalnız Baxış";
             }
-        }
-        private void ReportsButton_Click(object sender, RoutedEventArgs e)
-        {
-            NavigationManager.GoToReportsWindow();
         }
         private void UserProfileButton_Click(object _, RoutedEventArgs e) => UserSwitchPopup.IsOpen = true;
         private void ReturnToLogin() { NavigationManager.RestartApplication(); }
         private void SwitchUserButton_Click(object _, RoutedEventArgs e) => ReturnToLogin();
         private void LogoutButton_Click(object _, RoutedEventArgs e) => ReturnToLogin();
+
+        private void ApplyRoleBasedPermissions()
+        {
+            // Show User Management button only to Admins
+            if (SessionManager.IsAdmin())
+            {
+                UserManagementButton.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                UserManagementButton.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void UserManagementButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!SessionManager.CanManageUsers())
+            {
+                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var userManagementWindow = new UserManagementWindow { Owner = this };
+            userManagementWindow.ShowDialog();
+            CloseTheMenu();
+        }
     }
 }

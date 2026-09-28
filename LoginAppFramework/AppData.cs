@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace LoginAppFramework
@@ -55,7 +55,7 @@ namespace LoginAppFramework
                     }
                     else if (!asset.WorkerId.HasValue && asset.Status == "İstifadədədir")
                     {
-                        asset.Status = "Anbarda və İşlək";
+                        asset.Status = "Anbarda";
                         needsUpdate = true;
                     }
                     if (needsUpdate)

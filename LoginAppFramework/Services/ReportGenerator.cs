@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -338,6 +338,81 @@ namespace LoginAppFramework
                         table.Cell().ColumnSpan(4).AlignRight().PaddingTop(5).Text($"Departament Cəmi: {deptTotalValue:C}").Bold();
                     });
                 }
+            });
+        }
+
+        // ZƏMANƏT MÜDDƏTİ BİTƏN VƏ YA BİTMƏK ÜZRƏ OLAN VƏSAİTLƏR CƏDVƏLİ
+        public static void GenerateWarrantyExpirationReport(List<Asset> assets, string filePath)
+        {
+            // Sadece zəmanəti bitmiş və ya növbəti 30 gün ərzində bitəcək olan (və ya zəmanət tarixi bugünə qədər olan) vəsaitləri tapırıq.
+            // Arxivdə olanları çıxarırıq.
+            var expiringAssets = assets.Where(a => a.Status != "Arxivdə" && a.WarrantyExpirationDate != default(DateTime) && (a.WarrantyExpirationDate - DateTime.Today).TotalDays <= 30)
+                                       .OrderBy(a => a.WarrantyExpirationDate)
+                                       .ToList();
+
+            Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Margin(30);
+                    page.Header().Element(header => ComposeHeader(header, "Zəmanət Müddəti Bitən / Bitmək Üzrə Olan Avadanlıqlar"));
+                    page.Content().Element(content => ComposeContent_WarrantyExpiration(content, expiringAssets));
+                    page.Footer().Element(ComposeFooter);
+                });
+            }).GeneratePdf(filePath);
+        }
+
+        private static void ComposeContent_WarrantyExpiration(IContainer container, List<Asset> assets)
+        {
+            if (!assets.Any())
+            {
+                container.PaddingVertical(20).AlignCenter().Text("Təyin edilmiş parametrə uyğun (zəmanəti bitən və ya 30 gün qalmış) vəsait tapılmadı.").FontSize(14).FontColor(Colors.Grey.Medium);
+                return;
+            }
+
+            container.PaddingVertical(20).Column(column =>
+            {
+                column.Spacing(10);
+                column.Item().Text($"Cəmi Say: {assets.Count}").Bold().FontSize(12).FontColor(Colors.Red.Darken2);
+
+                column.Item().Table(table =>
+                {
+                    table.ColumnsDefinition(columns =>
+                    {
+                        columns.ConstantColumn(100);  // Kodu
+                        columns.RelativeColumn(3);    // Adı
+                        columns.RelativeColumn(2);    // Seriya Nömrəsi
+                        columns.ConstantColumn(100);  // Zəmanət Tarixi
+                        columns.ConstantColumn(80);   // Qalan Gün
+                    });
+
+                    // Başlıq
+                    table.Header(header =>
+                    {
+                        header.Cell().Background(Colors.Red.Lighten4).BorderBottom(1).Padding(4).Text("Vəsait Kodu").SemiBold();
+                        header.Cell().Background(Colors.Red.Lighten4).BorderBottom(1).Padding(4).Text("Adı").SemiBold();
+                        header.Cell().Background(Colors.Red.Lighten4).BorderBottom(1).Padding(4).Text("Seriya N. / Təchizatçı").SemiBold();
+                        header.Cell().Background(Colors.Red.Lighten4).BorderBottom(1).Padding(4).Text("Zəmanət Bitmə T.").SemiBold();
+                        header.Cell().Background(Colors.Red.Lighten4).BorderBottom(1).Padding(4).AlignCenter().Text("Qalan Gün").SemiBold();
+                    });
+
+                    // Sətirlər
+                    foreach (var asset in assets)
+                    {
+                        var remainingDays = Math.Ceiling((asset.WarrantyExpirationDate - DateTime.Today).TotalDays);
+                        string remainingText = remainingDays < 0 ? "Bitib" : $"{remainingDays} gün";
+                        var bgColor = remainingDays < 0 ? Colors.Red.Lighten5 : Colors.Orange.Lighten5;
+
+                        table.Cell().Background(bgColor).BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Padding(4).Text(asset.VesaitinKodu ?? "-").FontSize(10);
+                        table.Cell().Background(bgColor).BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Padding(4).Text(asset.Name ?? "-").FontSize(10);
+                        
+                        string supplierInfo = !string.IsNullOrEmpty(asset.Supplier) ? $" ({asset.Supplier})" : "";
+                        table.Cell().Background(bgColor).BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Padding(4).Text($"{asset.SerialNumber ?? "-"}{supplierInfo}").FontSize(9);
+                        
+                        table.Cell().Background(bgColor).BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Padding(4).Text(asset.WarrantyExpirationDate.ToString("dd.MM.yyyy")).FontSize(10).FontColor(Colors.Red.Darken3);
+                        table.Cell().Background(bgColor).BorderBottom(1).BorderColor(Colors.Grey.Lighten3).Padding(4).AlignCenter().Text(remainingText).FontSize(10).Bold().FontColor(Colors.Red.Darken4);
+                    }
+                });
             });
         }
     }

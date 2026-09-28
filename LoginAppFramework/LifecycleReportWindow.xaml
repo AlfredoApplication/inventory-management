@@ -1,4 +1,4 @@
-﻿<Window x:Class="LoginAppFramework.LifecycleReportWindow"
+<Window x:Class="LoginAppFramework.LifecycleReportWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -83,6 +83,14 @@
                             </StackPanel>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                 <TextBox x:Name="SearchBox" TextChanged="Filter_Changed" VerticalContentAlignment="Center" Width="200" ToolTip="Ad, İstifadəçi və ya Seriya üzrə axtarış..."/>
+                                <Button x:Name="ExportExcelButton" Click="ExportExcelButton_Click"
+                                        Margin="10,0,0,0" Padding="12,6" VerticalAlignment="Center"
+                                        ToolTip="Cari siyahını Excel faylı kimi ixrac edin">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="&#xE9F9;" FontFamily="Segoe Fluent Icons" FontSize="15" VerticalAlignment="Center" Margin="0,0,7,0"/>
+                                        <TextBlock Text="Excel-ə İxrac" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
 
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="20,0,0,0">
                                     <RadioButton x:Name="AllAssetsFilterButton" Content="Bütün" GroupName="LifecycleFilter" IsChecked="True" Click="Filter_Changed" VerticalAlignment="Center"/>
@@ -95,6 +103,7 @@
                     <ListView x:Name="AssetReportListView" BorderThickness="0" MouseDoubleClick="AssetReportListView_MouseDoubleClick" AlternationCount="2">
                         <ListView.View>
                             <GridView>
+                                <GridViewColumn Header="Vəsaitin Kodu" DisplayMemberBinding="{Binding VesaitinKodu}" Width="110"/>
                                 <GridViewColumn Header="Vəsaitin Adı" DisplayMemberBinding="{Binding Name}" Width="130"/>
                                 <GridViewColumn Header="Təhkim Olunmuş Əməkdaş" DisplayMemberBinding="{Binding AssignedUser, TargetNullValue=(Boşdur)}" Width="170"/>
                                 <GridViewColumn Header="Alış tarixi" DisplayMemberBinding="{Binding PurchaseDate, StringFormat=d}" Width="100"/>
@@ -178,13 +187,6 @@
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="&#xE81C;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center"/>
                         <TextBlock Text="Tarixçə" Margin="15,0,0,0"/>
-                    </StackPanel>
-                </Button>
-                <Button x:Name="ReportsButton" Click="ReportsButton_Click" Style="{StaticResource ModernNavButtonStyle}">
-                    <StackPanel Orientation="Horizontal">
-                        <!-- Bu ikon hesabatları təmsil edir -->
-                        <TextBlock Text="&#xE9F9;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center"/>
-                        <TextBlock Text="Hesabatlar" Margin="15,0,0,0"/>
                     </StackPanel>
                 </Button>
                 <Button x:Name="LifecycleReportButton" Style="{StaticResource ModernNavButtonStyle}" Background="#34495E" Click="LifecycleReportButton_Click">

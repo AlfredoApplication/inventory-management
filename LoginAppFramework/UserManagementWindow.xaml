@@ -16,8 +16,9 @@
         <ListView Grid.Row="1" x:Name="UsersListView" MaxHeight="200" Margin="0,0,0,15" SelectionChanged="UsersListView_SelectionChanged">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="Username" DisplayMemberBinding="{Binding Username}" Width="150"/>
-                    <GridViewColumn Header="Full Name" DisplayMemberBinding="{Binding FullName}" Width="150"/>
+                    <GridViewColumn Header="Username" DisplayMemberBinding="{Binding Username}" Width="120"/>
+                    <GridViewColumn Header="Full Name" DisplayMemberBinding="{Binding FullName}" Width="120"/>
+                    <GridViewColumn Header="Role" DisplayMemberBinding="{Binding Role}" Width="80"/>
                 </GridView>
             </ListView.View>
         </ListView>
@@ -28,11 +29,20 @@
                     <StackPanel>
                         <TextBlock Text="User Details" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,10"/>
                         <Label Content="Username:"/>
-                        <TextBox x:Name="UsernameTextBox"/>
+                        <TextBox x:Name="UsernameTextBox" Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"/>
                         <Label Content="Full Name:"/>
-                        <TextBox x:Name="FullNameTextBox" Margin="0,0,0,10"/>
+                        <TextBox x:Name="FullNameTextBox" Text="{Binding FullName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
                         <Label Content="Employee Code (e.g., per_kod):"/>
-                        <TextBox x:Name="EmployeeCodeTextBox" Margin="0,0,0,10"/>
+                        <TextBox x:Name="EmployeeCodeTextBox" Text="{Binding EmployeeCode, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+
+                        <Label Content="Rol:"/>
+                        <ComboBox x:Name="RoleComboBox" Margin="0,0,0,5">
+                            <ComboBoxItem Content="Admin" Tag="Admin"/>
+                            <ComboBoxItem Content="ReadOnly" Tag="ReadOnly"/>
+                        </ComboBox>
+                        <TextBlock Text="Admin: Tam giriş | ReadOnly: Yalnız baxış"
+                                   FontSize="11" FontStyle="Italic" Foreground="Gray" Margin="0,0,0,10"/>
+
                         <Label Content="Set/Change Password:"/>
                         <PasswordBox x:Name="PasswordBox"/>
                         <TextBlock Text="Leave blank to keep the current password unchanged." FontSize="11" FontStyle="Italic" Foreground="Gray"/>

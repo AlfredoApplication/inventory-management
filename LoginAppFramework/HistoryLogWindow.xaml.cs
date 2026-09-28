@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -33,6 +33,7 @@ namespace LoginAppFramework
 
             PopulateFilters();
             UpdatePagedView();
+            UpdateRestoreBar();
             UpdateUserDisplay();
         }
 
@@ -83,6 +84,7 @@ namespace LoginAppFramework
             _filteredHistoryEntries = filtered.ToList();
             _currentPage = 1;
             UpdatePagedView();
+            UpdateRestoreBar();
         }
 
         private void UpdatePagedView()
@@ -204,6 +206,79 @@ namespace LoginAppFramework
             ApplyFilters();
         }
 
+        // ─── Multi-select Restore ────────────────────────────────────────────
+
+        private void ItemCheckBox_Changed(object sender, RoutedEventArgs e)
+            => UpdateRestoreBar();
+
+        private void SelectAllDeletedCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            if (_filteredHistoryEntries == null) return;
+            foreach (var vm in _filteredHistoryEntries.Where(v => v.IsDeleted))
+                vm.IsSelected = true;
+            UpdateRestoreBar();
+        }
+
+        private void SelectAllDeletedCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (_filteredHistoryEntries == null) return;
+            foreach (var vm in _filteredHistoryEntries.Where(v => v.IsDeleted))
+                vm.IsSelected = false;
+            UpdateRestoreBar();
+        }
+
+        private void UpdateRestoreBar()
+        {
+            if (_allHistoryEntries == null) return;
+
+            // Count across ALL pages, not just the current page slice
+            int count = _allHistoryEntries.Count(v => v.IsDeleted && v.IsSelected);
+            bool anyDeleted = _allHistoryEntries.Any(v => v.IsDeleted);
+
+            RestoreActionBar.Visibility = anyDeleted ? Visibility.Visible : Visibility.Collapsed;
+            SelectedCountBadge.Text = $"{count} seçilib";
+            RestoreSelectedButton.IsEnabled = count > 0;
+        }
+
+        private async void RestoreSelectedButton_Click(object sender, RoutedEventArgs e)
+        {
+            var toRestore = _allHistoryEntries
+                .Where(v => v.IsDeleted && v.IsSelected && v.Log != null)
+                .ToList();
+
+            if (!toRestore.Any()) return;
+
+            var confirm = MessageBox.Show(
+                $"{toRestore.Count} vəsaiti bərpa etmək istəyirsiniz?\n\n" +
+                string.Join("\n", toRestore.Select(v => $"  • {v.Log.VesaitinAdi} ({v.Log.VesaitinKodu})")),
+                "Bərpanı Təsdiq Et",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (confirm != MessageBoxResult.Yes) return;
+
+            int success = 0, fail = 0;
+            foreach (var vm in toRestore)
+            {
+                bool ok = DataAccess.RestoreAssetFromLog(vm.Log);
+                if (ok) success++; else fail++;
+            }
+
+            string msg = $"{success} vəsait uğurla bərpa edildi.";
+            if (fail > 0) msg += $"\n{fail} vəsait bərpa edilə bilmədi (yuxarıda xəta mesajı göstərilib).";
+
+            MessageBox.Show(msg, "Bərpa Nəticəsi",
+                MessageBoxButton.OK,
+                success > 0 ? MessageBoxImage.Information : MessageBoxImage.Warning);
+
+            // Refresh list
+            await Task.Run(() => LoadAllHistory());
+            _filteredHistoryEntries = new List<HistoryLogViewModel>(_allHistoryEntries);
+            PopulateFilters();
+            UpdatePagedView();
+            UpdateRestoreBar();
+        }
+
         private void CloseTheMenu() { isMenuOpen = false; MenuOverlay.Visibility = Visibility.Collapsed; (FindResource("CloseMenu") as Storyboard)?.Begin(); }
         private void MenuButton_Click(object sender, RoutedEventArgs e) { if (isMenuOpen) CloseTheMenu(); else { isMenuOpen = true; UserSwitchPopup.IsOpen = false; MenuOverlay.Visibility = Visibility.Visible; (FindResource("OpenMenu") as Storyboard)?.Begin(); } }
         private void CloseMenuButton_Click(object sender, RoutedEventArgs e) => CloseTheMenu();
@@ -214,10 +289,6 @@ namespace LoginAppFramework
         private async void LifecycleReportButton_Click(object sender, RoutedEventArgs e) => await NavigationManager.GoToLifecycleReportWindow();
         private void UpdateUserDisplay() { if (SessionManager.CurrentUser != null) { UserProfileIcon.Text = SessionManager.CurrentUser.ProfilePicture; UserProfileName.Text = SessionManager.CurrentUser.FullName; } }
         private void UserProfileButton_Click(object sender, RoutedEventArgs e) => UserSwitchPopup.IsOpen = true;
-        private void ReportsButton_Click(object sender, RoutedEventArgs e)
-        {
-            NavigationManager.GoToReportsWindow();
-        }
         private void ReturnToLogin() { NavigationManager.RestartApplication(); }
         private void SwitchUserButton_Click(object sender, RoutedEventArgs e) => ReturnToLogin();
         private void LogoutButton_Click(object sender, RoutedEventArgs e) => ReturnToLogin();

@@ -12,6 +12,13 @@ namespace LoginAppFramework
         }
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            if (!SessionManager.CanEdit())
+            {
+                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                Close();
+                return;
+            }
+
             DepartmentComboBox.ItemsSource = AppData.GetWorkerDepartments();
             if (Worker.Id > 0)
             {

@@ -7,5 +7,6 @@
         public string PasswordHash { get; set; }
         public string FullName { get; set; }
         public string EmployeeCode { get; set; }
+        public string Role { get; set; } = "Admin"; // Default to Admin for backward compatibility
     }
 }

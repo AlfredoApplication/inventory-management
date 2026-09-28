@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -20,6 +20,13 @@ namespace LoginAppFramework
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            if (!SessionManager.CanEdit())
+            {
+                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                Close();
+                return;
+            }
+
             _availableWorkers = AppData.GetWorkers();
             CategoryComboBox.ItemsSource = AppData.GetDeviceCategories();
             DepartmentComboBox.ItemsSource = AppData.GetWorkerDepartments();
@@ -76,7 +83,7 @@ namespace LoginAppFramework
                 StatusComboBox.ItemsSource = manualStatuses;
                 if (Asset.Status == "İstifadədədir" || string.IsNullOrEmpty(Asset.Status))
                 {
-                    StatusComboBox.SelectedItem = "Anbarda və İşlək";
+                    StatusComboBox.SelectedItem = "Anbarda";
                 }
                 else
                 {
@@ -86,7 +93,7 @@ namespace LoginAppFramework
                     }
                     else
                     {
-                        StatusComboBox.SelectedItem = "Anbarda və İşlək";
+                        StatusComboBox.SelectedItem = "Anbarda";
                     }
                 }
                 StatusComboBox.IsEnabled = true;
@@ -130,7 +137,7 @@ namespace LoginAppFramework
             Asset.Name = Asset.VesaitinAdi;
             Asset.SerialNumber = Asset.ITAvadanliqlarininSeriyaNomresi;
 
-            if (Asset.UsefulLifeInYears <= 0) Asset.UsefulLifeInYears = 3;
+            if (Asset.UsefulLifeInYears <= 0) Asset.UsefulLifeInYears = 0;
 
             Asset.CustomFields.Clear();
             foreach (var child in CustomFieldsPanel.Children)

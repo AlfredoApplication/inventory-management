@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -49,6 +49,8 @@ namespace LoginAppFramework
             WorkerAssetManager.OnDetailPanelClosed += DetailControl_PanelClosed;
             WorkerAssetManager.OnAssetDoubleClicked += Manager_AssetDoubleClicked;
             LoadingOverlay.Visibility = Visibility.Collapsed;
+
+            ApplyRoleBasedPermissions();
         }
 
         private void Manager_AssetDoubleClicked(object sender, Asset e)
@@ -114,6 +116,12 @@ namespace LoginAppFramework
 
         private async void SyncWorkersButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!SessionManager.CanEdit())
+            {
+                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             var confirmResult = MessageBox.Show("This will synchronize with the remote HR database.\n\nContinue?", "Confirm Sync", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (confirmResult != MessageBoxResult.Yes) return;
             SyncWorkersButton.IsEnabled = false;
@@ -199,6 +207,12 @@ namespace LoginAppFramework
 
         private void BulkDeactivateButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!SessionManager.CanEdit())
+            {
+                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             var selectedVMs = WorkersDataGrid.SelectedItems.Cast<WorkerViewModel>().ToList();
             if (!selectedVMs.Any()) return;
             var result = MessageBox.Show($"Are you sure you want to DEACTIVATE {selectedVMs.Count} workers?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Warning);
@@ -213,6 +227,12 @@ namespace LoginAppFramework
 
         private void BulkActivateButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!SessionManager.CanEdit())
+            {
+                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             var selectedVMs = WorkersDataGrid.SelectedItems.Cast<WorkerViewModel>().ToList();
             if (!selectedVMs.Any()) return;
             var result = MessageBox.Show($"Are you sure you want to ACTIVATE {selectedVMs.Count} workers?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question);
@@ -238,7 +258,17 @@ namespace LoginAppFramework
             if (selectedDepts.Any()) { activeFilters.Add($"Dept: {string.Join(", ", selectedDepts)}"); }
             foreach (var filterText in activeFilters) { ActiveFiltersPanel.Children.Add(new Border { Background = Brushes.LightGray, CornerRadius = new CornerRadius(10), Margin = new Thickness(2), Padding = new Thickness(8, 3, 8, 3), Child = new TextBlock { Text = filterText, Foreground = Brushes.Black } }); }
         }
-        private void AddWorkerButton_Click(object _, RoutedEventArgs e) { var addWindow = new AddEditWorkerWindow { Owner = this }; if (addWindow.ShowDialog() == true) { DataAccess.SaveWorker(addWindow.Worker); RefreshAllDataAndFilters(); } }
+        private void AddWorkerButton_Click(object _, RoutedEventArgs e)
+        {
+            if (!SessionManager.CanEdit())
+            {
+                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var addWindow = new AddEditWorkerWindow { Owner = this };
+            if (addWindow.ShowDialog() == true) { DataAccess.SaveWorker(addWindow.Worker); RefreshAllDataAndFilters(); }
+        }
         private void Manager_EditWorker(object sender, Worker worker) { if (worker == null) return; var editWindow = new AddEditWorkerWindow(worker) { Owner = this }; if (editWindow.ShowDialog() == true) { DataAccess.SaveWorker(editWindow.Worker); RefreshAllDataAndFilters(); } }
         private void Manager_DeleteWorker(object sender, Worker worker) { if (worker == null) return; var result = MessageBox.Show($"Are you sure you want to permanently delete '{worker.per_adiper_soyadi}'?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Warning); if (result == MessageBoxResult.Yes) { DataAccess.DeleteWorker(worker); RefreshAllDataAndFilters(); } }
         private void WorkersDataGrid_MouseDoubleClick(object _, MouseButtonEventArgs e) { if (WorkersDataGrid.SelectedItem is WorkerViewModel selectedWorkerVM) { var detailWindow = new WorkerDetailWindow(selectedWorkerVM.GetModel(), AppData.GetAssets()) { Owner = this }; detailWindow.OnWorkerUpdated += RefreshAllDataAndFilters; detailWindow.ShowDialog(); } }
@@ -254,14 +284,24 @@ namespace LoginAppFramework
         private void UsersButton_Click(object _, RoutedEventArgs e) { CloseTheMenu(); }
         private async void AssetsButton_Click(object _, RoutedEventArgs e) { await NavigationManager.GoToAssetWindow(); }
         private async void HistoryLogButton_Click(object _, RoutedEventArgs e) { await NavigationManager.GoToHistoryLogWindow(); }
-        private void ReportsButton_Click(object sender, RoutedEventArgs e)
-        {
-            NavigationManager.GoToReportsWindow();
-        }
         private async void LifecycleReportButton_Click(object _, RoutedEventArgs e) { await NavigationManager.GoToLifecycleReportWindow(); }
         private void UserProfileButton_Click(object _, RoutedEventArgs e) => UserSwitchPopup.IsOpen = true;
         private void SwitchUserButton_Click(object _, RoutedEventArgs e) => ReturnToLogin();
         private void LogoutButton_Click(object _, RoutedEventArgs e) => ReturnToLogin();
         private void ReturnToLogin() { NavigationManager.RestartApplication(); }
+
+        private void ApplyRoleBasedPermissions()
+        {
+            bool canEdit = SessionManager.CanEdit();
+
+            // Disable editing buttons for read-only users
+            SyncWorkersButton.IsEnabled = canEdit;
+            AddWorkerButton.IsEnabled = canEdit;
+            BulkDeactivateButton.IsEnabled = canEdit;
+            BulkActivateButton.IsEnabled = canEdit;
+
+            // Pass to WorkerAssetManager control
+            WorkerAssetManager.SetReadOnlyMode(!canEdit);
+        }
     }
 }

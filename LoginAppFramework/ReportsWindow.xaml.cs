@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,7 +19,7 @@ namespace LoginAppFramework
             {
                 { "Ümumi İnventar Hesabatı", ReportGenerator.ReportType.FullInventory },
                 { "Departamentlər Üzrə Vəsait Hesabatı", ReportGenerator.ReportType.AssetsByDepartment },
-                // Buraya gələcəkdə yeni hesabatlar əlavə edə bilərsiniz
+                { "Zəmanəti Bitən / Bitmək Üzrə Olan Avadanlıqlar", ReportGenerator.ReportType.WarrantyExpiration }
             };
         }
 
@@ -44,7 +44,7 @@ namespace LoginAppFramework
             {
                 Filter = "PDF Sənədi|*.pdf",
                 Title = "PDF Hesabatını Yadda Saxla",
-                FileName = $"{selectedReportName}_{DateTime.Now:yyyyMMdd}.pdf"
+                FileName = $"{selectedReportName.Replace("/", "").Replace(" ", "_")}_{DateTime.Now:yyyyMMdd}.pdf"
             };
 
             if (saveFileDialog.ShowDialog() == true)
@@ -66,6 +66,9 @@ namespace LoginAppFramework
                             break;
                         case ReportGenerator.ReportType.AssetsByDepartment:
                             ReportGenerator.GenerateAssetsByDepartmentReport(allAssets, filePath);
+                            break;
+                        case ReportGenerator.ReportType.WarrantyExpiration:
+                            ReportGenerator.GenerateWarrantyExpirationReport(allAssets, filePath);
                             break;
                     }
 

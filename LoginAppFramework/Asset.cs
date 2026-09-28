@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -61,7 +61,7 @@ namespace LoginAppFramework
             set { /* This setter is now intentionally empty */ }
         }
 
-        [NotMapped] public Brush StatusColor => Status switch { "İstifadədədir" => Brushes.Green, "Anbarda və İşlək" => Brushes.DodgerBlue, "Anbarda və Xarab" => Brushes.OrangeRed, "Arxivdə" => Brushes.SlateGray, "İstifadəyə yararsız" => Brushes.Black, _ => Brushes.Gray };
+        [NotMapped] public Brush StatusColor => Status switch { "İstifadədədir" => Brushes.Green, "Anbarda" => Brushes.DodgerBlue, "Arxivdə" => Brushes.SlateGray, "İstifadəyə yararsız" => Brushes.Black, _ => Brushes.Gray };
         [NotMapped] public decimal AnnualDepreciation => UsefulLifeInYears > 0 ? PurchaseCost / UsefulLifeInYears : 0;
         [NotMapped] public decimal MonthlyDepreciation => AnnualDepreciation / 12;
         [NotMapped] public decimal CurrentValue { get { if (UsefulLifeInYears <= 0 || PurchaseCost <= 0) return PurchaseCost; decimal ageInYears = (decimal)(DateTime.Now - PurchaseDate).TotalDays / 365.25m; decimal totalDepreciation = AnnualDepreciation * ageInYears; decimal val = PurchaseCost - totalDepreciation; return val < 0 ? 0 : val; } }

@@ -1,4 +1,4 @@
-﻿using ClosedXML.Excel;
+using ClosedXML.Excel;
 using LoginAppFramework; // Artıq bu using əlavə olunub
 using Microsoft.Win32;
 using System;
@@ -84,6 +84,8 @@ namespace LoginAppFramework
             AssetDetailControl.OnAssignmentChanged += DetailControl_AssignmentChanged;
             LoadingOverlay.Visibility = Visibility.Collapsed;
             AssetDetailControl.OnDetailPanelClosed += DetailControl_PanelClosed;
+
+            ApplyRoleBasedPermissions();
         }
 
         #region Action Buttons (QR, Import, Export)
@@ -94,7 +96,7 @@ namespace LoginAppFramework
             if (isDetailPanelOpen) CloseDetailPanel();
         }
 
-        private void GenerateQrCodesButton_Click(object sender, RoutedEventArgs e)
+        private void GenerateBarcodesButton_Click(object sender, RoutedEventArgs e)
         {
             // 5. Seçilmiş yox, İŞARƏLƏNMİŞ vəsaitləri götürün
             var checkedAssets = _allCheckableAssets
@@ -136,6 +138,7 @@ namespace LoginAppFramework
                 {
                     using (var workbook = new XLWorkbook())
                     {
+                        // 1. Əsas "Vəsaitlər" Səhifəsi (Siyahı)
                         var worksheet = workbook.Worksheets.Add("Vəsaitlər");
 
                         var headers = new string[]
@@ -143,7 +146,7 @@ namespace LoginAppFramework
                         "Vəsaitin Kodu", "Vəsaitin Adı", "IT Seriya No", "Kateqoriya",
                         "Təhkim Olunan Əməkdaş", "Vəzifəsi", "Bölmə/Şöbə/Departament",
                         "Yerləşmə Yeri", "Ərazi", "Status", "Alış Qiyməti", "Alınma Tarixi",
-                        "İstifadə müddəti (İl)"
+                        "İstifadə müddəti (İl)", "Aylıq Amortizasiya"
                         };
                         for (int i = 0; i < headers.Length; i++)
                         {
@@ -167,10 +170,58 @@ namespace LoginAppFramework
                             worksheet.Cell(currentRow, 11).Value = asset.PurchaseCost;
                             worksheet.Cell(currentRow, 12).Value = asset.PurchaseDate > DateTime.MinValue ? asset.PurchaseDate.ToString("yyyy-MM-dd") : "";
                             worksheet.Cell(currentRow, 13).Value = asset.UsefulLifeInYears;
+                            worksheet.Cell(currentRow, 14).Value = asset.MonthlyDepreciation;
                             currentRow++;
                         }
 
                         worksheet.Columns().AdjustToContents();
+
+                        // 2. İkinci "Vəsait Tarixçəsi" Səhifəsi (History)
+                        var historySheet = workbook.Worksheets.Add("Vəsait Tarixçəsi");
+                        var historyHeaders = new string[]
+                        {
+                            "Vəsaitin Kodu", "Vəsaitin Adı", "IT Seriya No", "Əməliyyat",
+                            "Kimdən Alındı", "Kimə Verildi", "Dəyişikliyi Edən", "Dəyişiklik Tarixi"
+                        };
+                        for (int i = 0; i < historyHeaders.Length; i++)
+                        {
+                            historySheet.Cell(1, i + 1).Value = historyHeaders[i];
+                        }
+                        historySheet.Row(1).Style.Font.Bold = true;
+
+                        int historyRow = 2;
+                        foreach (var asset in assetsToExport)
+                        {
+                            if (asset.History != null && asset.History.Any())
+                            {
+                                foreach (var historyEntry in asset.History.OrderBy(h => h.ChangeDate))
+                                {
+                                    historySheet.Cell(historyRow, 1).Value = asset.VesaitinKodu;
+                                    historySheet.Cell(historyRow, 2).Value = asset.VesaitinAdi;
+                                    historySheet.Cell(historyRow, 3).Value = asset.ITAvadanliqlarininSeriyaNomresi;
+                                    
+                                    string actionText = historyEntry.Action switch
+                                    {
+                                        AssignmentAction.Assigned => "Təhkim edilib",
+                                        AssignmentAction.Reassigned => "Yenidən Təhkim edilib",
+                                        AssignmentAction.Unassigned => "Geri Alınıb",
+                                        _ => historyEntry.Action.ToString()
+                                    };
+                                    historySheet.Cell(historyRow, 4).Value = actionText;
+                                    
+                                    historySheet.Cell(historyRow, 5).Value = historyEntry.FromWorkerName ?? "-";
+                                    historySheet.Cell(historyRow, 6).Value = historyEntry.ToWorkerName ?? "-";
+                                    historySheet.Cell(historyRow, 7).Value = historyEntry.ChangedBy ?? "-";
+                                    historySheet.Cell(historyRow, 8).Value = historyEntry.ChangeDate.ToString("yyyy-MM-dd HH:mm");
+                                    
+                                    historyRow++;
+                                }
+                            }
+                        }
+
+                        historySheet.Columns().AdjustToContents();
+
+                        // Yekun saxlanma
                         workbook.SaveAs(saveFileDialog.FileName);
                     }
 
@@ -186,6 +237,12 @@ namespace LoginAppFramework
         // ImportButton_Click və ProcessExcelFile dəyişməz qalır
         private void ImportButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!SessionManager.CanEdit())
+            {
+                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             var openFileDialog = new OpenFileDialog { Title = "Import üçün Excel faylı seçin", Filter = "Excel Files (*.xlsx)|*.xlsx" };
             if (openFileDialog.ShowDialog() != true) return;
 
@@ -329,7 +386,7 @@ namespace LoginAppFramework
                     var asset = new Asset
                     {
                         VesaitinAdi = assetName,
-                        Status = "Anbarda və İşlək",
+                        Status = "Anbarda",
                         PurchaseDate = DateTime.Today,
                         UsefulLifeInYears = 0
                     };
@@ -394,6 +451,12 @@ namespace LoginAppFramework
         // Bütün Bulk... metodlarını yeniləyin
         private void BulkDeleteButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!SessionManager.CanDelete())
+            {
+                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             var checkedAssets = _allCheckableAssets.Where(vm => vm.IsChecked).Select(vm => vm.Asset).ToList();
             if (!checkedAssets.Any()) return;
 
@@ -407,6 +470,12 @@ namespace LoginAppFramework
 
         private void BulkEditButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!SessionManager.CanEdit())
+            {
+                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             var checkedAssets = _allCheckableAssets.Where(vm => vm.IsChecked).Select(vm => vm.Asset).ToList();
             if (!checkedAssets.Any()) return;
 
@@ -446,7 +515,7 @@ namespace LoginAppFramework
                             asset.TehkimOlunanEmekdas = null;
                             asset.Vezifesi = null;
                             asset.BolmeShobeDepartment = null;
-                            asset.Status = "Anbarda və İşlək";
+                            asset.Status = "Anbarda";
 
                             // Add unassignment history entry if there was a worker
                             if (!string.IsNullOrEmpty(oldWorkerName))
@@ -530,6 +599,12 @@ namespace LoginAppFramework
 
         private void BulkAssignButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!SessionManager.CanEdit())
+            {
+                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             var checkedAssets = _allCheckableAssets.Where(vm => vm.IsChecked).Select(vm => vm.Asset).ToList();
             if (!checkedAssets.Any())
             {
@@ -719,6 +794,12 @@ namespace LoginAppFramework
 
         private void AddAssetButton_Click(object _, RoutedEventArgs e)
         {
+            if (!SessionManager.CanEdit())
+            {
+                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             var newAsset = new Asset();
             var addWindow = new AddEditAssetWindow(newAsset) { Owner = this };
             if (addWindow.ShowDialog() == true) { RefreshDataAndSelection(addWindow.Asset.Id); }
@@ -911,10 +992,6 @@ namespace LoginAppFramework
         private async void UsersButton_Click(object _, RoutedEventArgs e) { await NavigationManager.GoToWorkerListWindow(); }
         private async void HistoryLogButton_Click(object _, RoutedEventArgs e) { await NavigationManager.GoToHistoryLogWindow(); }
         private async void LifecycleReportButton_Click(object _, RoutedEventArgs e) { await NavigationManager.GoToLifecycleReportWindow(); }
-        private void ReportsButton_Click(object sender, RoutedEventArgs e)
-        {
-            NavigationManager.GoToReportsWindow();
-        }
         private void UserProfileButton_Click(object _, RoutedEventArgs e) => UserSwitchPopup.IsOpen = true;
         private void SwitchUserButton_Click(object _, RoutedEventArgs e) => ReturnToLogin();
         private void LogoutButton_Click(object _, RoutedEventArgs e) => ReturnToLogin();
@@ -980,6 +1057,25 @@ namespace LoginAppFramework
         {
             // Trigger the main filter apply logic
             ApplyFilters();
+        }
+
+        private void ApplyRoleBasedPermissions()
+        {
+            bool canEdit = SessionManager.CanEdit();
+
+            // Disable editing buttons for read-only users
+            AddAssetButton.IsEnabled = canEdit;
+            BulkDeleteButton.IsEnabled = canEdit;
+            BulkEditButton.IsEnabled = canEdit;
+            BulkAssignButton.IsEnabled = canEdit;
+            ImportButton.IsEnabled = canEdit;
+
+            // QR and Export remain enabled (read-only users can use these)
+            // GenerateBarcodesButton.IsEnabled stays true
+            // ExportButton.IsEnabled stays true
+
+            // Pass permission to detail control
+            AssetDetailControl.SetReadOnlyMode(!canEdit);
         }
         #endregion
 

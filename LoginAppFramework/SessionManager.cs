@@ -13,6 +13,7 @@ namespace LoginAppFramework
         public string Username { get; set; }
         public string FullName { get; set; }
         public string ProfilePicture { get; set; }
+        public string Role { get; set; }
     }
 
     public static class SessionManager
@@ -41,8 +42,8 @@ namespace LoginAppFramework
                     CurrentUser = new SessionUser
                     {
                         Username = appUser.Username,
-                        FullName = appUser.FullName
-                        // The line for ProfilePicture has been removed.
+                        FullName = appUser.FullName,
+                        Role = appUser.Role ?? "Admin" // Default to Admin if role is null (backward compatibility)
                     };
                     return true;
                 }
@@ -52,6 +53,32 @@ namespace LoginAppFramework
             {
                 return false;
             }
+        }
+
+        // Role-based permission helper methods
+        public static bool IsAdmin()
+        {
+            return CurrentUser?.Role == "Admin";
+        }
+
+        public static bool IsReadOnly()
+        {
+            return CurrentUser?.Role == "ReadOnly";
+        }
+
+        public static bool CanEdit()
+        {
+            return IsAdmin();
+        }
+
+        public static bool CanDelete()
+        {
+            return IsAdmin();
+        }
+
+        public static bool CanManageUsers()
+        {
+            return IsAdmin();
         }
 
         public static void Logout()

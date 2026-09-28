@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -43,6 +43,13 @@ namespace LoginAppFramework
             set { _totalCurrentValue = value; OnPropertyChanged(nameof(TotalCurrentValue)); }
         }
 
+        private string _totalMonthlyDepreciation;
+        public string TotalMonthlyDepreciation
+        {
+            get => _totalMonthlyDepreciation;
+            set { _totalMonthlyDepreciation = value; OnPropertyChanged(nameof(TotalMonthlyDepreciation)); }
+        }
+
         public WorkerFilterViewModel(List<Worker> allWorkers)
         {
             var departments = AppData.GetWorkerDepartments().OrderBy(d => d);
@@ -61,10 +68,12 @@ namespace LoginAppFramework
             decimal purchaseCost = visibleWorkers.Sum(w => w.RawTotalPurchaseCost);
             decimal depreciation = visibleWorkers.Sum(w => w.RawTotalDepreciation);
             decimal currentValue = visibleWorkers.Sum(w => w.RawTotalCurrentValue);
+            decimal monthlyDepreciation = visibleWorkers.Sum(w => w.RawMonthlyDepreciation);
 
             TotalPurchaseCost = purchaseCost.ToString("C", culture);
             TotalDepreciation = depreciation.ToString("C", culture);
             TotalCurrentValue = currentValue.ToString("C", culture);
+            TotalMonthlyDepreciation = monthlyDepreciation.ToString("C", culture);
         }
 
         public void Clear()

@@ -43,10 +43,25 @@ namespace LoginAppFramework
 
             AssignedAssetsHeader.Text = $"Assigned Assets ({assignedAssets.Count})";
             AssignedAssetsListView.ItemsSource = assignedAssets;
+
+            // Apply permission checks
+            ApplyRoleBasedPermissions();
+        }
+
+        private void ApplyRoleBasedPermissions()
+        {
+            bool canEdit = SessionManager.CanEdit();
+            EditButton.IsEnabled = canEdit;
         }
 
         private void EditButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!SessionManager.CanEdit())
+            {
+                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             var editWindow = new AddEditWorkerWindow(_workerToShow) { Owner = this };
             if (editWindow.ShowDialog() == true)
             {

@@ -1,4 +1,4 @@
-﻿<Window x:Class="LoginAppFramework.DashboardWindow"
+<Window x:Class="LoginAppFramework.DashboardWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -14,19 +14,20 @@
     <Window.Resources>
         <Style x:Key="KpiPanelStyle" TargetType="Border">
             <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
-            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="CornerRadius" Value="12"/>
             <Setter Property="Padding" Value="20"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#20FFFFFF"/>
+            <Setter Property="Effect" Value="{StaticResource SoftDropShadow}"/>
         </Style>
 
         <Style x:Key="ChartPanelStyle" TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource PanelBackgroundBrush}"/>
-            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Background" Value="{StaticResource GlassBackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource GlassBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="CornerRadius" Value="16"/>
             <Setter Property="Padding" Value="25"/>
-            <Setter Property="Effect">
-                <Setter.Value>
-                    <DropShadowEffect ShadowDepth="1" BlurRadius="15" Opacity="0.1" Color="Black"/>
-                </Setter.Value>
-            </Setter>
+            <Setter Property="Effect" Value="{StaticResource SoftDropShadow}"/>
         </Style>
 
         <Style x:Key="ChartTitleStyle" TargetType="TextBlock">
@@ -44,12 +45,31 @@
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
             <Setter Property="Padding" Value="15,12"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
-                    <Setter Property="Foreground" Value="White"/>
-                </Trigger>
-            </Style.Triggers>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <EventTrigger RoutedEvent="MouseEnter">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="border" Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)" To="#16A085" Duration="0:0:0.15"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                            <EventTrigger RoutedEvent="MouseLeave">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="border" Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)" To="Transparent" Duration="0:0:0.15"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <Style x:Key="ClickableKpiRowStyle" TargetType="Button">
@@ -76,7 +96,10 @@
 
     <Grid>
         <DockPanel>
-            <Border DockPanel.Dock="Top" Background="{StaticResource PanelBackgroundBrush}" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="0,0,0,1" Padding="15">
+            <Border DockPanel.Dock="Top" Background="{StaticResource GlassBackgroundBrush}" BorderBrush="{StaticResource GlassBorderBrush}" BorderThickness="0,0,0,1" Padding="15">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.05" Direction="270"/>
+                </Border.Effect>
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -250,7 +273,7 @@
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="Maddi Vəsaitlər" Foreground="White" FontSize="14" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="0" Text="Maddi Aktiv" Foreground="White" FontSize="14" VerticalAlignment="Center"/>
                                         <TextBlock Grid.Column="1" Text="{Binding TangibleAssetsCost}" FontSize="20" FontWeight="Bold" Foreground="White"/>
                                     </Grid>
                                 </Button>
@@ -261,7 +284,7 @@
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="Qeyri-Maddi Vəsaitlər" Foreground="White" FontSize="14" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="0" Text="Qeyri-Maddi Aktiv" Foreground="White" FontSize="14" VerticalAlignment="Center"/>
                                         <TextBlock Grid.Column="1" Text="{Binding IntangibleAssetsCost}" FontSize="20" FontWeight="Bold" Foreground="White"/>
                                     </Grid>
                                 </Button>
@@ -416,17 +439,16 @@
                         <TextBlock Text="Tarixçə" Margin="15,0,0,0"/>
                     </StackPanel>
                 </Button>
-                <Button x:Name="ReportsButton" Click="ReportsButton_Click" Style="{StaticResource ModernNavButtonStyle}">
-                    <StackPanel Orientation="Horizontal">
-                        <!-- Bu ikon hesabatları təmsil edir -->
-                        <TextBlock Text="&#xE9F9;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center"/>
-                        <TextBlock Text="Hesabatlar" Margin="15,0,0,0"/>
-                    </StackPanel>
-                </Button>
                 <Button x:Name="LifecycleReportButton" Click="LifecycleReportButton_Click" Style="{StaticResource ModernNavButtonStyle}">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="&#xE78B;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center"/>
                         <TextBlock Text="Həyat Dövrü Hesabatı" Margin="15,0,0,0"/>
+                    </StackPanel>
+                </Button>
+                <Button x:Name="UserManagementButton" Click="UserManagementButton_Click" Style="{StaticResource ModernNavButtonStyle}" Visibility="Collapsed">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE77B;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center"/>
+                        <TextBlock Text="İstifadəçi İdarəetməsi" Margin="15,0,0,0"/>
                     </StackPanel>
                 </Button>
             </StackPanel>
@@ -437,7 +459,7 @@
                         <TextBlock x:Name="UserProfileIcon" Text="&#xE77B;" FontFamily="Segoe MDL2 Assets" FontSize="28" VerticalAlignment="Center"/>
                         <StackPanel Margin="10,0,0,0">
                             <TextBlock x:Name="UserProfileName" Text="Admin User" Foreground="White" FontWeight="SemiBold"/>
-                            <TextBlock Text="Onlayn" Foreground="LightGreen"/>
+                            <TextBlock x:Name="UserRoleDisplay" Text="Admin" Foreground="LightGreen"/>
                         </StackPanel>
                     </StackPanel>
                 </Button>
@@ -462,10 +484,10 @@
                 </StackPanel>
             </Border>
         </Popup>
-        <Border x:Name="LoadingOverlay" Background="#AAFFFFFF" Visibility="Collapsed">
+        <Border x:Name="LoadingOverlay" Background="{StaticResource GlassBackgroundBrush}" Visibility="Collapsed">
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                <TextBlock Text="İdarə paneli yüklənir..." FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource BodyTextBrush}"/>
-                <TextBlock Text="Zəhmət olmasa, məlumatlar hazırlanarkən gözləyin." Foreground="{StaticResource SubtleTextBrush}" HorizontalAlignment="Center"/>
+                <TextBlock Text="İdarə paneli yüklənir..." FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/>
+                <TextBlock Text="Zəhmət olmasa, məlumatlar hazırlanarkən gözləyin." Foreground="{StaticResource BodyTextBrush}" HorizontalAlignment="Center"/>
             </StackPanel>
         </Border>
     </Grid>

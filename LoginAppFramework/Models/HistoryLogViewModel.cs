@@ -1,12 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 
 namespace LoginAppFramework
 {
-    public class HistoryLogViewModel
+    public class HistoryLogViewModel : INotifyPropertyChanged
     {
         public AssetLog Log { get; }
         public AssignmentHistoryEntry Assignment { get; }
@@ -16,6 +18,19 @@ namespace LoginAppFramework
         public DateTime Timestamp { get; private set; }
         public string Icon { get; private set; }
         public string Status { get; private set; }
+
+        public bool IsDeleted => Log?.status == "Silinən";
+
+        private bool _isSelected;
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set { _isSelected = value; OnPropertyChanged(); }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void OnPropertyChanged([CallerMemberName] string name = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
         public HistoryLogViewModel(AssetLog log)
         {

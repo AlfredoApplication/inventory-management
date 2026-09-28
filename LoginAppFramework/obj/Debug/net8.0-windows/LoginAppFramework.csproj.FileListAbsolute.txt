@@ -573,3 +573,6 @@ C:\Users\reshad\Desktop\LoginAppFramework\LoginAppFramework V2 - main\LoginAppFr
 C:\Users\reshad\Desktop\LoginAppFramework\LoginAppFramework V2 - main\LoginAppFramework\obj\Debug\net8.0-windows\LoginAppFramework.pdb
 C:\Users\reshad\Desktop\LoginAppFramework\LoginAppFramework V2 - main\LoginAppFramework\obj\Debug\net8.0-windows\LoginAppFramework.genruntimeconfig.cache
 C:\Users\reshad\Desktop\LoginAppFramework\LoginAppFramework V2 - main\LoginAppFramework\obj\Debug\net8.0-windows\ref\LoginAppFramework.dll
+C:\Users\reshad\Desktop\LoginAppFramework\LoginAppFramework V2 - main\LoginAppFramework\obj\Debug\net8.0-windows\LoginAppFramework.sourcelink.json
+c:\Users\reshad\Desktop\LoginAppFramework\LoginAppFramework V2 - main\LoginAppFramework\bin\Debug\net8.0-windows\zxing.dll
+c:\Users\reshad\Desktop\LoginAppFramework\LoginAppFramework V2 - main\LoginAppFramework\bin\Debug\net8.0-windows\ZXing.Windows.Compatibility.dll

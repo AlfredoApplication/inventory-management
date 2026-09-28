@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -18,6 +18,7 @@ namespace LoginAppFramework
 
         private Asset _currentAsset;
         private List<Worker> _allWorkers;
+        private bool _isReadOnlyMode = false;
 
         public AssetDetailControl()
         {
@@ -57,11 +58,24 @@ namespace LoginAppFramework
 
         private void AddMaintenanceButton_Click(object sender, RoutedEventArgs e)
         {
+            if (_isReadOnlyMode)
+            {
+                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             OpenMaintenanceWindow();
         }
 
         private void MaintenanceListView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
+            if (_isReadOnlyMode)
+            {
+                // Allow viewing but show message that editing is not allowed
+                MessageBox.Show("Yalnız baxış rejimində redaktə edə bilməzsiniz.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
             if (MaintenanceListView.SelectedItem is MaintenanceRecord selectedRecord)
             {
                 OpenMaintenanceWindow(selectedRecord);
@@ -101,15 +115,16 @@ namespace LoginAppFramework
             YerlesmeYeriValue.Text = _currentAsset.YerleshmeYeri ?? "N/A";
             EraziValue.Text = _currentAsset.Erazi ?? "N/A";
 
-            GenerateQrCodeButton.IsEnabled = !string.IsNullOrEmpty(_currentAsset.VesaitinKodu);
+            GenerateBarcodeButton.IsEnabled = !string.IsNullOrEmpty(_currentAsset.VesaitinKodu);
 
             PopulateCustomFields();
             PopulateUserInfo();
             HistoryListView.ItemsSource = _currentAsset.History?.OrderByDescending(h => h.ChangeDate).ToList();
             PopulateFinancialsAndMaintenance();
+            ApplyReadOnlyPermissions();
         }
 
-        private void GenerateQrCodeButton_Click(object sender, RoutedEventArgs e)
+        private void GenerateBarcodeButton_Click(object sender, RoutedEventArgs e)
         {
             if (_currentAsset != null && !string.IsNullOrEmpty(_currentAsset.VesaitinKodu))
             {
@@ -135,8 +150,35 @@ namespace LoginAppFramework
             }
         }
 
+        public void SetReadOnlyMode(bool isReadOnly)
+        {
+            _isReadOnlyMode = isReadOnly;
+            ApplyReadOnlyPermissions();
+        }
+
+        private void ApplyReadOnlyPermissions()
+        {
+            bool canEdit = !_isReadOnlyMode;
+
+            EditAssetButton.IsEnabled = canEdit;
+            DeleteAssetButton.IsEnabled = canEdit;
+            AssignButton.IsEnabled = canEdit;
+            ReassignButton.IsEnabled = canEdit;
+            UnassignButton.IsEnabled = canEdit;
+            AddMaintenanceButton.IsEnabled = canEdit;
+
+            // QR code generation remains enabled
+            // GenerateBarcodeButton.IsEnabled stays true
+        }
+
         private void AssignOrReassignButton_Click(object sender, RoutedEventArgs e)
         {
+            if (_isReadOnlyMode)
+            {
+                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             if (_currentAsset == null) return;
             var availableWorkers = _allWorkers.Where(w => w.IsActive).ToList();
             var selectWindow = new SelectWorkerWindow(availableWorkers) { Owner = Window.GetWindow(this) };
@@ -161,10 +203,16 @@ namespace LoginAppFramework
 
         private void UnassignButton_Click(object sender, RoutedEventArgs e)
         {
+            if (_isReadOnlyMode)
+            {
+                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             if (_currentAsset != null && MessageBox.Show($"'{_currentAsset.TehkimOlunanEmekdas}' adlı işçidən təhkimi ləğv etməyə əminsinizmi?", "Təsdiq", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
                 string oldUser = _currentAsset.TehkimOlunanEmekdas;
-                _currentAsset.Status = "Anbarda və İşlək";
+                _currentAsset.Status = "Anbarda";
                 _currentAsset.WorkerId = null;
                 _currentAsset.TehkimOlunanEmekdas = null;
                 _currentAsset.Vezifesi = null;
@@ -203,6 +251,12 @@ namespace LoginAppFramework
 
         private void DeleteAssetButton_Click(object sender, RoutedEventArgs e)
         {
+            if (_isReadOnlyMode)
+            {
+                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             if (_currentAsset != null)
             {
                 OnAssetDeleted?.Invoke(this, _currentAsset);

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
@@ -88,7 +88,9 @@ namespace LoginAppFramework
                         p.per_kod, 
                         LTRIM(RTRIM(p.per_adi + ' ' + p.per_soyadi)) AS per_adiper_soyadi,
                         g.pgk_gorev_adi, 
-                        d.pdp_adi
+                        d.pdp_adi,
+                        -- 1899 means no exit date (active), any other year means inactive
+                        CASE WHEN YEAR(p.per_cikis_tar) = 1899 THEN 1 ELSE 0 END AS is_active_flag
                     FROM 
                         [SRV50_29].[MikroDB_V16_01].[dbo].PERSONELLER AS p
                         LEFT JOIN [SRV50_29].[MikroDB_V16_01].[dbo].PERSONEL_GOREV_TANIMLARI AS g ON p.per_kim_gorev = g.pgk_gorev_kodu
@@ -98,19 +100,19 @@ namespace LoginAppFramework
 
                 WHEN MATCHED AND (
                     T.per_adiper_soyadi <> S.per_adiper_soyadi COLLATE DATABASE_DEFAULT OR
-                    T.pgk_gorev_adi <> S.pgk_gorev_adi COLLATE DATABASE_DEFAULT OR
-                    T.pdp_adi <> S.pdp_adi COLLATE DATABASE_DEFAULT OR
-                    T.IsActive = 0
+                    T.pgk_gorev_adi    <> S.pgk_gorev_adi    COLLATE DATABASE_DEFAULT OR
+                    T.pdp_adi          <> S.pdp_adi          COLLATE DATABASE_DEFAULT OR
+                    T.IsActive         <> S.is_active_flag
                 ) THEN
                     UPDATE SET 
                         T.per_adiper_soyadi = S.per_adiper_soyadi,
-                        T.pgk_gorev_adi = S.pgk_gorev_adi,
-                        T.pdp_adi = S.pdp_adi,
-                        T.IsActive = 1
+                        T.pgk_gorev_adi     = S.pgk_gorev_adi,
+                        T.pdp_adi           = S.pdp_adi,
+                        T.IsActive          = S.is_active_flag
 
                 WHEN NOT MATCHED BY TARGET THEN
                     INSERT (per_kod, per_adiper_soyadi, pgk_gorev_adi, pdp_adi, IsActive)
-                    VALUES (S.per_kod, S.per_adiper_soyadi, S.pgk_gorev_adi, S.pdp_adi, 1)
+                    VALUES (S.per_kod, S.per_adiper_soyadi, S.pgk_gorev_adi, S.pdp_adi, S.is_active_flag)
 
                 WHEN NOT MATCHED BY SOURCE AND T.IsActive = 1 THEN 
                     UPDATE SET T.IsActive = 0;
@@ -124,11 +126,52 @@ namespace LoginAppFramework
         public static List<Asset> GetAllAssets()
         {
             using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
-            return context.Assets
+            var assets = context.Assets
                 .Include(a => a.Worker)
                 .Include(a => a.History)
                 .OrderBy(a => a.Id)
                 .ToList();
+
+            // --- AUTO-MIGRATION: Merge old statuses to "Anbarda" ---
+            bool needsDBSave = false;
+            
+            // 1. Update Asset records
+            var oldWarehouseAssets = assets.Where(a => a.Status == "Anbarda və İşlək" || a.Status == "Anbarda və Xarab").ToList();
+            if (oldWarehouseAssets.Any())
+            {
+                foreach (var a in oldWarehouseAssets) { a.Status = "Anbarda"; }
+                needsDBSave = true;
+            }
+
+            // 2. Update AssetStatus definitions
+            var statusTable = context.AssetStatuses.ToList();
+            var oldStatusRecords = statusTable.Where(s => s.Name == "Anbarda və İşlək" || s.Name == "Anbarda və Xarab").ToList();
+            if (oldStatusRecords.Any())
+            {
+                // If "Anbarda" doesn't exist yet, rename one of them
+                if (!statusTable.Any(s => s.Name == "Anbarda"))
+                {
+                    var first = oldStatusRecords.First();
+                    first.Name = "Anbarda";
+                    first.ColorHexCode = "#1E90FF"; // DodgerBlue
+                    context.AssetStatuses.Update(first);
+                    oldStatusRecords.Remove(first);
+                }
+                
+                // Remove the remaining old ones
+                if (oldStatusRecords.Any())
+                {
+                    context.AssetStatuses.RemoveRange(oldStatusRecords);
+                }
+                needsDBSave = true;
+            }
+
+            if (needsDBSave)
+            {
+                context.SaveChanges();
+            }
+
+            return assets;
         }
 
         public static List<AssignmentHistoryEntry> GetAssignmentHistoryEntries()
@@ -295,7 +338,7 @@ namespace LoginAppFramework
                     BolmeShobeDepartment = logEntry.BolmeShobeDepartment,
                     YerleshmeYeri = logEntry.YerleshmeYeri,
                     Erazi = logEntry.Erazi,
-                    Status = "Anbarda və İşlək"
+                    Status = "Anbarda"
                 };
                 context.Assets.Add(assetToRestore);
                 var logToDelete = context.AssetLogs.FirstOrDefault(log =>

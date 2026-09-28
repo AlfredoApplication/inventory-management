@@ -1,4 +1,4 @@
-﻿<Window x:Class="LoginAppFramework.AssetWindow"
+<Window x:Class="LoginAppFramework.AssetWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:LoginAppFramework"
@@ -34,12 +34,31 @@
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
             <Setter Property="Padding" Value="15,12"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#34495E"/>
-                    <Setter Property="Foreground" Value="White"/>
-                </Trigger>
-            </Style.Triggers>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <EventTrigger RoutedEvent="MouseEnter">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="border" Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)" To="#16A085" Duration="0:0:0.15"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                            <EventTrigger RoutedEvent="MouseLeave">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="border" Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)" To="Transparent" Duration="0:0:0.15"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
         <Storyboard x:Key="OpenMenu">
             <DoubleAnimation Storyboard.TargetName="SlideOutMenu" Storyboard.TargetProperty="Width" To="260" Duration="0:0:0.3"/>
@@ -56,7 +75,10 @@
 
     <Grid>
         <DockPanel>
-            <Border DockPanel.Dock="Top" Background="{StaticResource PanelBackgroundBrush}" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="0,0,0,1" Padding="15">
+            <Border DockPanel.Dock="Top" Background="{StaticResource GlassBackgroundBrush}" BorderBrush="{StaticResource GlassBorderBrush}" BorderThickness="0,0,0,1" Padding="15">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.05" Direction="270"/>
+                </Border.Effect>
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -102,7 +124,7 @@
                     <ColumnDefinition Width="Auto" MinWidth="280" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Border Grid.Column="0" Background="{StaticResource PanelBackgroundBrush}" Padding="15" BorderThickness="0,0,1,0" BorderBrush="{StaticResource ControlBorderBrush}">
+                <Border Grid.Column="0" Background="{StaticResource GlassBackgroundBrush}" Padding="15" BorderThickness="0,0,1,0" BorderBrush="{StaticResource GlassBorderBrush}">
                     <DockPanel>
                         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Right">
                             <TextBlock Text="FILTRLƏR" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryTextBrush}" VerticalAlignment="Center"/>
@@ -171,10 +193,10 @@
                             <Button x:Name="BulkDeleteButton" Content="Seçilmişləri Sil" Click="BulkDeleteButton_Click" Background="{StaticResource DangerBrush}" Foreground="{StaticResource PrimaryForegroundBrush}" Padding="8,4" Margin="0,0,10,0"/>
                             <Button x:Name="BulkEditButton" Content="Seçilmişləri Dəyiş" Click="BulkEditButton_Click" Style="{StaticResource PrimaryActionButton}" Padding="8,4" Margin="0,0,10,0"/>
                             <Button x:Name="BulkAssignButton" Content="Seçilmişləri Təhkim et..." Click="BulkAssignButton_Click" Background="{StaticResource SuccessBrush}" Foreground="{StaticResource PrimaryForegroundBrush}" Padding="8,4" Margin="0,0,10,0"/>
-                            <Button x:Name="GenerateQrCodesButton" Click="GenerateQrCodesButton_Click" Style="{StaticResource PrimaryActionButton}" Padding="8,4">
+                            <Button x:Name="GenerateBarcodesButton" Click="GenerateBarcodesButton_Click" Style="{StaticResource PrimaryActionButton}" Padding="8,4">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE72D;" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                    <TextBlock Text="QR Kod Yarat"/>
+                                    <TextBlock Text="Barkod Çap Et"/>
                                 </StackPanel>
                             </Button>
                         </StackPanel>
@@ -311,7 +333,7 @@
                     </DataGrid>
                     <TextBlock Grid.Row="2" x:Name="NoResultsTextBlock" Text="Heç bir vəsait tapılmadı." Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Grid>
-                <Border Grid.Column="1" x:Name="DetailPanelContainer" HorizontalAlignment="Right" Width="0" Background="{StaticResource PanelBackgroundBrush}" BorderThickness="1,0,0,0" BorderBrush="{StaticResource ControlBorderBrush}">
+                <Border Grid.Column="1" x:Name="DetailPanelContainer" HorizontalAlignment="Right" Width="0" Background="{StaticResource GlassBackgroundBrush}" BorderThickness="1,0,0,0" BorderBrush="{StaticResource GlassBorderBrush}">
                     <Border.Effect>
                         <DropShadowEffect ShadowDepth="0" BlurRadius="20" Opacity="0.1" Direction="-90"/>
                     </Border.Effect>
@@ -355,13 +377,6 @@
                         <TextBlock Text="Tarixçə" Margin="15,0,0,0"/>
                     </StackPanel>
                 </Button>
-                <Button x:Name="ReportsButton" Click="ReportsButton_Click" Style="{StaticResource ModernNavButtonStyle}">
-                    <StackPanel Orientation="Horizontal">
-                        <!-- Bu ikon hesabatları təmsil edir -->
-                        <TextBlock Text="&#xE9F9;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center"/>
-                        <TextBlock Text="Hesabatlar" Margin="15,0,0,0"/>
-                    </StackPanel>
-                </Button>
                 <Button x:Name="LifecycleReportButton" Click="LifecycleReportButton_Click" Style="{StaticResource ModernNavButtonStyle}">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="&#xE78B;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center"/>
@@ -401,10 +416,10 @@
                 </StackPanel>
             </Border>
         </Popup>
-        <Border x:Name="LoadingOverlay" Background="#AAFFFFFF" Visibility="Collapsed">
+        <Border x:Name="LoadingOverlay" Background="{StaticResource GlassBackgroundBrush}" Visibility="Collapsed">
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                <TextBlock Text="Vəsaitlər Yüklənir..." FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource BodyTextBrush}"/>
-                <TextBlock Text="Zəhmət olmasa, məlumatlar hazırlanarkən gözləyin." Foreground="{StaticResource SubtleTextBrush}" HorizontalAlignment="Center"/>
+                <TextBlock Text="Vəsaitlər Yüklənir..." FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/>
+                <TextBlock Text="Zəhmət olmasa, məlumatlar hazırlanarkən gözləyin." Foreground="{StaticResource BodyTextBrush}" HorizontalAlignment="Center"/>
             </StackPanel>
         </Border>
     </Grid>

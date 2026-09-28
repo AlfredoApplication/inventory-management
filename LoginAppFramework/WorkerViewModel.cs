@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
@@ -22,11 +22,13 @@ namespace LoginAppFramework
         public string TotalAssetValue { get; private set; }
         public string TotalPurchaseCost { get; private set; }
         public string TotalDepreciation { get; private set; }
+        public string MonthlyDepreciation { get; private set; }
 
         // --- NEW RAW DECIMAL PROPERTIES (for calculations) ---
         public decimal RawTotalCurrentValue { get; private set; }
         public decimal RawTotalPurchaseCost { get; private set; }
         public decimal RawTotalDepreciation { get; private set; }
+        public decimal RawMonthlyDepreciation { get; private set; }
 
         public WorkerViewModel(Worker worker, List<Asset> assignedAssets)
         {
@@ -39,10 +41,12 @@ namespace LoginAppFramework
                 RawTotalCurrentValue = assignedAssets.Sum(a => a.CurrentValue);
                 RawTotalPurchaseCost = assignedAssets.Sum(a => a.PurchaseCost);
                 RawTotalDepreciation = RawTotalPurchaseCost - RawTotalCurrentValue;
+                RawMonthlyDepreciation = assignedAssets.Sum(a => a.MonthlyDepreciation);
 
                 TotalAssetValue = RawTotalCurrentValue.ToString("C", culture);
                 TotalPurchaseCost = RawTotalPurchaseCost.ToString("C", culture);
                 TotalDepreciation = RawTotalDepreciation.ToString("C", culture);
+                MonthlyDepreciation = RawMonthlyDepreciation.ToString("C", culture);
             }
             else
             {
@@ -50,9 +54,11 @@ namespace LoginAppFramework
                 RawTotalCurrentValue = 0;
                 RawTotalPurchaseCost = 0;
                 RawTotalDepreciation = 0;
+                RawMonthlyDepreciation = 0;
                 TotalAssetValue = 0.ToString("C", culture);
                 TotalPurchaseCost = 0.ToString("C", culture);
                 TotalDepreciation = 0.ToString("C", culture);
+                MonthlyDepreciation = 0.ToString("C", culture);
             }
         }
         public Worker GetModel() => _worker;
