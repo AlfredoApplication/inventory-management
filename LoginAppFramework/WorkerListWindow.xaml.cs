@@ -188,20 +188,18 @@ namespace LoginAppFramework
             _selectionTimer.Stop();
 
             int selectedCount = WorkersDataGrid.SelectedItems.Count;
+            _viewModel.SetSelectedCount(selectedCount);
 
             if (selectedCount > 1)
             {
                 if (isDetailPanelOpen) CloseDetailPanel();
 
-                BulkActionPanel.Visibility = Visibility.Visible;
-                SelectionCountText.Text = $"{selectedCount} items selected";
                 _selectedWorker = null;
                 return;
             }
 
             if (selectedCount == 1)
             {
-                BulkActionPanel.Visibility = Visibility.Collapsed;
                 var newlySelectedWorker = WorkersDataGrid.SelectedItem as WorkerViewModel;
 
                 if (_selectedWorker != newlySelectedWorker)
@@ -217,7 +215,6 @@ namespace LoginAppFramework
             }
 
             if (isDetailPanelOpen) CloseDetailPanel();
-            BulkActionPanel.Visibility = Visibility.Collapsed;
             _selectedWorker = null;
         }
 
@@ -287,16 +284,6 @@ namespace LoginAppFramework
 
             RefreshViewModelPreservingSelection();
             MessageBox.Show($"{count} workers activated.", "Complete");
-        }
-
-        private void StatusFilter_Changed(object sender, RoutedEventArgs e)
-        {
-            if (ActiveFilterButton.IsChecked == true)
-                _viewModel.StatusFilter = WorkerStatusFilter.Active;
-            else if (InactiveFilterButton.IsChecked == true)
-                _viewModel.StatusFilter = WorkerStatusFilter.Inactive;
-            else
-                _viewModel.StatusFilter = WorkerStatusFilter.All;
         }
 
         private void UpdateDetailView()
@@ -370,7 +357,6 @@ namespace LoginAppFramework
 
         private void ClearFiltersButton_Click(object _, RoutedEventArgs e)
         {
-            ActiveFilterButton.IsChecked = true;
             _viewModel.ClearFilters();
         }
 

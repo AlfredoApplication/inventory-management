@@ -11,6 +11,7 @@
         Style="{StaticResource MainScreenWindowStyle}">
 
     <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <Style TargetType="{x:Type DataGridRow}" BasedOn="{StaticResource {x:Type DataGridRow}}">
             <Setter Property="Background" Value="{StaticResource PanelBackgroundBrush}" />
             <Style.Triggers>
@@ -95,9 +96,12 @@
                         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,10,0,0">
                             <StackPanel x:Name="FilterPanel" DataContext="{Binding Filters}">
                                 <TextBlock Text="Status" Style="{StaticResource FilterHeader}" Margin="0,0,0,5"/>
-                                <RadioButton x:Name="ActiveFilterButton" Content="Yalnız Aktiv" GroupName="StatusFilter" IsChecked="True" Click="StatusFilter_Changed"/>
-                                <RadioButton x:Name="InactiveFilterButton" Content="Yalnız Qeyri-Aktiv" GroupName="StatusFilter" Margin="0,5,0,0" Click="StatusFilter_Changed"/>
-                                <RadioButton x:Name="AllFilterButton" Content="Bütün İşçilər" GroupName="StatusFilter" Margin="0,5,0,0" Click="StatusFilter_Changed"/>
+                                <RadioButton x:Name="ActiveFilterButton" Content="Yalnız Aktiv" GroupName="StatusFilter"
+                                             IsChecked="{Binding DataContext.IsActiveFilterSelected, RelativeSource={RelativeSource AncestorType=Window}, Mode=TwoWay}"/>
+                                <RadioButton x:Name="InactiveFilterButton" Content="Yalnız Qeyri-Aktiv" GroupName="StatusFilter" Margin="0,5,0,0"
+                                             IsChecked="{Binding DataContext.IsInactiveFilterSelected, RelativeSource={RelativeSource AncestorType=Window}, Mode=TwoWay}"/>
+                                <RadioButton x:Name="AllFilterButton" Content="Bütün İşçilər" GroupName="StatusFilter" Margin="0,5,0,0"
+                                             IsChecked="{Binding DataContext.IsAllFilterSelected, RelativeSource={RelativeSource AncestorType=Window}, Mode=TwoWay}"/>
                                 <TextBlock Text="Ada görə Axtarış" Style="{StaticResource FilterHeader}"/>
                                 <TextBox Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                                 <Expander Header="Departament" IsExpanded="True" Margin="0,15,0,0">
@@ -161,9 +165,10 @@
                         </UniformGrid>
                     </Border>
 
-                    <Border Grid.Row="2" x:Name="BulkActionPanel" Background="#EDF2F7" Padding="8" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="0,0,0,1" Visibility="Collapsed">
+                    <Border Grid.Row="2" x:Name="BulkActionPanel" Background="#EDF2F7" Padding="8" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="0,0,0,1"
+                            Visibility="{Binding HasBulkSelection, Converter={StaticResource BoolToVis}}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock x:Name="SelectionCountText" Text="0 element seçildi" FontWeight="SemiBold" VerticalAlignment="Center" Margin="5,0,20,0" Foreground="#2D3748"/>
+                            <TextBlock x:Name="SelectionCountText" Text="{Binding SelectionCountText}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="5,0,20,0" Foreground="#2D3748"/>
                             <Button x:Name="BulkDeactivateButton" Content="Seçilmişləri Deaktiv et" Click="BulkDeactivateButton_Click" Background="{StaticResource WarningBrush}" Foreground="{StaticResource PrimaryForegroundBrush}" Padding="8,4" Margin="0,0,10,0" ToolTip="Seçilmiş aktiv işçiləri qeyri-aktiv olaraq işarələyin."/>
                             <Button x:Name="BulkActivateButton" Content="Seçilmişləri Aktiv et" Click="BulkActivateButton_Click" Background="{StaticResource SuccessBrush}" Foreground="{StaticResource PrimaryForegroundBrush}" Padding="8,4" ToolTip="Seçilmiş qeyri-aktiv işçiləri aktiv olaraq işarələyin."/>
                         </StackPanel>

@@ -19,6 +19,7 @@ namespace LoginAppFramework
         private readonly List<WorkerViewModel> _allWorkers = new();
         private WorkerFilterViewModel _filters;
         private WorkerStatusFilter _statusFilter = WorkerStatusFilter.Active;
+        private int _selectedCount;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -46,11 +47,50 @@ namespace LoginAppFramework
                 if (_statusFilter == value) return;
                 _statusFilter = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(IsActiveFilterSelected));
+                OnPropertyChanged(nameof(IsInactiveFilterSelected));
+                OnPropertyChanged(nameof(IsAllFilterSelected));
                 ApplyFilters();
             }
         }
 
         public bool HasResults => VisibleWorkers.Count > 0;
+        public int SelectedCount
+        {
+            get => _selectedCount;
+            private set
+            {
+                if (_selectedCount == value) return;
+                _selectedCount = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HasBulkSelection));
+                OnPropertyChanged(nameof(SelectionCountText));
+            }
+        }
+
+        public bool HasBulkSelection => SelectedCount > 1;
+        public string SelectionCountText => $"{SelectedCount} element seçildi";
+
+        public bool IsActiveFilterSelected
+        {
+            get => StatusFilter == WorkerStatusFilter.Active;
+            set { if (value) StatusFilter = WorkerStatusFilter.Active; }
+        }
+
+        public bool IsInactiveFilterSelected
+        {
+            get => StatusFilter == WorkerStatusFilter.Inactive;
+            set { if (value) StatusFilter = WorkerStatusFilter.Inactive; }
+        }
+
+        public bool IsAllFilterSelected
+        {
+            get => StatusFilter == WorkerStatusFilter.All;
+            set { if (value) StatusFilter = WorkerStatusFilter.All; }
+        }
+
+        public void SetSelectedCount(int count)
+            => SelectedCount = Math.Max(0, count);
 
         public void Refresh()
         {
