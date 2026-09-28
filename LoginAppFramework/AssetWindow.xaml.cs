@@ -126,7 +126,7 @@ namespace LoginAppFramework
 
             try
             {
-                AppServices.AssetExcel.Export(saveFileDialog.FileName, assetsToExport);
+                _viewModel.Export(saveFileDialog.FileName);
                 MessageBox.Show("Məlumatlar uğurla Excel faylına export edildi.", "Export Tamamlandı", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
@@ -154,7 +154,7 @@ namespace LoginAppFramework
             AssetImportBatch batch;
             try
             {
-                batch = AppServices.AssetExcel.ParseImport(openFileDialog.FileName);
+                batch = _viewModel.ParseImport(openFileDialog.FileName);
             }
             catch (Exception ex)
             {
@@ -230,7 +230,7 @@ namespace LoginAppFramework
 
             try
             {
-                AppServices.Assets.ImportNewAssets(batch.Assets);
+                _viewModel.ImportAssets(batch.Assets);
                 MessageBox.Show($"{batch.Assets.Count} vəsait uğurla import edildi.", "Import Tamamlandı", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
@@ -262,7 +262,7 @@ namespace LoginAppFramework
             var result = MessageBox.Show($"İşarələnmiş {checkedAssets.Count} vəsaiti həmişəlik silməyə əminsinizmi?", "Toplu Silməni Təsdiq Et", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (result == MessageBoxResult.Yes)
             {
-                AppServices.Assets.DeleteMany(checkedAssets);
+                _viewModel.DeleteCheckedAssets();
                 RefreshDataAndSelection();
             }
         }
@@ -291,10 +291,7 @@ namespace LoginAppFramework
 
             try
             {
-                var result = AppServices.Assets.ApplyBulkChanges(
-                    checkedAssets,
-                    editWindow.Changes,
-                    "Sistem (Toplu Redaktə)");
+                var result = _viewModel.ApplyBulkChanges(editWindow.Changes);
 
                 RefreshDataAndSelection();
 
@@ -362,10 +359,7 @@ namespace LoginAppFramework
 
                 try
                 {
-                    AppServices.Assets.AssignMany(
-                        checkedAssets,
-                        newWorker,
-                        "Sistem (Toplu Təhkim)");
+                    _viewModel.AssignCheckedAssets(newWorker);
                     RefreshDataAndSelection();
 
                     MessageBox.Show($"{checkedAssets.Count} vəsait {newWorker.per_adiper_soyadi} adlı işçiyə uğurla təhkim edildi.",
@@ -423,7 +417,7 @@ namespace LoginAppFramework
         {
             if (MessageBox.Show($"'{assetVMToDelete.Asset.VesaitinAdi}' adlı vəsaiti HƏMİŞƏLİK SİLMƏK istədiyinizə əminsinizmi?", "Silməni Təsdiq Et", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
             {
-                AppServices.Assets.Delete(assetVMToDelete.Asset);
+                _viewModel.DeleteAsset(assetVMToDelete.Asset);
                 _selectedAssetVM = null;
                 RefreshDataAndSelection();
             }

@@ -17,11 +17,17 @@ namespace LoginAppFramework
     public sealed class WorkerListWindowViewModel : INotifyPropertyChanged
     {
         private readonly List<WorkerViewModel> _allWorkers = new();
+        private readonly IWorkerService _workerService;
         private WorkerFilterViewModel _filters;
         private WorkerStatusFilter _statusFilter = WorkerStatusFilter.Active;
         private int _selectedCount;
 
         public event PropertyChangedEventHandler PropertyChanged;
+
+        public WorkerListWindowViewModel(IWorkerService workerService = null)
+        {
+            _workerService = workerService ?? AppServices.Workers;
+        }
 
         public ObservableCollection<WorkerViewModel> VisibleWorkers { get; } = new();
         public ObservableCollection<string> ActiveFilterTags { get; } = new();
@@ -125,6 +131,18 @@ namespace LoginAppFramework
 
             ApplyFilters();
         }
+
+        public System.Threading.Tasks.Task<int> SynchronizeAsync()
+            => _workerService.SynchronizeFromHrAsync();
+
+        public int SetActiveState(IEnumerable<int> workerIds, bool isActive)
+            => _workerService.SetActiveState(workerIds, isActive);
+
+        public void SaveWorker(Worker worker)
+            => _workerService.Save(worker);
+
+        public void DeleteWorker(Worker worker)
+            => _workerService.Delete(worker);
 
         public void ClearFilters()
         {

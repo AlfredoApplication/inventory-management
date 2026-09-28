@@ -130,7 +130,7 @@ namespace LoginAppFramework
 
             try
             {
-                int affectedRows = await AppServices.Workers.SynchronizeFromHrAsync();
+                int affectedRows = await _viewModel.SynchronizeAsync();
                 RefreshViewModelPreservingSelection();
 
                 MessageBox.Show(
@@ -244,7 +244,7 @@ namespace LoginAppFramework
 
             if (result != MessageBoxResult.Yes) return;
 
-            int count = AppServices.Workers.SetActiveState(
+            int count = _viewModel.SetActiveState(
                 selected.Select(vm => vm.GetModel().Id),
                 false);
 
@@ -278,7 +278,7 @@ namespace LoginAppFramework
 
             if (result != MessageBoxResult.Yes) return;
 
-            int count = AppServices.Workers.SetActiveState(
+            int count = _viewModel.SetActiveState(
                 selected.Select(vm => vm.GetModel().Id),
                 true);
 
@@ -304,7 +304,7 @@ namespace LoginAppFramework
             var addWindow = new AddEditWorkerWindow { Owner = this };
             if (addWindow.ShowDialog() == true)
             {
-                AppServices.Workers.Save(addWindow.Worker);
+                _viewModel.SaveWorker(addWindow.Worker);
                 RefreshViewModelPreservingSelection();
             }
         }
@@ -316,7 +316,7 @@ namespace LoginAppFramework
             var editWindow = new AddEditWorkerWindow(worker) { Owner = this };
             if (editWindow.ShowDialog() == true)
             {
-                AppServices.Workers.Save(editWindow.Worker);
+                _viewModel.SaveWorker(editWindow.Worker);
                 RefreshViewModelPreservingSelection();
             }
         }
@@ -333,7 +333,7 @@ namespace LoginAppFramework
 
             if (result != MessageBoxResult.Yes) return;
 
-            AppServices.Workers.Delete(worker);
+            _viewModel.DeleteWorker(worker);
             RefreshViewModelPreservingSelection();
         }
 

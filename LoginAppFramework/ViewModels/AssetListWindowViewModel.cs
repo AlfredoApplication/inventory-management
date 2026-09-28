@@ -12,9 +12,19 @@ namespace LoginAppFramework
     {
         private readonly List<AssetCheckableViewModel> _allAssets = new();
         private readonly List<Worker> _workers = new();
+        private readonly IAssetService _assetService;
+        private readonly IAssetExcelService _excelService;
         private AssetFilterViewModel _filters;
 
         public event PropertyChangedEventHandler PropertyChanged;
+
+        public AssetListWindowViewModel(
+            IAssetService assetService = null,
+            IAssetExcelService excelService = null)
+        {
+            _assetService = assetService ?? AppServices.Assets;
+            _excelService = excelService ?? AppServices.AssetExcel;
+        }
 
         public ObservableCollection<AssetCheckableViewModel> VisibleAssets { get; } = new();
         public ObservableCollection<string> ActiveFilterTags { get; } = new();
@@ -78,6 +88,35 @@ namespace LoginAppFramework
 
         public void ClearFilters()
             => Filters?.Clear();
+
+        public AssetImportBatch ParseImport(string filePath)
+            => _excelService.ParseImport(filePath);
+
+        public void Export(string filePath)
+            => _excelService.Export(
+                filePath,
+                VisibleAssets.Select(vm => vm.Asset));
+
+        public void ImportAssets(List<Asset> assets)
+            => _assetService.ImportNewAssets(assets);
+
+        public void DeleteAsset(Asset asset)
+            => _assetService.Delete(asset);
+
+        public void DeleteCheckedAssets()
+            => _assetService.DeleteMany(GetCheckedAssets());
+
+        public AssetBulkUpdateResult ApplyBulkChanges(BulkAssetChanges changes)
+            => _assetService.ApplyBulkChanges(
+                GetCheckedAssets(),
+                changes,
+                "Sistem (Toplu Redaktə)");
+
+        public void AssignCheckedAssets(Worker worker)
+            => _assetService.AssignMany(
+                GetCheckedAssets(),
+                worker,
+                "Sistem (Toplu Təhkim)");
 
         public List<Asset> GetCheckedAssets()
             => _allAssets
