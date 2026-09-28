@@ -1,9 +1,7 @@
 using ClosedXML.Excel;
-using LoginAppFramework; // Artıq bu using əlavə olunub
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -13,27 +11,25 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 namespace LoginAppFramework
 {
     public partial class AssetWindow : Window
     {
-        // 1. _allAssets siyahısının tipini dəyişdirin
-        private List<AssetCheckableViewModel> _allCheckableAssets; // Keçmiş _allAssets
-        private List<Worker> _allWorkers;
-        // 2. _selectedAsset-in tipini dəyişdirin
-        private AssetCheckableViewModel _selectedAssetVM; // Keçmiş _selectedAsset
+        private readonly AssetListWindowViewModel _viewModel;
+        private AssetCheckableViewModel _selectedAssetVM;
         private bool isMenuOpen = false;
         private readonly int? _assetIdToSelectOnLoad;
-        private AssetFilterViewModel _filterViewModel;
         private readonly DispatcherTimer _selectionTimer;
 
-        // Constructor dəyişməz qalır...
         public AssetWindow()
         {
             InitializeComponent();
+
+            _viewModel = new AssetListWindowViewModel();
+            DataContext = _viewModel;
+
             _assetIdToSelectOnLoad = null;
             _selectionTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(150) };
             _selectionTimer.Tick += SelectionTimer_Tick;
@@ -42,33 +38,23 @@ namespace LoginAppFramework
         public AssetWindow(int assetIdToSelect = -1)
         {
             InitializeComponent();
+
+            _viewModel = new AssetListWindowViewModel();
+            DataContext = _viewModel;
+
             _assetIdToSelectOnLoad = assetIdToSelect > 0 ? assetIdToSelect : null;
             _selectionTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(150) };
             _selectionTimer.Tick += SelectionTimer_Tick;
         }
 
-        // Window_Loaded metodunu yeniləyin
         private async void Window_Loaded(object _, RoutedEventArgs e)
         {
             LoadingOverlay.Visibility = Visibility.Visible;
             await Task.Delay(20);
 
-            // 3. Məlumatları yeni ViewModel-ə çevirərək yükləyin
-            await Task.Run(() =>
-            {
-                var allAssets = AppData.GetAssets();
-                _allCheckableAssets = allAssets.Select(a => new AssetCheckableViewModel(a)).ToList();
-                _allWorkers = AppData.GetWorkers();
-            });
-
-            _filterViewModel = new AssetFilterViewModel();
-            _filterViewModel.FilterChanged += ApplyFilters;
-            FilterPanel.DataContext = _filterViewModel;
-
-            // Initialize column filters
+            _viewModel.Refresh();
             InitializeColumnFilters();
 
-            ApplyFilters();
             if (_assetIdToSelectOnLoad.HasValue)
             {
                 SelectAssetById(_assetIdToSelectOnLoad.Value);
@@ -77,14 +63,17 @@ namespace LoginAppFramework
             {
                 UpdateDetailView();
             }
+
             UpdateUserDisplay();
-            // 4. DetailControl hadisələrinin parametrlərini düzəldin
-            AssetDetailControl.OnAssetModified += (s, asset) => DetailControl_EditAsset(s, new AssetCheckableViewModel(asset));
-            AssetDetailControl.OnAssetDeleted += (s, asset) => DetailControl_DeleteAsset(s, new AssetCheckableViewModel(asset));
+
+            AssetDetailControl.OnAssetModified += (s, asset) =>
+                DetailControl_EditAsset(s, new AssetCheckableViewModel(asset));
+            AssetDetailControl.OnAssetDeleted += (s, asset) =>
+                DetailControl_DeleteAsset(s, new AssetCheckableViewModel(asset));
             AssetDetailControl.OnAssignmentChanged += DetailControl_AssignmentChanged;
-            LoadingOverlay.Visibility = Visibility.Collapsed;
             AssetDetailControl.OnDetailPanelClosed += DetailControl_PanelClosed;
 
+            LoadingOverlay.Visibility = Visibility.Collapsed;
             ApplyRoleBasedPermissions();
         }
 
@@ -99,7 +88,7 @@ namespace LoginAppFramework
         private void GenerateBarcodesButton_Click(object sender, RoutedEventArgs e)
         {
             // 5. Seçilmiş yox, İŞARƏLƏNMİŞ vəsaitləri götürün
-            var checkedAssets = _allCheckableAssets
+            var checkedAssets = _viewModel.AllAssets
                 .Where(vm => vm.IsChecked)
                 .Select(vm => vm.Asset)
                 .Where(a => !string.IsNullOrEmpty(a.VesaitinKodu))
@@ -452,7 +441,7 @@ namespace LoginAppFramework
                 return;
             }
 
-            var checkedAssets = _allCheckableAssets.Where(vm => vm.IsChecked).Select(vm => vm.Asset).ToList();
+            var checkedAssets = _viewModel.AllAssets.Where(vm => vm.IsChecked).Select(vm => vm.Asset).ToList();
             if (!checkedAssets.Any()) return;
 
             var result = MessageBox.Show($"İşarələnmiş {checkedAssets.Count} vəsaiti həmişəlik silməyə əminsinizmi?", "Toplu Silməni Təsdiq Et", MessageBoxButton.YesNo, MessageBoxImage.Warning);
@@ -471,7 +460,7 @@ namespace LoginAppFramework
                 return;
             }
 
-            var checkedAssets = _allCheckableAssets.Where(vm => vm.IsChecked).Select(vm => vm.Asset).ToList();
+            var checkedAssets = _viewModel.AllAssets.Where(vm => vm.IsChecked).Select(vm => vm.Asset).ToList();
             if (!checkedAssets.Any()) return;
 
             var editWindow = new BulkEditWindow(checkedAssets.Count) { Owner = this };
@@ -564,14 +553,14 @@ namespace LoginAppFramework
                 return;
             }
 
-            var checkedAssets = _allCheckableAssets.Where(vm => vm.IsChecked).Select(vm => vm.Asset).ToList();
+            var checkedAssets = _viewModel.AllAssets.Where(vm => vm.IsChecked).Select(vm => vm.Asset).ToList();
             if (!checkedAssets.Any())
             {
                 MessageBox.Show("Təhkim etmək üçün ən azı bir vəsait işarələyin.", "Vəsait Seçilməyib", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
-            var selectWindow = new SelectWorkerWindow(_allWorkers) { Owner = this };
+            var selectWindow = new SelectWorkerWindow(_viewModel.Workers.ToList()) { Owner = this };
             if (selectWindow.ShowDialog() == true)
             {
                 Worker newWorker = selectWindow.SelectedWorker;
@@ -598,135 +587,23 @@ namespace LoginAppFramework
 
         #region Filtering and Data Logic
 
-        // ApplyFilters metodunu yeniləyin
-        private void ApplyFilters()
-        {
-            if (_filterViewModel == null || _allCheckableAssets == null) return;
-            IEnumerable<AssetCheckableViewModel> filteredAssets = _allCheckableAssets.Where(vm => vm.Asset.Status != "Arxivdə");
-            var validCategories = new HashSet<string>(AppData.GetDeviceCategories());
-            if (_filterViewModel.ShowOnlyUncategorized)
-            {
-                filteredAssets = filteredAssets.Where(vm => string.IsNullOrEmpty(vm.Asset.Kateqoriya) || !validCategories.Contains(vm.Asset.Kateqoriya));
-            }
-            else
-            {
-                var selectedCategories = _filterViewModel.GetSelectedCategories();
-                if (selectedCategories.Any()) { filteredAssets = filteredAssets.Where(vm => vm.Asset.Kateqoriya != null && selectedCategories.Contains(vm.Asset.Kateqoriya)); }
-
-            }
-            string searchText = _filterViewModel.SearchText;
-            var culture = CultureInfo.CurrentCulture;
-            var compareOptions = CompareOptions.IgnoreCase;
-            if (!string.IsNullOrWhiteSpace(searchText)) { filteredAssets = filteredAssets.Where(vm => (vm.Asset.VesaitinKodu != null && culture.CompareInfo.IndexOf(vm.Asset.VesaitinKodu, searchText, compareOptions) >= 0) || (vm.Asset.VesaitinAdi != null && culture.CompareInfo.IndexOf(vm.Asset.VesaitinAdi, searchText, compareOptions) >= 0) || (vm.Asset.ITAvadanliqlarininSeriyaNomresi != null && culture.CompareInfo.IndexOf(vm.Asset.ITAvadanliqlarininSeriyaNomresi, searchText, compareOptions) >= 0) || (vm.Asset.Worker?.per_adiper_soyadi != null && culture.CompareInfo.IndexOf(vm.Asset.Worker.per_adiper_soyadi, searchText, compareOptions) >= 0)); }
-
-            var selectedStatuses = _filterViewModel.StatusOptions.Where(o => o.IsChecked).Select(o => o.Value).ToList();
-            if (selectedStatuses.Any()) { filteredAssets = filteredAssets.Where(vm => vm.Asset.Status != null && selectedStatuses.Contains(vm.Asset.Status)); }
-
-            var selectedDepartments = _filterViewModel.DepartmentOptions.Where(o => o.IsChecked).Select(o => o.Value).ToList();
-            if (selectedDepartments.Any()) { filteredAssets = filteredAssets.Where(vm => vm.Asset.Worker?.pdp_adi != null && selectedDepartments.Contains(vm.Asset.Worker.pdp_adi)); }
-
-            // Apply column-specific filters
-            if (_filterViewModel.ColumnFilters != null)
-            {
-                // Filter by Vəsaitin Kodu
-                if (_filterViewModel.ColumnFilters.TryGetValue("VesaitinKodu", out var koduFilter) && koduFilter.HasActiveFilters)
-                {
-                    var selectedValues = koduFilter.GetSelectedValues();
-                    filteredAssets = filteredAssets.Where(vm => !string.IsNullOrEmpty(vm.VesaitinKodu) && selectedValues.Contains(vm.VesaitinKodu));
-                }
-
-                // Filter by Vəsaitin Adı
-                if (_filterViewModel.ColumnFilters.TryGetValue("VesaitinAdi", out var adiFilter) && adiFilter.HasActiveFilters)
-                {
-                    var selectedValues = adiFilter.GetSelectedValues();
-                    filteredAssets = filteredAssets.Where(vm => !string.IsNullOrEmpty(vm.VesaitinAdi) && selectedValues.Contains(vm.VesaitinAdi));
-                }
-
-                // Filter by Kateqoriya
-                if (_filterViewModel.ColumnFilters.TryGetValue("Kateqoriya", out var kateqoriyaFilter) && kateqoriyaFilter.HasActiveFilters)
-                {
-                    var selectedValues = kateqoriyaFilter.GetSelectedValues();
-                    filteredAssets = filteredAssets.Where(vm => !string.IsNullOrEmpty(vm.Kateqoriya) && selectedValues.Contains(vm.Kateqoriya));
-                }
-
-                // Filter by Worker
-                if (_filterViewModel.ColumnFilters.TryGetValue("Worker", out var workerFilter) && workerFilter.HasActiveFilters)
-                {
-                    var selectedValues = workerFilter.GetSelectedValues();
-                    filteredAssets = filteredAssets.Where(vm => vm.Worker != null && !string.IsNullOrEmpty(vm.Worker.per_adiper_soyadi) && selectedValues.Contains(vm.Worker.per_adiper_soyadi));
-                }
-
-                // Filter by Department
-                if (_filterViewModel.ColumnFilters.TryGetValue("Department", out var deptFilter) && deptFilter.HasActiveFilters)
-                {
-                    var selectedValues = deptFilter.GetSelectedValues();
-                    filteredAssets = filteredAssets.Where(vm => vm.Worker != null && !string.IsNullOrEmpty(vm.Worker.pdp_adi) && selectedValues.Contains(vm.Worker.pdp_adi));
-                }
-
-                // Filter by Yerləşmə Yeri
-                if (_filterViewModel.ColumnFilters.TryGetValue("YerleshmeYeri", out var yerlesmeFilter) && yerlesmeFilter.HasActiveFilters)
-                {
-                    var selectedValues = yerlesmeFilter.GetSelectedValues();
-                    filteredAssets = filteredAssets.Where(vm => !string.IsNullOrEmpty(vm.YerleshmeYeri) && selectedValues.Contains(vm.YerleshmeYeri));
-                }
-
-                // Filter by Ərazi
-                if (_filterViewModel.ColumnFilters.TryGetValue("Erazi", out var eraziFilter) && eraziFilter.HasActiveFilters)
-                {
-                    var selectedValues = eraziFilter.GetSelectedValues();
-                    filteredAssets = filteredAssets.Where(vm => !string.IsNullOrEmpty(vm.Erazi) && selectedValues.Contains(vm.Erazi));
-                }
-            }
-
-            var results = filteredAssets.ToList();
-            AssetsDataGrid.ItemsSource = results;
-            // ... (qalan hissə eyni) ...
-            NoResultsTextBlock.Visibility = results.Any() ? Visibility.Collapsed : Visibility.Visible;
-            AssetCountTextBlock.Text = $"{results.Count} vəsait tapıldı";
-            AssetCountTextBlock.Visibility = Visibility.Visible;
-            UpdateActiveFilterTags();
-        }
-
-        private void UpdateActiveFilterTags()
-        {
-            if (_filterViewModel == null) return;
-            ActiveFiltersPanel.Children.Clear();
-            var activeFilters = new List<string>();
-            if (!string.IsNullOrWhiteSpace(_filterViewModel.SearchText)) { activeFilters.Add($"Axtarış: '{_filterViewModel.SearchText}'"); }
-
-            if (_filterViewModel.ShowOnlyUncategorized)
-            {
-                activeFilters.Add("Kateqoriya: Yalnız Təyin Edilməmişlər");
-            }
-            else
-            {
-                var selectedCategories = _filterViewModel.GetSelectedCategories();
-                if (selectedCategories.Any()) { activeFilters.Add($"Kateqoriya: {string.Join(", ", selectedCategories)}"); }
-            }
-            var selectedStatuses = _filterViewModel.StatusOptions.Where(o => o.IsChecked).Select(o => o.Value).ToList();
-            if (selectedStatuses.Any()) { activeFilters.Add($"Status: {string.Join(", ", selectedStatuses)}"); }
-            var selectedDepartments = _filterViewModel.DepartmentOptions.Where(o => o.IsChecked).Select(o => o.Value).ToList();
-            if (selectedDepartments.Any()) { activeFilters.Add($"Departament: {string.Join(", ", selectedDepartments)}"); }
-            foreach (var filterText in activeFilters) { ActiveFiltersPanel.Children.Add(new Border { Background = Brushes.LightGray, CornerRadius = new CornerRadius(10), Margin = new Thickness(2), Padding = new Thickness(8, 3, 8, 3), Child = new TextBlock { Text = filterText, Foreground = Brushes.Black } }); }
-        }
-
         private bool isDetailPanelOpen = false;
+
         private void RefreshDataAndSelection(int? assetIdToSelect = null)
         {
-            var allAssets = AppData.GetAssets();
-            _allCheckableAssets = allAssets.Select(a => new AssetCheckableViewModel(a)).ToList();
-            _allWorkers = AppData.GetWorkers();
-            _filterViewModel = new AssetFilterViewModel();
-            _filterViewModel.FilterChanged += ApplyFilters;
-            FilterPanel.DataContext = _filterViewModel;
-
-            // Reinitialize column filters with fresh data
+            _viewModel.Refresh();
             InitializeColumnFilters();
+            UpdateBulkActionPanelVisibility();
 
-            ApplyFilters();
-            UpdateBulkActionPanelVisibility(); // Uncheck all after refresh
-            if (assetIdToSelect.HasValue) { SelectAssetById(assetIdToSelect.Value); }
-            else { _selectedAssetVM = null; UpdateDetailView(); }
+            if (assetIdToSelect.HasValue)
+            {
+                SelectAssetById(assetIdToSelect.Value);
+            }
+            else
+            {
+                _selectedAssetVM = null;
+                UpdateDetailView();
+            }
         }
 
         private void AddAssetButton_Click(object _, RoutedEventArgs e)
@@ -792,10 +669,10 @@ namespace LoginAppFramework
             }
         }
 
-        private void ClearFiltersButton_Click(object _, RoutedEventArgs e) => _filterViewModel.Clear();
+        private void ClearFiltersButton_Click(object _, RoutedEventArgs e) => _viewModel.ClearFilters();
 
 
-        private void UpdateDetailView() => AssetDetailControl.DisplayAsset(_selectedAssetVM?.Asset, _allWorkers);
+        private void UpdateDetailView() => AssetDetailControl.DisplayAsset(_selectedAssetVM?.Asset, _viewModel.Workers.ToList());
 
         public void SelectAssetById(int assetId)
         {
@@ -840,7 +717,7 @@ namespace LoginAppFramework
         private void UpdateBulkActionPanelVisibility()
         {
             // İşarələnmiş elementlərin sayını hesablayın
-            int checkedCount = _allCheckableAssets?.Count(vm => vm.IsChecked) ?? 0;
+            int checkedCount = _viewModel.CheckedCount;
             if (checkedCount > 0)
             {
                 // Əgər ən azı bir element işarələnibsə, toplu əməliyyat panelini göstərin
@@ -938,63 +815,27 @@ namespace LoginAppFramework
         #region Column Filters
         private void InitializeColumnFilters()
         {
-            if (_allCheckableAssets == null) return;
+            InitializeColumnFilter(VesaitinKoduFilter, "VesaitinKodu");
+            InitializeColumnFilter(VesaitinAdiFilter, "VesaitinAdi");
+            InitializeColumnFilter(KateqoriyaFilter, "Kateqoriya");
+            InitializeColumnFilter(WorkerFilter, "Worker");
+            InitializeColumnFilter(DepartmentFilter, "Department");
+            InitializeColumnFilter(YerleshmeYeriFilter, "YerleshmeYeri");
+            InitializeColumnFilter(EraziFilter, "Erazi");
+        }
 
-            // Initialize Vəsaitin Kodu filter
-            var koduValues = _allCheckableAssets.Select(vm => vm.VesaitinKodu).Where(v => !string.IsNullOrEmpty(v)).Distinct();
-            var koduFilterVM = new ColumnFilterViewModel(koduValues);
-            VesaitinKoduFilter.InitializeFilter(koduFilterVM);
-            VesaitinKoduFilter.FilterApplied += OnColumnFilterApplied;
-            _filterViewModel.ColumnFilters["VesaitinKodu"] = koduFilterVM;
+        private void InitializeColumnFilter(ColumnFilterControl control, string key)
+        {
+            var filter = _viewModel.GetColumnFilter(key);
+            if (filter == null) return;
 
-            // Initialize Vəsaitin Adı filter
-            var adiValues = _allCheckableAssets.Select(vm => vm.VesaitinAdi).Where(v => !string.IsNullOrEmpty(v)).Distinct();
-            var adiFilterVM = new ColumnFilterViewModel(adiValues);
-            VesaitinAdiFilter.InitializeFilter(adiFilterVM);
-            VesaitinAdiFilter.FilterApplied += OnColumnFilterApplied;
-            _filterViewModel.ColumnFilters["VesaitinAdi"] = adiFilterVM;
-
-            // Initialize Kateqoriya filter
-            var kateqoriyaValues = _allCheckableAssets.Select(vm => vm.Kateqoriya).Where(v => !string.IsNullOrEmpty(v)).Distinct();
-            var kateqoriyaFilterVM = new ColumnFilterViewModel(kateqoriyaValues);
-            KateqoriyaFilter.InitializeFilter(kateqoriyaFilterVM);
-            KateqoriyaFilter.FilterApplied += OnColumnFilterApplied;
-            _filterViewModel.ColumnFilters["Kateqoriya"] = kateqoriyaFilterVM;
-
-            // Initialize Worker filter
-            var workerValues = _allCheckableAssets.Select(vm => vm.Worker?.per_adiper_soyadi).Where(v => !string.IsNullOrEmpty(v)).Distinct();
-            var workerFilterVM = new ColumnFilterViewModel(workerValues);
-            WorkerFilter.InitializeFilter(workerFilterVM);
-            WorkerFilter.FilterApplied += OnColumnFilterApplied;
-            _filterViewModel.ColumnFilters["Worker"] = workerFilterVM;
-
-            // Initialize Department filter
-            var departmentValues = _allCheckableAssets.Select(vm => vm.Worker?.pdp_adi).Where(v => !string.IsNullOrEmpty(v)).Distinct();
-            var departmentFilterVM = new ColumnFilterViewModel(departmentValues);
-            DepartmentFilter.InitializeFilter(departmentFilterVM);
-            DepartmentFilter.FilterApplied += OnColumnFilterApplied;
-            _filterViewModel.ColumnFilters["Department"] = departmentFilterVM;
-
-            // Initialize Yerləşmə Yeri filter
-            var yerlesmeValues = _allCheckableAssets.Select(vm => vm.YerleshmeYeri).Where(v => !string.IsNullOrEmpty(v)).Distinct();
-            var yerlesmeFilterVM = new ColumnFilterViewModel(yerlesmeValues);
-            YerleshmeYeriFilter.InitializeFilter(yerlesmeFilterVM);
-            YerleshmeYeriFilter.FilterApplied += OnColumnFilterApplied;
-            _filterViewModel.ColumnFilters["YerleshmeYeri"] = yerlesmeFilterVM;
-
-            // Initialize Ərazi filter
-            var eraziValues = _allCheckableAssets.Select(vm => vm.Erazi).Where(v => !string.IsNullOrEmpty(v)).Distinct();
-            var eraziFilterVM = new ColumnFilterViewModel(eraziValues);
-            EraziFilter.InitializeFilter(eraziFilterVM);
-            EraziFilter.FilterApplied += OnColumnFilterApplied;
-            _filterViewModel.ColumnFilters["Erazi"] = eraziFilterVM;
+            control.InitializeFilter(filter);
+            control.FilterApplied -= OnColumnFilterApplied;
+            control.FilterApplied += OnColumnFilterApplied;
         }
 
         private void OnColumnFilterApplied(object sender, ColumnFilterEventArgs e)
-        {
-            // Trigger the main filter apply logic
-            ApplyFilters();
-        }
+            => _viewModel.ReapplyFilters();
 
         private void ApplyRoleBasedPermissions()
         {
