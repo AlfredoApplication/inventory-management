@@ -168,7 +168,7 @@
                                             <!-- Checkbox — only visible for deleted rows -->
                                             <CheckBox Grid.Column="0"
                                                       IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                                      Visibility="{Binding IsDeleted, Converter={StaticResource BoolToVis}}"
+                                                      Visibility="{Binding CanRestore, Converter={StaticResource BoolToVis}}"
                                                       VerticalAlignment="Center"
                                                       Checked="ItemCheckBox_Changed"
                                                       Unchecked="ItemCheckBox_Changed"/>

@@ -36,11 +36,6 @@ namespace LoginAppFramework
             CategoryComboBox.ItemsSource = categories;
             CategoryComboBox.SelectedIndex = 0;
 
-            var departments = new List<string> { noChangeOption };
-            departments.AddRange(AppData.GetWorkerDepartments());
-            DepartmentComboBox.ItemsSource = departments;
-            DepartmentComboBox.SelectedIndex = 0;
-
             var statuses = new List<string> { noChangeOption };
             statuses.AddRange(AppData.GetAssetStatuses().Where(s => s != "Arxivdə"));
             StatusComboBox.ItemsSource = statuses;
@@ -60,7 +55,6 @@ namespace LoginAppFramework
             if (!string.IsNullOrWhiteSpace(VesaitinAdiTextBox.Text)) Changes.VesaitinAdi = VesaitinAdiTextBox.Text.Trim();
             if (!string.IsNullOrWhiteSpace(SeriyaNomresiTextBox.Text)) Changes.ITAvadanliqlarininSeriyaNomresi = SeriyaNomresiTextBox.Text.Trim();
             if (CategoryComboBox.SelectedIndex > 0) Changes.Kateqoriya = CategoryComboBox.SelectedItem.ToString();
-            if (!string.IsNullOrWhiteSpace(DepartmentComboBox.Text) && DepartmentComboBox.Text != "(Dəyişiklik yoxdur)") Changes.BolmeShobeDepartment = DepartmentComboBox.Text;
             if (!string.IsNullOrWhiteSpace(LocationTextBox.Text)) Changes.YerleshmeYeri = LocationTextBox.Text.Trim();
             if (!string.IsNullOrWhiteSpace(AreaTextBox.Text)) Changes.Erazi = AreaTextBox.Text.Trim();
             if (StatusComboBox.SelectedIndex > 0) Changes.Status = StatusComboBox.SelectedItem.ToString();

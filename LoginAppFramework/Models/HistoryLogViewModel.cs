@@ -20,6 +20,7 @@ namespace LoginAppFramework
         public string Status { get; private set; }
 
         public bool IsDeleted => Log?.status == "Silinən";
+        public bool CanRestore { get; }
 
         private bool _isSelected;
         public bool IsSelected
@@ -32,9 +33,10 @@ namespace LoginAppFramework
         private void OnPropertyChanged([CallerMemberName] string name = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
-        public HistoryLogViewModel(AssetLog log)
+        public HistoryLogViewModel(AssetLog log, bool canRestore = true)
         {
             Log = log;
+            CanRestore = log?.status == "Silinən" && canRestore;
             Timestamp = log.ChangeDate;
             ChangedBy = log.ChangedBy ?? "Sistem/Trigger";
             Status = log.status;

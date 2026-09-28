@@ -111,7 +111,7 @@ namespace LoginAppFramework
                 : "N/A";
             StatusValue.Text = _currentAsset.Status ?? "N/A";
             StatusValue.Foreground = _currentAsset.StatusColor;
-            DepartmentOrSectionValue.Text = _currentAsset.Worker?.pdp_adi ?? _currentAsset.BolmeShobeDepartment ?? "N/A";
+            DepartmentOrSectionValue.Text = _currentAsset.Department ?? "N/A";
             YerlesmeYeriValue.Text = _currentAsset.YerleshmeYeri ?? "N/A";
             EraziValue.Text = _currentAsset.Erazi ?? "N/A";
 
@@ -184,19 +184,7 @@ namespace LoginAppFramework
             var selectWindow = new SelectWorkerWindow(availableWorkers) { Owner = Window.GetWindow(this) };
             if (selectWindow.ShowDialog() == true && selectWindow.SelectedWorker != null)
             {
-                Worker newWorker = selectWindow.SelectedWorker;
-                string oldUser = _currentAsset.TehkimOlunanEmekdas;
-
-                _currentAsset.Status = "İstifadədədir";
-                _currentAsset.WorkerId = newWorker.Id;
-                _currentAsset.TehkimOlunanEmekdas = newWorker.per_adiper_soyadi;
-                _currentAsset.Vezifesi = newWorker.pgk_gorev_adi;
-                _currentAsset.BolmeShobeDepartment = newWorker.pdp_adi;
-
-                var historyAction = string.IsNullOrEmpty(oldUser) ? AssignmentAction.Assigned : AssignmentAction.Reassigned;
-                if (_currentAsset.History == null) _currentAsset.History = new List<AssignmentHistoryEntry>();
-                _currentAsset.History.Add(new AssignmentHistoryEntry { FromWorkerName = oldUser ?? "Sistem", ToWorkerName = newWorker.per_adiper_soyadi, ChangedBy = SessionManager.CurrentUser.Username, ChangeDate = DateTime.Now, Action = historyAction });
-                AppData.SaveAndRefreshAsset(_currentAsset);
+                AppServices.Assets.Assign(_currentAsset, selectWindow.SelectedWorker, "Vəsait detalları");
                 OnAssignmentChanged?.Invoke(this, EventArgs.Empty);
             }
         }
@@ -209,18 +197,10 @@ namespace LoginAppFramework
                 return;
             }
 
-            if (_currentAsset != null && MessageBox.Show($"'{_currentAsset.TehkimOlunanEmekdas}' adlı işçidən təhkimi ləğv etməyə əminsinizmi?", "Təsdiq", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            if (_currentAsset != null &&
+                MessageBox.Show($"'{_currentAsset.AssignedUser}' adlı işçidən təhkimi ləğv etməyə əminsinizmi?", "Təsdiq", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
-                string oldUser = _currentAsset.TehkimOlunanEmekdas;
-                _currentAsset.Status = "Anbarda";
-                _currentAsset.WorkerId = null;
-                _currentAsset.TehkimOlunanEmekdas = null;
-                _currentAsset.Vezifesi = null;
-                _currentAsset.BolmeShobeDepartment = null;
-
-                if (_currentAsset.History == null) _currentAsset.History = new List<AssignmentHistoryEntry>();
-                _currentAsset.History.Add(new AssignmentHistoryEntry { Action = AssignmentAction.Unassigned, FromWorkerName = oldUser, ToWorkerName = "Sistem", ChangedBy = SessionManager.CurrentUser.FullName, ChangeDate = DateTime.Now });
-                AppData.SaveAndRefreshAsset(_currentAsset);
+                AppServices.Assets.Unassign(_currentAsset, "Vəsait detalları");
                 OnAssignmentChanged?.Invoke(this, EventArgs.Empty);
             }
         }
@@ -228,23 +208,16 @@ namespace LoginAppFramework
         private void ArchiveAssetButton_Click(object sender, RoutedEventArgs e)
         {
             if (_currentAsset == null) return;
-            var result = MessageBox.Show($"'{_currentAsset.VesaitinAdi}' adlı vəsaiti arxivləşdirməyə əminsinizmi? Vəsait qeyri-aktiv olacaq və əsas siyahıda görünməyəcək.", "Arxivləməni Təsdiq Et", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            var result = MessageBox.Show(
+                $"'{_currentAsset.VesaitinAdi}' adlı vəsaiti arxivləşdirməyə əminsinizmi? Vəsait qeyri-aktiv olacaq və əsas siyahıda görünməyəcək.",
+                "Arxivləməni Təsdiq Et",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
             if (result == MessageBoxResult.Yes)
             {
-                string oldUser = _currentAsset.AssignedUser;
-
-                _currentAsset.Status = "Arxivdə";
-                _currentAsset.WorkerId = null;
-                _currentAsset.TehkimOlunanEmekdas = null;
-                _currentAsset.Vezifesi = null;
-                _currentAsset.BolmeShobeDepartment = null;
-
-                if (_currentAsset.History == null) _currentAsset.History = new List<AssignmentHistoryEntry>();
-                if (!string.IsNullOrEmpty(oldUser))
-                {
-                    _currentAsset.History.Add(new AssignmentHistoryEntry { Action = AssignmentAction.Unassigned, FromWorkerName = oldUser, ToWorkerName = "Arxiv", ChangedBy = SessionManager.CurrentUser.FullName, ChangeDate = DateTime.Now });
-                }
-                AppData.SaveAndRefreshAsset(_currentAsset);
+                AppServices.Assets.Archive(_currentAsset, "Arxiv");
                 OnAssignmentChanged?.Invoke(this, EventArgs.Empty);
             }
         }

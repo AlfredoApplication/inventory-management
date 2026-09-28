@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows;
 
 namespace LoginAppFramework
 {
@@ -104,15 +103,7 @@ namespace LoginAppFramework
 
                 foreach (var asset in affectedAssets)
                 {
-                    asset.WorkerId = null;
-                    asset.TehkimOlunanEmekdas = null;
-                    asset.Vezifesi = null;
-                    asset.BolmeShobeDepartment = null;
-
-                    if (asset.Status == "İstifadədədir")
-                    {
-                        asset.Status = "Anbarda";
-                    }
+                    asset.ClearWorkerAssignment();
                 }
 
                 var worker = context.Workers.Find(workerId);
@@ -446,70 +437,62 @@ namespace LoginAppFramework
             return context.AssetLogs.OrderByDescending(log => log.ChangeDate).ToList();
         }
 
-        public static void DeleteAssetLog(AssetLog logToDelete)
-        {
-            if (logToDelete == null) return;
-            using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
-            var logInDb = context.AssetLogs.Find(logToDelete.Id);
-            if (logInDb != null)
-            {
-                context.AssetLogs.Remove(logInDb);
-                context.SaveChanges();
-            }
-        }
-
         public static List<UnifiedHistoryEntry> GetUnifiedHistory()
         {
             using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
             return context.Set<UnifiedHistoryEntry>().FromSqlRaw("EXEC dbo.GetUnifiedHistory").ToList();
         }
 
-        public static bool RestoreAssetFromLog(AssetLog logEntry)
+        public static HashSet<string> GetExistingAssetCodes()
         {
             using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
+            return context.Assets
+                .AsNoTracking()
+                .Where(a => a.VesaitinKodu != null && a.VesaitinKodu != "")
+                .Select(a => a.VesaitinKodu)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        }
+
+        public static bool AssetCodeExists(string assetCode)
+        {
+            if (string.IsNullOrWhiteSpace(assetCode)) return false;
+
+            using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
+            return context.Assets.AsNoTracking().Any(a => a.VesaitinKodu == assetCode);
+        }
+
+        public static int RestoreDeletedAsset(Asset asset, string changedByUser)
+        {
+            if (asset == null) throw new ArgumentNullException(nameof(asset));
+
+            using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
             using var transaction = context.Database.BeginTransaction();
+
             try
             {
-                var existingAsset = context.Assets.FirstOrDefault(a => a.VesaitinKodu == logEntry.VesaitinKodu);
-                if (existingAsset != null)
+                context.Database.ExecuteSqlRaw(
+                    "EXEC sp_set_session_context @key=N'CurrentUser', @value=@user",
+                    new SqlParameter("@user", changedByUser));
+
+                if (!string.IsNullOrWhiteSpace(asset.VesaitinKodu) &&
+                    context.Assets.Any(a => a.VesaitinKodu == asset.VesaitinKodu))
                 {
-                    MessageBox.Show($"'{logEntry.VesaitinKodu}' kodlu vəsait artıq əsas cədvəldə mövcuddur. Silinmiş elementi eyni kodla bərpa etmək olmaz.", "Bərpa edilmədi", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    transaction.Rollback();
-                    return false;
+                    throw new InvalidOperationException(
+                        $"'{asset.VesaitinKodu}' kodlu vəsait artıq mövcuddur.");
                 }
-                var assetToRestore = new Asset
-                {
-                    VesaitinKodu = logEntry.VesaitinKodu,
-                    VesaitinAdi = logEntry.VesaitinAdi,
-                    ITAvadanliqlarininSeriyaNomresi = logEntry.ITAvadanliqlarininSeriyaNomresi,
-                    Kateqoriya = logEntry.Kateqoriya,
-                    TehkimOlunanEmekdas = logEntry.TehkimOlunanEmekdas,
-                    Vezifesi = logEntry.Vezifesi,
-                    BolmeShobeDepartment = logEntry.BolmeShobeDepartment,
-                    YerleshmeYeri = logEntry.YerleshmeYeri,
-                    Erazi = logEntry.Erazi,
-                    Status = "Anbarda"
-                };
-                context.Assets.Add(assetToRestore);
-                var logToDelete = context.AssetLogs.FirstOrDefault(log =>
-                    log.VesaitinKodu == logEntry.VesaitinKodu &&
-                    log.ChangeDate == logEntry.ChangeDate
-                );
-                if (logToDelete != null)
-                {
-                    context.AssetLogs.Remove(logToDelete);
-                }
+
+                context.Assets.Add(asset);
                 context.SaveChanges();
                 transaction.Commit();
-                return true;
+                return asset.Id;
             }
-            catch (Exception ex)
+            catch
             {
                 transaction.Rollback();
-                MessageBox.Show($"Məlumat bazası xətası baş verdi:\n\n{ex.Message}", "Məlumat Bazası Xətası", MessageBoxButton.OK, MessageBoxImage.Error);
-                return false;
+                throw;
             }
         }
+
         #endregion
     }
 }

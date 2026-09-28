@@ -248,11 +248,11 @@ namespace LoginAppFramework
 
             var assetsToImport = new List<Asset>();
             var errorLog = new List<string>();
-            var excelUserNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var importedWorkerNames = new Dictionary<Asset, string>();
 
             try
             {
-                ProcessExcelFile(openFileDialog.FileName, assetsToImport, errorLog, excelUserNames);
+                ProcessExcelFile(openFileDialog.FileName, assetsToImport, errorLog, importedWorkerNames);
             }
             catch (Exception ex)
             {
@@ -262,8 +262,11 @@ namespace LoginAppFramework
 
             var dbWorkers = AppData.GetWorkers();
             var confirmedMappings = new Dictionary<string, Worker>(StringComparer.OrdinalIgnoreCase);
-            var mappingViewModels = excelUserNames
+            var excelUserNames = importedWorkerNames.Values
                 .Where(name => !string.IsNullOrWhiteSpace(name))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            var mappingViewModels = excelUserNames
                 .Select(name => new ImportMappingViewModel(name, dbWorkers))
                 .ToList();
 
@@ -299,19 +302,15 @@ namespace LoginAppFramework
 
             foreach (var asset in assetsToImport)
             {
-                if (!string.IsNullOrWhiteSpace(asset.TehkimOlunanEmekdas) && confirmedMappings.TryGetValue(asset.TehkimOlunanEmekdas, out Worker mappedWorker))
+                if (importedWorkerNames.TryGetValue(asset, out string requestedWorkerName) &&
+                    !string.IsNullOrWhiteSpace(requestedWorkerName) &&
+                    confirmedMappings.TryGetValue(requestedWorkerName, out Worker mappedWorker))
                 {
-                    asset.WorkerId = mappedWorker.Id;
-                    asset.TehkimOlunanEmekdas = mappedWorker.per_adiper_soyadi;
-                    asset.Vezifesi = mappedWorker.pgk_gorev_adi;
-                    asset.BolmeShobeDepartment = mappedWorker.pdp_adi;
-                    asset.Status = "İstifadədədir";
+                    asset.AssignWorker(mappedWorker);
                 }
                 else
                 {
-                    asset.WorkerId = null;
-                    asset.TehkimOlunanEmekdas = null;
-                    asset.Vezifesi = null;
+                    asset.ClearWorkerAssignment();
                 }
             }
 
@@ -357,7 +356,7 @@ namespace LoginAppFramework
                 RefreshDataAndSelection();
             }
         }
-        private void ProcessExcelFile(string filePath, List<Asset> assetsToImport, List<string> errorLog, HashSet<string> excelUserNames)
+        private void ProcessExcelFile(string filePath, List<Asset> assetsToImport, List<string> errorLog, Dictionary<Asset, string> importedWorkerNames)
         {
             using (var workbook = new XLWorkbook(filePath))
             {
@@ -402,7 +401,6 @@ namespace LoginAppFramework
                         asset.ITAvadanliqlarininSeriyaNomresi = row.Cell(seriyaCol).GetString().Trim();
                     }
                     if (columnMap.TryGetValue("Kateqoriya", out int katCol)) asset.Kateqoriya = row.Cell(katCol).GetString().Trim();
-                    if (columnMap.TryGetValue("Bölmə/Şöbə/Departament", out int deptCol)) asset.BolmeShobeDepartment = row.Cell(deptCol).GetString().Trim();
                     if (columnMap.TryGetValue("Yerləşmə Yeri", out int yerlesmeCol)) asset.YerleshmeYeri = row.Cell(yerlesmeCol).GetString().Trim();
                     if (columnMap.TryGetValue("Ərazi", out int eraziCol)) asset.Erazi = row.Cell(eraziCol).GetString().Trim();
 
@@ -430,10 +428,9 @@ namespace LoginAppFramework
                     if (columnMap.TryGetValue("Təhkim Olunan Əməkdaş", out int userCol))
                     {
                         string assignedUserName = row.Cell(userCol).GetString().Trim();
-                        if (!string.IsNullOrEmpty(assignedUserName))
+                        if (!string.IsNullOrWhiteSpace(assignedUserName))
                         {
-                            asset.TehkimOlunanEmekdas = assignedUserName;
-                            excelUserNames.Add(assignedUserName);
+                            importedWorkerNames[asset] = assignedUserName;
                         }
                     }
 
@@ -472,7 +469,7 @@ namespace LoginAppFramework
             var result = MessageBox.Show($"İşarələnmiş {checkedAssets.Count} vəsaiti həmişəlik silməyə əminsinizmi?", "Toplu Silməni Təsdiq Et", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (result == MessageBoxResult.Yes)
             {
-                AppData.BulkDeleteAndRefreshAssets(checkedAssets);
+                AppServices.Assets.DeleteMany(checkedAssets);
                 RefreshDataAndSelection();
             }
         }
@@ -504,7 +501,6 @@ namespace LoginAppFramework
                     if (changesToApply.VesaitinAdi != null) { asset.VesaitinAdi = changesToApply.VesaitinAdi; assetWasChanged = true; }
                     if (changesToApply.ITAvadanliqlarininSeriyaNomresi != null) { asset.ITAvadanliqlarininSeriyaNomresi = changesToApply.ITAvadanliqlarininSeriyaNomresi; assetWasChanged = true; }
                     if (changesToApply.Kateqoriya != null) { asset.Kateqoriya = changesToApply.Kateqoriya; assetWasChanged = true; }
-                    if (changesToApply.BolmeShobeDepartment != null) { asset.BolmeShobeDepartment = changesToApply.BolmeShobeDepartment; assetWasChanged = true; }
                     if (changesToApply.YerleshmeYeri != null) { asset.YerleshmeYeri = changesToApply.YerleshmeYeri; assetWasChanged = true; }
                     if (changesToApply.Erazi != null) { asset.Erazi = changesToApply.Erazi; assetWasChanged = true; }
                     if (changesToApply.PurchaseCost.HasValue) { asset.PurchaseCost = changesToApply.PurchaseCost.Value; assetWasChanged = true; }
@@ -513,59 +509,24 @@ namespace LoginAppFramework
                     if (changesToApply.Supplier != null) { asset.Supplier = changesToApply.Supplier; assetWasChanged = true; }
                     if (changesToApply.WarrantyExpirationDate.HasValue) { asset.WarrantyExpirationDate = changesToApply.WarrantyExpirationDate.Value; assetWasChanged = true; }
 
-                    // Handle worker assignment changes
+                    // WorkerId + Worker are the source of truth; the service also records assignment history.
                     if (changesToApply.AssignedWorker != null)
                     {
                         if (changesToApply.AssignedWorker.Id == 0)
                         {
-                            // Unassign worker (set to empty)
-                            string oldWorkerName = asset.TehkimOlunanEmekdas;
-                            asset.WorkerId = null;
-                            asset.TehkimOlunanEmekdas = null;
-                            asset.Vezifesi = null;
-                            asset.BolmeShobeDepartment = null;
-                            asset.Status = "Anbarda";
-
-                            // Add unassignment history entry if there was a worker
-                            if (!string.IsNullOrEmpty(oldWorkerName))
-                            {
-                                if (asset.History == null) asset.History = new List<AssignmentHistoryEntry>();
-                                asset.History.Add(new AssignmentHistoryEntry
-                                {
-                                    Action = AssignmentAction.Unassigned,
-                                    FromWorkerName = oldWorkerName,
-                                    ToWorkerName = "Sistem (Toplu Redaktə)",
-                                    ChangedBy = SessionManager.CurrentUser.FullName,
-                                    ChangeDate = DateTime.Now
-                                });
-                            }
-                            assetWasChanged = true;
+                            AppServices.Assets.ApplyUnassignment(
+                                asset,
+                                "Sistem (Toplu Redaktə)");
                         }
                         else
                         {
-                            // Assign or reassign to new worker
-                            var newWorker = changesToApply.AssignedWorker;
-                            string oldWorkerName = asset.TehkimOlunanEmekdas;
-                            bool isReassignment = asset.WorkerId.HasValue;
-
-                            asset.WorkerId = newWorker.Id;
-                            asset.TehkimOlunanEmekdas = newWorker.per_adiper_soyadi;
-                            asset.Vezifesi = newWorker.pgk_gorev_adi;
-                            asset.BolmeShobeDepartment = newWorker.pdp_adi;
-                            asset.Status = "İstifadədədir";
-
-                            // Add assignment/reassignment history entry
-                            if (asset.History == null) asset.History = new List<AssignmentHistoryEntry>();
-                            asset.History.Add(new AssignmentHistoryEntry
-                            {
-                                Action = isReassignment ? AssignmentAction.Reassigned : AssignmentAction.Assigned,
-                                FromWorkerName = isReassignment ? oldWorkerName : "Sistem (Toplu Redaktə)",
-                                ToWorkerName = newWorker.per_adiper_soyadi,
-                                ChangedBy = SessionManager.CurrentUser.FullName,
-                                ChangeDate = DateTime.Now
-                            });
-                            assetWasChanged = true;
+                            AppServices.Assets.ApplyAssignment(
+                                asset,
+                                changesToApply.AssignedWorker,
+                                "Sistem (Toplu Redaktə)");
                         }
+
+                        assetWasChanged = true;
                     }
 
                     if (changesToApply.Status != null)
@@ -581,7 +542,7 @@ namespace LoginAppFramework
                 {
                     try
                     {
-                        AppData.BulkSaveAndRefreshAssets(assetsToUpdateInDb);
+                        AppServices.Assets.SaveMany(assetsToUpdateInDb);
                         RefreshDataAndSelection();
                         MessageBox.Show($"{assetsToUpdateInDb.Count} vəsait uğurla dəyişdirildi.", "Tamamlandı", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
@@ -628,31 +589,10 @@ namespace LoginAppFramework
 
                 try
                 {
-                    // Prepare all assets for bulk save
-                    foreach (var asset in checkedAssets)
-                    {
-                        string oldWorkerName = asset.TehkimOlunanEmekdas;
-                        bool isReassignment = asset.WorkerId.HasValue;
-
-                        asset.WorkerId = newWorker.Id;
-                        asset.TehkimOlunanEmekdas = newWorker.per_adiper_soyadi;
-                        asset.Vezifesi = newWorker.pgk_gorev_adi;
-                        asset.BolmeShobeDepartment = newWorker.pdp_adi;
-                        asset.Status = "İstifadədədir";
-
-                        if (asset.History == null) asset.History = new List<AssignmentHistoryEntry>();
-                        asset.History.Add(new AssignmentHistoryEntry
-                        {
-                            Action = isReassignment ? AssignmentAction.Reassigned : AssignmentAction.Assigned,
-                            FromWorkerName = isReassignment ? oldWorkerName : "Sistem (Toplu Təhkim)",
-                            ToWorkerName = newWorker.per_adiper_soyadi,
-                            ChangedBy = SessionManager.CurrentUser.FullName,
-                            ChangeDate = DateTime.Now
-                        });
-                    }
-
-                    // Save all assets at once using bulk save
-                    AppData.BulkSaveAndRefreshAssets(checkedAssets);
+                    AppServices.Assets.AssignMany(
+                        checkedAssets,
+                        newWorker,
+                        "Sistem (Toplu Təhkim)");
                     RefreshDataAndSelection();
 
                     MessageBox.Show($"{checkedAssets.Count} vəsait {newWorker.per_adiper_soyadi} adlı işçiyə uğurla təhkim edildi.",
@@ -823,7 +763,7 @@ namespace LoginAppFramework
         {
             if (MessageBox.Show($"'{assetVMToDelete.Asset.VesaitinAdi}' adlı vəsaiti HƏMİŞƏLİK SİLMƏK istədiyinizə əminsinizmi?", "Silməni Təsdiq Et", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
             {
-                AppData.DeleteAndRefreshAsset(assetVMToDelete.Asset);
+                AppServices.Assets.Delete(assetVMToDelete.Asset);
                 _selectedAssetVM = null;
                 RefreshDataAndSelection();
             }

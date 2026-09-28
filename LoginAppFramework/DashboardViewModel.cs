@@ -323,8 +323,8 @@ namespace LoginAppFramework
         {
             var activeAssets = allAssets.Where(a => a.Status != "Arxivdə").ToList();
             DepartmentsSeries.Clear();
-            var departmentGroups = activeAssets.Where(a => !string.IsNullOrEmpty(a.BolmeShobeDepartment))
-                .GroupBy(a => a.BolmeShobeDepartment)
+            var departmentGroups = activeAssets.Where(a => !string.IsNullOrEmpty(a.Department))
+                .GroupBy(a => a.Department)
                 .Select(g => new { Name = g.Key, Count = g.Count() }).OrderBy(x => x.Count).ToList();
             DepartmentsSeries.Add(new RowSeries
             {

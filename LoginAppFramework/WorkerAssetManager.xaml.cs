@@ -86,19 +86,11 @@ namespace LoginAppFramework
                 return;
             }
 
-            if (sender is FrameworkElement { DataContext: Asset assetToUnassign } && _currentWorker != null &&
+            if (sender is FrameworkElement { DataContext: Asset assetToUnassign } &&
+                _currentWorker != null &&
                 MessageBox.Show($"'{_currentWorker.Name}' adlı işçidən təhkimi ləğv etməyə əminsinizmi?", "Təsdiq", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
-                string oldUser = assetToUnassign.TehkimOlunanEmekdas;
-                assetToUnassign.Status = "Anbarda";
-                assetToUnassign.WorkerId = null;
-                assetToUnassign.TehkimOlunanEmekdas = null;
-                assetToUnassign.Vezifesi = null;
-                assetToUnassign.BolmeShobeDepartment = null;
-
-                if (assetToUnassign.History == null) assetToUnassign.History = new List<AssignmentHistoryEntry>();
-                assetToUnassign.History.Add(new() { Action = AssignmentAction.Unassigned, FromWorkerName = oldUser, ToWorkerName = "Sistem", ChangedBy = SessionManager.CurrentUser.FullName, ChangeDate = DateTime.Now });
-                AppData.SaveAndRefreshAsset(assetToUnassign);
+                AppServices.Assets.Unassign(assetToUnassign, "İşçi detalları");
                 AssetAssignmentChanged?.Invoke(this, EventArgs.Empty);
             }
         }
@@ -112,29 +104,25 @@ namespace LoginAppFramework
             }
 
             if (_currentWorker == null) return;
+
             var availableAssets = AppData.GetAssets()
-                   .Where(a => a.WorkerId == null && a.Status != "Arxivdə")
-                   .ToList();
+                .Where(a => a.WorkerId == null && a.Status != "Arxivdə")
+                .ToList();
+
             if (!availableAssets.Any())
             {
                 MessageBox.Show("Təhkim ediləcək boş vəsait yoxdur.", "Vəsait Yoxdur");
                 return;
             }
+
             var selectWindow = new SelectAssetWindow(availableAssets) { Owner = Window.GetWindow(this) };
             if (selectWindow.ShowDialog() == true && selectWindow.SelectedAsset != null)
             {
-                var assetToAssign = selectWindow.SelectedAsset;
-                var workerModel = _currentWorker.GetModel();
+                AppServices.Assets.Assign(
+                    selectWindow.SelectedAsset,
+                    _currentWorker.GetModel(),
+                    "İşçi detalları");
 
-                assetToAssign.Status = "İstifadədədir";
-                assetToAssign.WorkerId = workerModel.Id;
-                assetToAssign.TehkimOlunanEmekdas = workerModel.per_adiper_soyadi;
-                assetToAssign.Vezifesi = workerModel.pgk_gorev_adi;
-                assetToAssign.BolmeShobeDepartment = workerModel.pdp_adi;
-
-                if (assetToAssign.History == null) assetToAssign.History = new List<AssignmentHistoryEntry>();
-                assetToAssign.History.Add(new() { Action = AssignmentAction.Assigned, FromWorkerName = "Sistem", ToWorkerName = _currentWorker.Name, ChangedBy = SessionManager.CurrentUser.FullName, ChangeDate = DateTime.Now });
-                AppData.SaveAndRefreshAsset(assetToAssign);
                 AssetAssignmentChanged?.Invoke(this, EventArgs.Empty);
             }
         }

@@ -65,7 +65,7 @@ namespace LoginAppFramework
             var editWindow = new AddEditWorkerWindow(_workerToShow) { Owner = this };
             if (editWindow.ShowDialog() == true)
             {
-                AppData.SaveAndRefreshWorker(editWindow.Worker);
+                AppServices.Workers.Save(editWindow.Worker);
                 OnWorkerUpdated?.Invoke();
                 this.Close();
             }

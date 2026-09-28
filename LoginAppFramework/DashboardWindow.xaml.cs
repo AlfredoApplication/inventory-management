@@ -131,7 +131,7 @@ namespace LoginAppFramework
             if (string.IsNullOrEmpty(departmentName) || _allAssets == null) return;
 
             var filteredAssets = _allAssets
-                .Where(asset => asset.BolmeShobeDepartment != null && asset.BolmeShobeDepartment.Equals(departmentName, StringComparison.OrdinalIgnoreCase))
+                .Where(asset => asset.Department != null && asset.Department.Equals(departmentName, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
             // --- THE FIX IS HERE ---

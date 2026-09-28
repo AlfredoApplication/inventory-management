@@ -39,10 +39,15 @@ namespace LoginAppFramework
 
         private void LoadAllHistory()
         {
-            var assetLogs = DataAccess.GetAssetLogs();
-            var assignmentHistory = DataAccess.GetAssignmentHistoryEntries();
+            var assetLogs = AppServices.Audit.GetAssetLogs();
+            var assignmentHistory = AppServices.Audit.GetAssignmentHistory();
+            var existingAssetCodes = AppServices.Audit.GetCurrentAssetCodes();
 
-            var assetLogViewModels = assetLogs.Select(log => new HistoryLogViewModel(log));
+            var assetLogViewModels = assetLogs.Select(log =>
+                new HistoryLogViewModel(
+                    log,
+                    string.IsNullOrWhiteSpace(log.VesaitinKodu) ||
+                    !existingAssetCodes.Contains(log.VesaitinKodu)));
 
             var assignmentViewModels = assignmentHistory
                 .Where(h => h.Asset != null)
@@ -214,7 +219,7 @@ namespace LoginAppFramework
         private void SelectAllDeletedCheckBox_Checked(object sender, RoutedEventArgs e)
         {
             if (_filteredHistoryEntries == null) return;
-            foreach (var vm in _filteredHistoryEntries.Where(v => v.IsDeleted))
+            foreach (var vm in _filteredHistoryEntries.Where(v => v.CanRestore))
                 vm.IsSelected = true;
             UpdateRestoreBar();
         }
@@ -222,7 +227,7 @@ namespace LoginAppFramework
         private void SelectAllDeletedCheckBox_Unchecked(object sender, RoutedEventArgs e)
         {
             if (_filteredHistoryEntries == null) return;
-            foreach (var vm in _filteredHistoryEntries.Where(v => v.IsDeleted))
+            foreach (var vm in _filteredHistoryEntries.Where(v => v.CanRestore))
                 vm.IsSelected = false;
             UpdateRestoreBar();
         }
@@ -232,8 +237,8 @@ namespace LoginAppFramework
             if (_allHistoryEntries == null) return;
 
             // Count across ALL pages, not just the current page slice
-            int count = _allHistoryEntries.Count(v => v.IsDeleted && v.IsSelected);
-            bool anyDeleted = _allHistoryEntries.Any(v => v.IsDeleted);
+            int count = _allHistoryEntries.Count(v => v.CanRestore && v.IsSelected);
+            bool anyDeleted = _allHistoryEntries.Any(v => v.CanRestore);
 
             RestoreActionBar.Visibility = anyDeleted ? Visibility.Visible : Visibility.Collapsed;
             SelectedCountBadge.Text = $"{count} seçilib";
@@ -243,7 +248,7 @@ namespace LoginAppFramework
         private async void RestoreSelectedButton_Click(object sender, RoutedEventArgs e)
         {
             var toRestore = _allHistoryEntries
-                .Where(v => v.IsDeleted && v.IsSelected && v.Log != null)
+                .Where(v => v.CanRestore && v.IsSelected && v.Log != null)
                 .ToList();
 
             if (!toRestore.Any()) return;
@@ -258,14 +263,37 @@ namespace LoginAppFramework
             if (confirm != MessageBoxResult.Yes) return;
 
             int success = 0, fail = 0;
+            var failures = new List<string>();
+
             foreach (var vm in toRestore)
             {
-                bool ok = DataAccess.RestoreAssetFromLog(vm.Log);
-                if (ok) success++; else fail++;
+                try
+                {
+                    var result = AppServices.Audit.RestoreDeletedAsset(vm.Log);
+                    if (result.Success)
+                    {
+                        success++;
+                    }
+                    else
+                    {
+                        fail++;
+                        failures.Add(result.Message);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    fail++;
+                    failures.Add($"{vm.Log.VesaitinKodu}: {ex.Message}");
+                }
             }
 
             string msg = $"{success} vəsait uğurla bərpa edildi.";
-            if (fail > 0) msg += $"\n{fail} vəsait bərpa edilə bilmədi (yuxarıda xəta mesajı göstərilib).";
+            if (fail > 0)
+            {
+                msg += $"\n{fail} vəsait bərpa edilə bilmədi.";
+                if (failures.Any())
+                    msg += $"\n\n{string.Join("\n", failures.Take(10))}";
+            }
 
             MessageBox.Show(msg, "Bərpa Nəticəsi",
                 MessageBoxButton.OK,

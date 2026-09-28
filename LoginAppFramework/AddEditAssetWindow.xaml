@@ -42,7 +42,9 @@
             <ComboBox x:Name="UserComboBox" Grid.Row="4" Grid.Column="1" DisplayMemberPath="per_adiper_soyadi" Margin="0,0,0,10" Padding="5" IsEditable="True" IsTextSearchEnabled="True"
                       SelectionChanged="UserComboBox_SelectionChanged"/>
             <Label Grid.Row="5" Content="Bölmə/Şöbə/Departament:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
-            <ComboBox x:Name="DepartmentComboBox" Grid.Row="5" Grid.Column="1" SelectedItem="{Binding BolmeShobeDepartment, Mode=TwoWay}" IsEditable="True" Margin="0,0,0,10" Padding="5"/>
+            <TextBox x:Name="AssignedDepartmentTextBox" Grid.Row="5" Grid.Column="1"
+                     IsReadOnly="True" IsTabStop="False" Margin="0,0,0,10" Padding="5"
+                     ToolTip="Departament seçilmiş əməkdaşdan avtomatik müəyyən edilir."/>
             <Label Grid.Row="6" Content="Yerləşmə Yeri:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
             <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding YerleshmeYeri, Mode=TwoWay}" Margin="0,0,0,10" Padding="5"/>
             <Label Grid.Row="7" Content="Ərazi:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
