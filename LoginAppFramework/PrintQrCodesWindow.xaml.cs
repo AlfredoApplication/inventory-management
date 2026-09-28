@@ -79,10 +79,9 @@ namespace LoginAppFramework
             // Margin=10: adds a quiet zone (white border) inside the bitmap.
             // Code 128 standard requires ≥10× the narrowest-bar width on each side.
             // PureBarcode=false: ZXing applies its own internal margin on top of ours.
-            var writer = new BarcodeWriter<GDI.Bitmap>
+            var writer = new ZXing.Windows.Compatibility.BarcodeWriter
             {
                 Format   = BarcodeFormat.CODE_128,
-                Renderer = new BitmapRenderer(),
                 Options  = new EncodingOptions
                 {
                     Width       = bmpW,
