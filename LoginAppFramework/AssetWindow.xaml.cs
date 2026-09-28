@@ -344,6 +344,8 @@ namespace LoginAppFramework
                     context.SaveChanges();
                     transaction.Commit();
                 }
+
+                AppData.RefreshAssets(assetsToImport.Select(a => a.Id));
                 MessageBox.Show($"{assetsToImport.Count} vəsait uğurla import edildi.", "Import Tamamlandı", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
@@ -470,7 +472,7 @@ namespace LoginAppFramework
             var result = MessageBox.Show($"İşarələnmiş {checkedAssets.Count} vəsaiti həmişəlik silməyə əminsinizmi?", "Toplu Silməni Təsdiq Et", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (result == MessageBoxResult.Yes)
             {
-                DataAccess.BulkDeleteAssets(checkedAssets);
+                AppData.BulkDeleteAndRefreshAssets(checkedAssets);
                 RefreshDataAndSelection();
             }
         }
@@ -782,8 +784,7 @@ namespace LoginAppFramework
         private bool isDetailPanelOpen = false;
         private void RefreshDataAndSelection(int? assetIdToSelect = null)
         {
-            AppData.LoadAllData();
-            var allAssets = AppData.GetAssets(); // Temporary get raw assets
+            var allAssets = AppData.GetAssets();
             _allCheckableAssets = allAssets.Select(a => new AssetCheckableViewModel(a)).ToList();
             _allWorkers = AppData.GetWorkers();
             _filterViewModel = new AssetFilterViewModel();

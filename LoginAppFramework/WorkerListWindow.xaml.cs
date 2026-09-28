@@ -38,7 +38,6 @@ namespace LoginAppFramework
                 NavigationManager.RestartApplication();
                 return;
             }
-            await Task.Run(() => AppData.LoadAllData());
             LoadAllData();
             _filterViewModel = new WorkerFilterViewModel(AppData.GetWorkers());
             _filterViewModel.FilterChanged += ApplyFilters;
@@ -130,6 +129,7 @@ namespace LoginAppFramework
             try
             {
                 int affectedRows = await DataAccess.SynchronizeWorkersFromRemoteAsync();
+                AppData.RefreshWorkersFromDatabase();
                 RefreshAllDataAndFilters();
                 MessageBox.Show($"Sync complete. {affectedRows} records affected.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
@@ -147,7 +147,6 @@ namespace LoginAppFramework
         private void RefreshAllDataAndFilters()
         {
             var selectedItems = WorkersDataGrid.SelectedItems.Cast<WorkerViewModel>().ToList();
-            AppData.LoadAllData();
             LoadAllData();
             _filterViewModel = new WorkerFilterViewModel(AppData.GetWorkers());
             _filterViewModel.FilterChanged += ApplyFilters;
@@ -219,7 +218,7 @@ namespace LoginAppFramework
             if (result == MessageBoxResult.Yes)
             {
                 var workerIds = selectedVMs.Select(vm => vm.GetModel().Id).ToList();
-                int count = DataAccess.BulkSetWorkersActiveState(workerIds, false);
+                int count = AppData.BulkSetWorkersActiveState(workerIds, false);
                 RefreshAllDataAndFilters();
                 MessageBox.Show($"{count} workers deactivated.", "Complete");
             }
@@ -239,7 +238,7 @@ namespace LoginAppFramework
             if (result == MessageBoxResult.Yes)
             {
                 var workerIds = selectedVMs.Select(vm => vm.GetModel().Id).ToList();
-                int count = DataAccess.BulkSetWorkersActiveState(workerIds, true);
+                int count = AppData.BulkSetWorkersActiveState(workerIds, true);
                 RefreshAllDataAndFilters();
                 MessageBox.Show($"{count} workers activated.", "Complete");
             }
@@ -267,10 +266,10 @@ namespace LoginAppFramework
             }
 
             var addWindow = new AddEditWorkerWindow { Owner = this };
-            if (addWindow.ShowDialog() == true) { DataAccess.SaveWorker(addWindow.Worker); RefreshAllDataAndFilters(); }
+            if (addWindow.ShowDialog() == true) { AppData.SaveAndRefreshWorker(addWindow.Worker); RefreshAllDataAndFilters(); }
         }
-        private void Manager_EditWorker(object sender, Worker worker) { if (worker == null) return; var editWindow = new AddEditWorkerWindow(worker) { Owner = this }; if (editWindow.ShowDialog() == true) { DataAccess.SaveWorker(editWindow.Worker); RefreshAllDataAndFilters(); } }
-        private void Manager_DeleteWorker(object sender, Worker worker) { if (worker == null) return; var result = MessageBox.Show($"Are you sure you want to permanently delete '{worker.per_adiper_soyadi}'?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Warning); if (result == MessageBoxResult.Yes) { DataAccess.DeleteWorker(worker); RefreshAllDataAndFilters(); } }
+        private void Manager_EditWorker(object sender, Worker worker) { if (worker == null) return; var editWindow = new AddEditWorkerWindow(worker) { Owner = this }; if (editWindow.ShowDialog() == true) { AppData.SaveAndRefreshWorker(editWindow.Worker); RefreshAllDataAndFilters(); } }
+        private void Manager_DeleteWorker(object sender, Worker worker) { if (worker == null) return; var result = MessageBox.Show($"Are you sure you want to permanently delete '{worker.per_adiper_soyadi}'?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Warning); if (result == MessageBoxResult.Yes) { AppData.DeleteAndRefreshWorker(worker); RefreshAllDataAndFilters(); } }
         private void WorkersDataGrid_MouseDoubleClick(object _, MouseButtonEventArgs e) { if (WorkersDataGrid.SelectedItem is WorkerViewModel selectedWorkerVM) { var detailWindow = new WorkerDetailWindow(selectedWorkerVM.GetModel(), AppData.GetAssets()) { Owner = this }; detailWindow.OnWorkerUpdated += RefreshAllDataAndFilters; detailWindow.ShowDialog(); } }
         private void AssetManager_AssetAssignmentChanged(object _, EventArgs e) => RefreshAllDataAndFilters();
         private void ClearFiltersButton_Click(object _, RoutedEventArgs e) { ActiveFilterButton.IsChecked = true; _filterViewModel.Clear(); }

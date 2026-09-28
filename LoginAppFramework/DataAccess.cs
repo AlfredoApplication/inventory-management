@@ -63,6 +63,13 @@ namespace LoginAppFramework
             return context.Workers.OrderBy(w => w.per_adiper_soyadi).ToList();
         }
 
+        public static Worker GetWorkerById(int workerId)
+        {
+            if (workerId <= 0) return null;
+            using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
+            return context.Workers.AsNoTracking().FirstOrDefault(w => w.Id == workerId);
+        }
+
         public static void SaveWorker(Worker worker)
         {
             using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
@@ -76,6 +83,53 @@ namespace LoginAppFramework
             using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
             context.Workers.Remove(worker);
             context.SaveChanges();
+        }
+
+        public static List<int> DeleteWorkerAndUnassignAssets(int workerId, string changedByUser)
+        {
+            if (workerId <= 0) return new List<int>();
+
+            using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
+            using var transaction = context.Database.BeginTransaction();
+
+            try
+            {
+                context.Database.ExecuteSqlRaw(
+                    "EXEC sp_set_session_context @key=N'CurrentUser', @value=@user",
+                    new SqlParameter("@user", changedByUser));
+
+                var affectedAssets = context.Assets
+                    .Where(a => a.WorkerId == workerId)
+                    .ToList();
+
+                foreach (var asset in affectedAssets)
+                {
+                    asset.WorkerId = null;
+                    asset.TehkimOlunanEmekdas = null;
+                    asset.Vezifesi = null;
+                    asset.BolmeShobeDepartment = null;
+
+                    if (asset.Status == "İstifadədədir")
+                    {
+                        asset.Status = "Anbarda";
+                    }
+                }
+
+                var worker = context.Workers.Find(workerId);
+                if (worker != null)
+                {
+                    context.Workers.Remove(worker);
+                }
+
+                context.SaveChanges();
+                transaction.Commit();
+                return affectedAssets.Select(a => a.Id).ToList();
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
         }
 
         public static int BulkSetWorkersActiveState(IEnumerable<int> workerIds, bool isActive)
@@ -197,6 +251,45 @@ namespace LoginAppFramework
             }
 
             return assets;
+        }
+
+        public static Asset GetAssetById(int assetId)
+        {
+            if (assetId <= 0) return null;
+
+            using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
+            return context.Assets
+                .AsNoTracking()
+                .Include(a => a.Worker)
+                .Include(a => a.History)
+                .FirstOrDefault(a => a.Id == assetId);
+        }
+
+        public static List<Asset> GetAssetsByIds(IEnumerable<int> assetIds)
+        {
+            var ids = assetIds?
+                .Where(id => id > 0)
+                .Distinct()
+                .ToList() ?? new List<int>();
+
+            if (!ids.Any()) return new List<Asset>();
+
+            using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
+            var assets = new List<Asset>();
+
+            foreach (var batch in ids.Chunk(1000))
+            {
+                var batchIds = batch.ToArray();
+                assets.AddRange(
+                    context.Assets
+                        .AsNoTracking()
+                        .Include(a => a.Worker)
+                        .Include(a => a.History)
+                        .Where(a => batchIds.Contains(a.Id))
+                        .ToList());
+            }
+
+            return assets.OrderBy(a => a.Id).ToList();
         }
 
         public static List<AssignmentHistoryEntry> GetAssignmentHistoryEntries()
