@@ -24,7 +24,7 @@ namespace LoginAppFramework
                 Kateqoriya = GetString(values, "Kateqoriya") ?? log.Kateqoriya,
                 YerleshmeYeri = GetString(values, "YerleshmeYeri") ?? log.YerleshmeYeri,
                 Erazi = GetString(values, "Erazi") ?? log.Erazi,
-                Status = GetString(values, "Status") ?? GetString(values, "status") ?? log.status,
+                Status = GetString(values, "Status") ?? GetString(values, "status") ?? "Anbarda",
                 PurchaseCost = GetDecimal(values, "PurchaseCost") ?? 0m,
                 PurchaseDate = GetDateTime(values, "PurchaseDate") ?? DateTime.MinValue,
                 UsefulLifeInYears = GetInt(values, "UsefulLifeInYears") ?? 0,

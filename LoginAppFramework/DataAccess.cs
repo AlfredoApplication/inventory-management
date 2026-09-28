@@ -339,15 +339,41 @@ namespace LoginAppFramework
             }
             else
             {
+                asset.Worker = null;
                 context.Assets.Add(asset);
             }
             context.SaveChanges();
         }
 
-        public static void SaveAssetInTransaction(InventoryDbContext context, Asset asset)
+        public static void InsertAssets(List<Asset> assets, string changedByUser)
         {
-            if (asset.Id > 0) { context.Assets.Update(asset); }
-            else { context.Assets.Add(asset); }
+            if (assets == null || assets.Count == 0) return;
+
+            using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
+            using var transaction = context.Database.BeginTransaction();
+
+            try
+            {
+                context.Database.ExecuteSqlRaw(
+                    "EXEC sp_set_session_context @key=N'CurrentUser', @value=@user",
+                    new SqlParameter("@user", changedByUser));
+
+                foreach (var asset in assets)
+                {
+                    // WorkerId is the persisted source of truth. A Worker navigation object
+                    // from AppData belongs to a different DbContext and must not be inserted.
+                    asset.Worker = null;
+                }
+
+                context.Assets.AddRange(assets);
+                context.SaveChanges();
+                transaction.Commit();
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
         }
 
         public static void DeleteAsset(Asset asset)
@@ -398,6 +424,7 @@ namespace LoginAppFramework
                 {
                     if (asset.Id <= 0)
                     {
+                        asset.Worker = null;
                         context.Assets.Add(asset);
                         continue;
                     }
@@ -481,6 +508,7 @@ namespace LoginAppFramework
                         $"'{asset.VesaitinKodu}' kodlu vəsait artıq mövcuddur.");
                 }
 
+                asset.Worker = null;
                 context.Assets.Add(asset);
                 context.SaveChanges();
                 transaction.Commit();

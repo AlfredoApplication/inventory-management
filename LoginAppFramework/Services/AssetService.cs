@@ -8,6 +8,7 @@ namespace LoginAppFramework
     {
         void Save(Asset asset);
         void SaveMany(List<Asset> assets);
+        void ImportNewAssets(List<Asset> assets);
         void Delete(Asset asset);
         void DeleteMany(List<Asset> assets);
         void ApplyAssignment(Asset asset, Worker worker, string source);
@@ -32,6 +33,27 @@ namespace LoginAppFramework
         {
             if (assets == null || assets.Count == 0) return;
             AppData.BulkSaveAndRefreshAssets(assets);
+        }
+
+        public void ImportNewAssets(List<Asset> assets)
+        {
+            if (assets == null || assets.Count == 0) return;
+
+            foreach (var asset in assets.Where(a => a.WorkerId.HasValue && a.History?.Any(h => h.Id == 0) != true))
+            {
+                AddHistory(
+                    asset,
+                    AssignmentAction.Assigned,
+                    "Excel import",
+                    asset.AssignedUser ?? "Naməlum əməkdaş",
+                    "Excel import");
+            }
+
+            DataAccess.InsertAssets(
+                assets,
+                SessionManager.CurrentUser?.FullName ?? "Sistem");
+
+            AppData.RefreshAssets(assets.Select(a => a.Id));
         }
 
         public void Delete(Asset asset)
@@ -118,7 +140,19 @@ namespace LoginAppFramework
 
         private static void AddAssignmentHistoryForEdit(Asset asset)
         {
-            if (asset.Id <= 0) return;
+            if (asset.Id <= 0)
+            {
+                if (asset.WorkerId.HasValue && asset.History?.Any(h => h.Id == 0) != true)
+                {
+                    AddHistory(
+                        asset,
+                        AssignmentAction.Assigned,
+                        "Vəsait yaradılması",
+                        asset.AssignedUser ?? "Naməlum əməkdaş",
+                        "Vəsait yaradılması");
+                }
+                return;
+            }
 
             var original = AppData.GetAssets().FirstOrDefault(a => a.Id == asset.Id);
             if (original == null || original.WorkerId == asset.WorkerId) return;

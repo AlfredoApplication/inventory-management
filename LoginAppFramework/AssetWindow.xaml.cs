@@ -333,18 +333,7 @@ namespace LoginAppFramework
 
             try
             {
-                using (var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString))
-                using (var transaction = context.Database.BeginTransaction())
-                {
-                    foreach (var asset in assetsToImport)
-                    {
-                        DataAccess.SaveAssetInTransaction(context, asset);
-                    }
-                    context.SaveChanges();
-                    transaction.Commit();
-                }
-
-                AppData.RefreshAssets(assetsToImport.Select(a => a.Id));
+                AppServices.Assets.ImportNewAssets(assetsToImport);
                 MessageBox.Show($"{assetsToImport.Count} vəsait uğurla import edildi.", "Import Tamamlandı", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
