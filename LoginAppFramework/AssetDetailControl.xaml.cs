@@ -51,7 +51,7 @@ namespace LoginAppFramework
                     }
                 }
 
-                AppData.SaveAndRefreshAsset(_currentAsset);
+                AppServices.Assets.Save(_currentAsset);
                 PopulateFinancialsAndMaintenance();
             }
         }
