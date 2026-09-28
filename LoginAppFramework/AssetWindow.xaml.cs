@@ -271,92 +271,72 @@ namespace LoginAppFramework
         {
             if (!SessionManager.CanEdit())
             {
-                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(
+                    "Bu əməliyyat üçün icazəniz yoxdur.",
+                    "Giriş Qadağandır",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
                 return;
             }
 
-            var checkedAssets = _viewModel.AllAssets.Where(vm => vm.IsChecked).Select(vm => vm.Asset).ToList();
-            if (!checkedAssets.Any()) return;
+            var checkedAssets = _viewModel.GetCheckedAssets();
+            if (checkedAssets.Count == 0) return;
 
-            var editWindow = new BulkEditWindow(checkedAssets.Count) { Owner = this };
-            if (editWindow.ShowDialog() == true)
+            var editWindow = new BulkEditWindow(checkedAssets.Count)
             {
-                var changesToApply = editWindow.Changes;
-                var assetsToUpdateInDb = new List<Asset>();
-                var skippedStatusAssets = new List<Asset>();
-                var skippedWorkerChangeAssets = new List<Asset>();
+                Owner = this
+            };
 
-                foreach (var asset in checkedAssets)
+            if (editWindow.ShowDialog() != true) return;
+
+            try
+            {
+                var result = AppServices.Assets.ApplyBulkChanges(
+                    checkedAssets,
+                    editWindow.Changes,
+                    "Sistem (Toplu Redaktə)");
+
+                RefreshDataAndSelection();
+
+                if (result.UpdatedCount > 0)
                 {
-                    bool assetWasChanged = false;
-
-                    if (changesToApply.VesaitinKodu != null) { asset.VesaitinKodu = changesToApply.VesaitinKodu; assetWasChanged = true; }
-                    if (changesToApply.VesaitinAdi != null) { asset.VesaitinAdi = changesToApply.VesaitinAdi; assetWasChanged = true; }
-                    if (changesToApply.ITAvadanliqlarininSeriyaNomresi != null) { asset.ITAvadanliqlarininSeriyaNomresi = changesToApply.ITAvadanliqlarininSeriyaNomresi; assetWasChanged = true; }
-                    if (changesToApply.Kateqoriya != null) { asset.Kateqoriya = changesToApply.Kateqoriya; assetWasChanged = true; }
-                    if (changesToApply.YerleshmeYeri != null) { asset.YerleshmeYeri = changesToApply.YerleshmeYeri; assetWasChanged = true; }
-                    if (changesToApply.Erazi != null) { asset.Erazi = changesToApply.Erazi; assetWasChanged = true; }
-                    if (changesToApply.PurchaseCost.HasValue) { asset.PurchaseCost = changesToApply.PurchaseCost.Value; assetWasChanged = true; }
-                    if (changesToApply.PurchaseDate.HasValue) { asset.PurchaseDate = changesToApply.PurchaseDate.Value; assetWasChanged = true; }
-                    if (changesToApply.UsefulLifeInYears.HasValue) { asset.UsefulLifeInYears = changesToApply.UsefulLifeInYears.Value; assetWasChanged = true; }
-                    if (changesToApply.Supplier != null) { asset.Supplier = changesToApply.Supplier; assetWasChanged = true; }
-                    if (changesToApply.WarrantyExpirationDate.HasValue) { asset.WarrantyExpirationDate = changesToApply.WarrantyExpirationDate.Value; assetWasChanged = true; }
-
-                    // WorkerId + Worker are the source of truth; the service also records assignment history.
-                    if (changesToApply.AssignedWorker != null)
-                    {
-                        if (changesToApply.AssignedWorker.Id == 0)
-                        {
-                            AppServices.Assets.ApplyUnassignment(
-                                asset,
-                                "Sistem (Toplu Redaktə)");
-                        }
-                        else
-                        {
-                            AppServices.Assets.ApplyAssignment(
-                                asset,
-                                changesToApply.AssignedWorker,
-                                "Sistem (Toplu Redaktə)");
-                        }
-
-                        assetWasChanged = true;
-                    }
-
-                    if (changesToApply.Status != null)
-                    {
-                        if (asset.WorkerId.HasValue) { skippedStatusAssets.Add(asset); }
-                        else { asset.Status = changesToApply.Status; assetWasChanged = true; }
-                    }
-
-                    if (assetWasChanged) { assetsToUpdateInDb.Add(asset); }
+                    MessageBox.Show(
+                        $"{result.UpdatedCount} vəsait uğurla dəyişdirildi.",
+                        "Tamamlandı",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
                 }
 
-                if (assetsToUpdateInDb.Any())
+                if (result.SkippedStatusAssets.Count > 0)
                 {
-                    try
-                    {
-                        AppServices.Assets.SaveMany(assetsToUpdateInDb);
-                        RefreshDataAndSelection();
-                        MessageBox.Show($"{assetsToUpdateInDb.Count} vəsait uğurla dəyişdirildi.", "Tamamlandı", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Məlumat bazasına yadda saxlayarkən xəta baş verdi: {ex.Message}", "Xəta", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
+                    string skippedNames = string.Join(
+                        "\n",
+                        result.SkippedStatusAssets.Select(a => $"- {a.VesaitinAdi}"));
+
+                    MessageBox.Show(
+                        $"XƏBƏRDARLIQ: {result.SkippedStatusAssets.Count} vəsaitin statusu dəyişdirilmədi, çünki onlar işçiyə təhkim olunub və 'İstifadədədir' statusunda qalmalıdırlar:\n\n{skippedNames}",
+                        "Status Dəyişikliyi Ötürüldü",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
                 }
 
-                // Show warnings for skipped status changes
-                if (skippedStatusAssets.Any())
+                if (result.UpdatedCount == 0 &&
+                    result.SkippedStatusAssets.Count == 0)
                 {
-                    var skippedNames = string.Join("\n", skippedStatusAssets.Select(a => $"- {a.VesaitinAdi}"));
-                    MessageBox.Show($"XƏBƏRDARLIQ: {skippedStatusAssets.Count} vəsaitin statusu dəyişdirilmədi, çünki onlar artıq işçilərə təhkim olunub və 'İstifadədədir' statusunda qalmalıdırlar:\n\n{skippedNames}",
-                                    "Status Dəyişikliyi Ötürüldü", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show(
+                        "Heç bir dəyişiklik edilmədi.",
+                        "Məlumat",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
                 }
-
-                if (!assetsToUpdateInDb.Any() && !skippedStatusAssets.Any())
-                {
-                    MessageBox.Show("Heç bir dəyişiklik edilmədi.", "Məlumat", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Məlumat bazasına yadda saxlayarkən xəta baş verdi: {ex.Message}",
+                    "Xəta",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
             }
         }
 

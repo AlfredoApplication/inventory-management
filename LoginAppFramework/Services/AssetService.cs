@@ -17,6 +17,10 @@ namespace LoginAppFramework
         void Unassign(Asset asset, string source, string nextStatus = "Anbarda");
         void Archive(Asset asset, string source);
         void AssignMany(IEnumerable<Asset> assets, Worker worker, string source);
+        AssetBulkUpdateResult ApplyBulkChanges(
+            IEnumerable<Asset> assets,
+            BulkAssetChanges changes,
+            string source);
     }
 
     public sealed class AssetService : IAssetService
@@ -136,6 +140,128 @@ namespace LoginAppFramework
             }
 
             AppData.BulkSaveAndRefreshAssets(assetList);
+        }
+
+        public AssetBulkUpdateResult ApplyBulkChanges(
+            IEnumerable<Asset> assets,
+            BulkAssetChanges changes,
+            string source)
+        {
+            if (assets == null) throw new ArgumentNullException(nameof(assets));
+            if (changes == null) throw new ArgumentNullException(nameof(changes));
+
+            var changedAssets = new List<Asset>();
+            var skippedStatusAssets = new List<Asset>();
+
+            foreach (var asset in assets)
+            {
+                if (asset == null) continue;
+
+                bool changed = false;
+
+                if (changes.VesaitinKodu != null)
+                {
+                    asset.VesaitinKodu = changes.VesaitinKodu;
+                    changed = true;
+                }
+
+                if (changes.VesaitinAdi != null)
+                {
+                    asset.VesaitinAdi = changes.VesaitinAdi;
+                    changed = true;
+                }
+
+                if (changes.ITAvadanliqlarininSeriyaNomresi != null)
+                {
+                    asset.ITAvadanliqlarininSeriyaNomresi =
+                        changes.ITAvadanliqlarininSeriyaNomresi;
+                    changed = true;
+                }
+
+                if (changes.Kateqoriya != null)
+                {
+                    asset.Kateqoriya = changes.Kateqoriya;
+                    changed = true;
+                }
+
+                if (changes.YerleshmeYeri != null)
+                {
+                    asset.YerleshmeYeri = changes.YerleshmeYeri;
+                    changed = true;
+                }
+
+                if (changes.Erazi != null)
+                {
+                    asset.Erazi = changes.Erazi;
+                    changed = true;
+                }
+
+                if (changes.PurchaseCost.HasValue)
+                {
+                    asset.PurchaseCost = changes.PurchaseCost.Value;
+                    changed = true;
+                }
+
+                if (changes.PurchaseDate.HasValue)
+                {
+                    asset.PurchaseDate = changes.PurchaseDate.Value;
+                    changed = true;
+                }
+
+                if (changes.UsefulLifeInYears.HasValue)
+                {
+                    asset.UsefulLifeInYears = changes.UsefulLifeInYears.Value;
+                    changed = true;
+                }
+
+                if (changes.Supplier != null)
+                {
+                    asset.Supplier = changes.Supplier;
+                    changed = true;
+                }
+
+                if (changes.WarrantyExpirationDate.HasValue)
+                {
+                    asset.WarrantyExpirationDate =
+                        changes.WarrantyExpirationDate.Value;
+                    changed = true;
+                }
+
+                if (changes.AssignedWorker != null)
+                {
+                    if (changes.AssignedWorker.Id == 0)
+                        ApplyUnassignment(asset, source);
+                    else
+                        ApplyAssignment(asset, changes.AssignedWorker, source);
+
+                    changed = true;
+                }
+
+                if (changes.Status != null)
+                {
+                    if (asset.WorkerId.HasValue)
+                    {
+                        skippedStatusAssets.Add(asset);
+                    }
+                    else
+                    {
+                        asset.Status = changes.Status;
+                        changed = true;
+                    }
+                }
+
+                if (changed)
+                    changedAssets.Add(asset);
+            }
+
+            if (changedAssets.Count > 0)
+                SaveMany(changedAssets);
+
+            return new AssetBulkUpdateResult
+            {
+                UpdatedCount = changedAssets.Count,
+                SkippedStatusAssets = skippedStatusAssets
+            };
         }
 
         private static void AddAssignmentHistoryForEdit(Asset asset)
