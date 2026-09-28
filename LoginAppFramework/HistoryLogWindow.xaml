@@ -69,13 +69,16 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock x:Name="CountTextBlock" Grid.Column="0" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="{StaticResource BodyTextBrush}" Margin="0,0,20,0"/>
+                    <TextBlock x:Name="CountTextBlock" Grid.Column="0" Text="{Binding CountText}" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="{StaticResource BodyTextBrush}" Margin="0,0,20,0"/>
 
                     <!-- THE FIX: Updated the style of the filter controls -->
-                    <TextBox x:Name="SearchBox" Grid.Column="1" TextChanged="Filters_Changed" Tag="Axtarış..." VerticalAlignment="Center"/>
+                    <TextBox x:Name="SearchBox" Grid.Column="1" Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Tag="Axtarış..." VerticalAlignment="Center"/>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="20,0,0,0">
-                        <ComboBox x:Name="ActionFilterComboBox" Width="200" SelectionChanged="Filters_Changed" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        <ComboBox x:Name="ActionFilterComboBox" Width="200"
+                                  ItemsSource="{Binding ActionTypes}"
+                                  SelectedItem="{Binding SelectedAction, Mode=TwoWay}"
+                                  HorizontalAlignment="Left" VerticalAlignment="Center"/>
                         <Button x:Name="ClearFiltersButton" Content="Filtrləri təmizlə" Click="ClearFiltersButton_Click" Margin="20,0,0,0"/>
                     </StackPanel>
                 </Grid>
@@ -84,7 +87,7 @@
             <!-- ✅ RESTORE ACTION BAR (visible only when deleted items are selected) -->
             <Border x:Name="RestoreActionBar"
                     DockPanel.Dock="Top"
-                    Visibility="Collapsed"
+                    Visibility="{Binding HasRestorableItems, Converter={StaticResource BoolToVis}}"
                     Background="#1A3A5C"
                     BorderBrush="#2979FF"
                     BorderThickness="0,0,0,2"
@@ -106,7 +109,7 @@
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
                         <Border Background="#2979FF" CornerRadius="12" Padding="10,4" Margin="0,0,10,0">
                             <TextBlock x:Name="SelectedCountBadge"
-                                       Text="0 seçilib"
+                                       Text="{Binding SelectedRestoreCountText}"
                                        Foreground="White" FontWeight="Bold" FontSize="13"/>
                         </Border>
                         <TextBlock Text="'Silinən' vəsaitlər bərpa ediləcək"
@@ -115,7 +118,7 @@
                     <Button x:Name="RestoreSelectedButton"
                             Grid.Column="2"
                             Click="RestoreSelectedButton_Click"
-                            IsEnabled="False"
+                            IsEnabled="{Binding CanRestoreSelected}"
                             Padding="20,8">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE72C;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
@@ -140,16 +143,16 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock x:Name="PageInfoTextBlock" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="PageInfoTextBlock" Grid.Column="0" Text="{Binding PageInfo}" HorizontalAlignment="Left" VerticalAlignment="Center"/>
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <Button x:Name="PrevButton" Content="&lt;&lt;" Style="{StaticResource PageButtonStyle}" Click="PrevButton_Click"/>
+                                    <Button x:Name="PrevButton" Content="&lt;&lt;" Style="{StaticResource PageButtonStyle}" Click="PrevButton_Click" IsEnabled="{Binding CanGoPrevious}"/>
                                     <StackPanel x:Name="PageNumbersPanel" Orientation="Horizontal"/>
-                                    <Button x:Name="NextButton" Content="&gt;&gt;" Style="{StaticResource PageButtonStyle}" Click="NextButton_Click"/>
+                                    <Button x:Name="NextButton" Content="&gt;&gt;" Style="{StaticResource PageButtonStyle}" Click="NextButton_Click" IsEnabled="{Binding CanGoNext}"/>
                                 </StackPanel>
                             </Grid>
                         </Border>
 
-                        <ListView x:Name="HistoryListView" ItemsSource="{Binding}" 
+                        <ListView x:Name="HistoryListView" ItemsSource="{Binding PagedEntries}" 
                                   MouseDoubleClick="HistoryListView_MouseDoubleClick"
                                   HorizontalContentAlignment="Stretch" BorderThickness="0" Background="Transparent"
                                   AlternationCount="2">
@@ -169,9 +172,7 @@
                                             <CheckBox Grid.Column="0"
                                                       IsChecked="{Binding IsSelected, Mode=TwoWay}"
                                                       Visibility="{Binding CanRestore, Converter={StaticResource BoolToVis}}"
-                                                      VerticalAlignment="Center"
-                                                      Checked="ItemCheckBox_Changed"
-                                                      Unchecked="ItemCheckBox_Changed"/>
+                                                      VerticalAlignment="Center"/>
 
                                             <TextBlock Grid.Column="1" Text="{Binding Icon}" FontSize="24" VerticalAlignment="Center" Margin="5,0,20,0"/>
                                             <StackPanel Grid.Column="2" VerticalAlignment="Center">
@@ -192,7 +193,7 @@
                 <Border Grid.Column="1" Background="{StaticResource PanelBackgroundBrush}" Padding="15" Margin="0,25,25,25" CornerRadius="8" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="1">
                     <StackPanel>
                         <TextBlock Text="Tarixə Görə Filtr" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,10"/>
-                        <Calendar x:Name="DateFilterCalendar" SelectedDatesChanged="Filters_Changed"/>
+                        <Calendar x:Name="DateFilterCalendar" SelectedDate="{Binding SelectedDate, Mode=TwoWay}"/>
                     </StackPanel>
                 </Border>
             </Grid>
