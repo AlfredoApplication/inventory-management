@@ -1,11 +1,9 @@
-using ClosedXML.Excel;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -105,16 +103,18 @@ namespace LoginAppFramework
             printWindow.ShowDialog();
         }
 
-        // ExportButton_Click metodunu yeniləyin
         private void ExportButton_Click(object sender, RoutedEventArgs e)
         {
-            var assetsToExport = (AssetsDataGrid.ItemsSource as IEnumerable<AssetCheckableViewModel>)?.Select(vm => vm.Asset);
-            // ... metodun qalanı eyni qalır
-            if (assetsToExport == null || !assetsToExport.Any())
+            var assetsToExport = _viewModel.VisibleAssets
+                .Select(vm => vm.Asset)
+                .ToList();
+
+            if (assetsToExport.Count == 0)
             {
                 MessageBox.Show("Export üçün heç bir vəsait tapılmadı.", "Boş Siyahı", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
+
             var saveFileDialog = new SaveFileDialog
             {
                 Filter = "Excel Workbook|*.xlsx",
@@ -122,109 +122,19 @@ namespace LoginAppFramework
                 FileName = $"Vesaitler_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx"
             };
 
-            if (saveFileDialog.ShowDialog() == true)
+            if (saveFileDialog.ShowDialog() != true) return;
+
+            try
             {
-                try
-                {
-                    using (var workbook = new XLWorkbook())
-                    {
-                        // 1. Əsas "Vəsaitlər" Səhifəsi (Siyahı)
-                        var worksheet = workbook.Worksheets.Add("Vəsaitlər");
-
-                        var headers = new string[]
-                        {
-                        "Vəsaitin Kodu", "Vəsaitin Adı", "IT Seriya No", "Kateqoriya",
-                        "Təhkim Olunan Əməkdaş", "Vəzifəsi", "Bölmə/Şöbə/Departament",
-                        "Yerləşmə Yeri", "Ərazi", "Status", "Alış Qiyməti", "Alınma Tarixi",
-                        "İstifadə müddəti (İl)", "Aylıq Amortizasiya"
-                        };
-                        for (int i = 0; i < headers.Length; i++)
-                        {
-                            worksheet.Cell(1, i + 1).Value = headers[i];
-                        }
-                        worksheet.Row(1).Style.Font.Bold = true;
-
-                        int currentRow = 2;
-                        foreach (var asset in assetsToExport)
-                        {
-                            worksheet.Cell(currentRow, 1).Value = asset.VesaitinKodu;
-                            worksheet.Cell(currentRow, 2).Value = asset.VesaitinAdi;
-                            worksheet.Cell(currentRow, 3).Value = asset.ITAvadanliqlarininSeriyaNomresi;
-                            worksheet.Cell(currentRow, 4).Value = asset.Kateqoriya;
-                            worksheet.Cell(currentRow, 5).Value = asset.Worker?.per_adiper_soyadi;
-                            worksheet.Cell(currentRow, 6).Value = asset.Worker?.pgk_gorev_adi;
-                            worksheet.Cell(currentRow, 7).Value = asset.Worker?.pdp_adi;
-                            worksheet.Cell(currentRow, 8).Value = asset.YerleshmeYeri;
-                            worksheet.Cell(currentRow, 9).Value = asset.Erazi;
-                            worksheet.Cell(currentRow, 10).Value = asset.Status;
-                            worksheet.Cell(currentRow, 11).Value = asset.PurchaseCost;
-                            worksheet.Cell(currentRow, 12).Value = asset.PurchaseDate > DateTime.MinValue ? asset.PurchaseDate.ToString("yyyy-MM-dd") : "";
-                            worksheet.Cell(currentRow, 13).Value = asset.UsefulLifeInYears;
-                            worksheet.Cell(currentRow, 14).Value = asset.MonthlyDepreciation;
-                            currentRow++;
-                        }
-
-                        worksheet.Columns().AdjustToContents();
-
-                        // 2. İkinci "Vəsait Tarixçəsi" Səhifəsi (History)
-                        var historySheet = workbook.Worksheets.Add("Vəsait Tarixçəsi");
-                        var historyHeaders = new string[]
-                        {
-                            "Vəsaitin Kodu", "Vəsaitin Adı", "IT Seriya No", "Əməliyyat",
-                            "Kimdən Alındı", "Kimə Verildi", "Dəyişikliyi Edən", "Dəyişiklik Tarixi"
-                        };
-                        for (int i = 0; i < historyHeaders.Length; i++)
-                        {
-                            historySheet.Cell(1, i + 1).Value = historyHeaders[i];
-                        }
-                        historySheet.Row(1).Style.Font.Bold = true;
-
-                        int historyRow = 2;
-                        foreach (var asset in assetsToExport)
-                        {
-                            if (asset.History != null && asset.History.Any())
-                            {
-                                foreach (var historyEntry in asset.History.OrderBy(h => h.ChangeDate))
-                                {
-                                    historySheet.Cell(historyRow, 1).Value = asset.VesaitinKodu;
-                                    historySheet.Cell(historyRow, 2).Value = asset.VesaitinAdi;
-                                    historySheet.Cell(historyRow, 3).Value = asset.ITAvadanliqlarininSeriyaNomresi;
-                                    
-                                    string actionText = historyEntry.Action switch
-                                    {
-                                        AssignmentAction.Assigned => "Təhkim edilib",
-                                        AssignmentAction.Reassigned => "Yenidən Təhkim edilib",
-                                        AssignmentAction.Unassigned => "Geri Alınıb",
-                                        _ => historyEntry.Action.ToString()
-                                    };
-                                    historySheet.Cell(historyRow, 4).Value = actionText;
-                                    
-                                    historySheet.Cell(historyRow, 5).Value = historyEntry.FromWorkerName ?? "-";
-                                    historySheet.Cell(historyRow, 6).Value = historyEntry.ToWorkerName ?? "-";
-                                    historySheet.Cell(historyRow, 7).Value = historyEntry.ChangedBy ?? "-";
-                                    historySheet.Cell(historyRow, 8).Value = historyEntry.ChangeDate.ToString("yyyy-MM-dd HH:mm");
-                                    
-                                    historyRow++;
-                                }
-                            }
-                        }
-
-                        historySheet.Columns().AdjustToContents();
-
-                        // Yekun saxlanma
-                        workbook.SaveAs(saveFileDialog.FileName);
-                    }
-
-                    MessageBox.Show("Məlumatlar uğurla Excel faylına export edildi.", "Export Tamamlandı", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Export zamanı xəta baş verdi: {ex.Message}", "Xəta", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+                AppServices.AssetExcel.Export(saveFileDialog.FileName, assetsToExport);
+                MessageBox.Show("Məlumatlar uğurla Excel faylına export edildi.", "Export Tamamlandı", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Export zamanı xəta baş verdi: {ex.Message}", "Xəta", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        // ImportButton_Click və ProcessExcelFile dəyişməz qalır
         private void ImportButton_Click(object sender, RoutedEventArgs e)
         {
             if (!SessionManager.CanEdit())
@@ -233,16 +143,18 @@ namespace LoginAppFramework
                 return;
             }
 
-            var openFileDialog = new OpenFileDialog { Title = "Import üçün Excel faylı seçin", Filter = "Excel Files (*.xlsx)|*.xlsx" };
+            var openFileDialog = new OpenFileDialog
+            {
+                Title = "Import üçün Excel faylı seçin",
+                Filter = "Excel Files (*.xlsx)|*.xlsx"
+            };
+
             if (openFileDialog.ShowDialog() != true) return;
 
-            var assetsToImport = new List<Asset>();
-            var errorLog = new List<string>();
-            var importedWorkerNames = new Dictionary<Asset, string>();
-
+            AssetImportBatch batch;
             try
             {
-                ProcessExcelFile(openFileDialog.FileName, assetsToImport, errorLog, importedWorkerNames);
+                batch = AppServices.AssetExcel.ParseImport(openFileDialog.FileName);
             }
             catch (Exception ex)
             {
@@ -250,53 +162,57 @@ namespace LoginAppFramework
                 return;
             }
 
+            if (batch.Assets.Count == 0)
+            {
+                string message = batch.Errors.Count > 0
+                    ? $"İmport üçün etibarlı vəsait tapılmadı.\n\n{string.Join("\n", batch.Errors.Take(10))}"
+                    : "İmport üçün etibarlı vəsait tapılmadı.";
+
+                MessageBox.Show(message, "Import Başa Çatdı", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
             var dbWorkers = AppData.GetWorkers();
             var confirmedMappings = new Dictionary<string, Worker>(StringComparer.OrdinalIgnoreCase);
-            var excelUserNames = importedWorkerNames.Values
+            var requestedNames = batch.RequestedWorkerNames.Values
                 .Where(name => !string.IsNullOrWhiteSpace(name))
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
-            var mappingViewModels = excelUserNames
+
+            var mappingViewModels = requestedNames
                 .Select(name => new ImportMappingViewModel(name, dbWorkers))
                 .ToList();
 
-            var namesThatNeedManualMapping = mappingViewModels
+            foreach (var vm in mappingViewModels.Where(vm => !vm.IsUnmapped))
+                confirmedMappings[vm.ExcelUserName] = vm.SelectedDbWorker;
+
+            var unmappedNames = mappingViewModels
                 .Where(vm => vm.IsUnmapped)
                 .Select(vm => vm.ExcelUserName)
                 .ToList();
 
-            foreach (var vm in mappingViewModels.Where(vm => !vm.IsUnmapped))
+            if (unmappedNames.Count > 0)
             {
-                confirmedMappings[vm.ExcelUserName] = vm.SelectedDbWorker;
-            }
-
-            if (namesThatNeedManualMapping.Any())
-            {
-                var mappingWindow = new ImportMappingWindow(namesThatNeedManualMapping, dbWorkers) { Owner = this };
-                if (mappingWindow.ShowDialog() == true)
-                {
-                    foreach (var mapping in mappingWindow.ConfirmedMappings)
-                    {
-                        if (mapping.Value != null && mapping.Value.Id > 0)
-                        {
-                            confirmedMappings[mapping.Key] = mapping.Value;
-                        }
-                    }
-                }
-                else
+                var mappingWindow = new ImportMappingWindow(unmappedNames, dbWorkers) { Owner = this };
+                if (mappingWindow.ShowDialog() != true)
                 {
                     MessageBox.Show("Import ləğv edildi.");
                     return;
                 }
+
+                foreach (var mapping in mappingWindow.ConfirmedMappings)
+                {
+                    if (mapping.Value?.Id > 0)
+                        confirmedMappings[mapping.Key] = mapping.Value;
+                }
             }
 
-            foreach (var asset in assetsToImport)
+            foreach (var asset in batch.Assets)
             {
-                if (importedWorkerNames.TryGetValue(asset, out string requestedWorkerName) &&
-                    !string.IsNullOrWhiteSpace(requestedWorkerName) &&
-                    confirmedMappings.TryGetValue(requestedWorkerName, out Worker mappedWorker))
+                if (batch.RequestedWorkerNames.TryGetValue(asset, out string workerName) &&
+                    confirmedMappings.TryGetValue(workerName, out Worker worker))
                 {
-                    asset.AssignWorker(mappedWorker);
+                    asset.AssignWorker(worker);
                 }
                 else
                 {
@@ -304,27 +220,18 @@ namespace LoginAppFramework
                 }
             }
 
-            if (!assetsToImport.Any())
-            {
-                MessageBox.Show("İmport üçün etibarlı vəsait tapılmadı.", "Import Başa Çatdı", MessageBoxButton.OK, MessageBoxImage.Information);
+            string summary = $"{batch.Assets.Count} yeni vəsait importa hazırdır.";
+            if (batch.Errors.Count > 0)
+                summary += $"\n\n{batch.Errors.Count} sətir xətaya görə ötürüldü.";
+            summary += "\n\nBu vəsaitləri verilənlər bazasında yadda saxlamaq istəyirsiniz?";
+
+            if (MessageBox.Show(summary, "Importu Təsdiq Et", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
                 return;
-            }
-
-            var summary = new StringBuilder();
-            summary.AppendLine($"{assetsToImport.Count} yeni vəsait importa hazırdır.");
-            if (errorLog.Any())
-            {
-                summary.AppendLine($"\nXətalara görə {errorLog.Count} sətir ötürüldü.");
-            }
-            summary.AppendLine("\nBu vəsaitləri verilənlər bazasında yadda saxlamaq istəyirsiniz?");
-            var confirmResult = MessageBox.Show(summary.ToString(), "İmportu Təsdiq Et", MessageBoxButton.YesNo, MessageBoxImage.Question);
-
-            if (confirmResult != MessageBoxResult.Yes) return;
 
             try
             {
-                AppServices.Assets.ImportNewAssets(assetsToImport);
-                MessageBox.Show($"{assetsToImport.Count} vəsait uğurla import edildi.", "Import Tamamlandı", MessageBoxButton.OK, MessageBoxImage.Information);
+                AppServices.Assets.ImportNewAssets(batch.Assets);
+                MessageBox.Show($"{batch.Assets.Count} vəsait uğurla import edildi.", "Import Tamamlandı", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
@@ -333,99 +240,6 @@ namespace LoginAppFramework
             finally
             {
                 RefreshDataAndSelection();
-            }
-        }
-        private void ProcessExcelFile(string filePath, List<Asset> assetsToImport, List<string> errorLog, Dictionary<Asset, string> importedWorkerNames)
-        {
-            using (var workbook = new XLWorkbook(filePath))
-            {
-                var worksheet = workbook.Worksheets.FirstOrDefault();
-                if (worksheet == null || worksheet.FirstRowUsed() == null)
-                {
-                    throw new Exception("Excel faylı boşdur və ya başlıq sətri yoxdur.");
-                }
-
-                var headerRow = worksheet.FirstRowUsed();
-                var columnMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-                foreach (var cell in headerRow.Cells())
-                {
-                    columnMap[cell.GetString().Trim()] = cell.Address.ColumnNumber;
-                }
-
-                int adiCol;
-                if (columnMap.ContainsKey("Vəsaitin Adı")) { adiCol = columnMap["Vəsaitin Adı"]; }
-                else if (columnMap.ContainsKey("Vəsait adı")) { adiCol = columnMap["Vəsait adı"]; }
-                else { throw new Exception("Excel faylında tələb olunan 'Vəsaitin Adı' və ya 'Vəsait adı' sütunu tapılmadı."); }
-
-                var categoryDefaultLifecycles = AppData.GetCategoryDefaultLifecycles();
-                var dataRows = worksheet.RowsUsed().Skip(1);
-                foreach (var row in dataRows)
-                {
-                    string assetName = row.Cell(adiCol).GetString().Trim();
-                    if (string.IsNullOrWhiteSpace(assetName)) continue;
-
-                    var asset = new Asset
-                    {
-                        VesaitinAdi = assetName,
-                        Status = "Anbarda",
-                        PurchaseDate = DateTime.Today,
-                        UsefulLifeInYears = 0
-                    };
-
-                    if (columnMap.TryGetValue("Vəsaitin Kodu", out int koduCol)) asset.VesaitinKodu = row.Cell(koduCol).GetString().Trim();
-                    if (columnMap.TryGetValue("IT Seriya No", out int seriyaCol) ||
-                        columnMap.TryGetValue("ITAvadanliqlarininSeriyaNomresi", out seriyaCol) ||
-                        columnMap.TryGetValue("İT avadanlıqlarının seriya №-i", out seriyaCol))
-                    {
-                        asset.ITAvadanliqlarininSeriyaNomresi = row.Cell(seriyaCol).GetString().Trim();
-                    }
-                    if (columnMap.TryGetValue("Kateqoriya", out int katCol)) asset.Kateqoriya = row.Cell(katCol).GetString().Trim();
-                    if (columnMap.TryGetValue("Yerləşmə Yeri", out int yerlesmeCol)) asset.YerleshmeYeri = row.Cell(yerlesmeCol).GetString().Trim();
-                    if (columnMap.TryGetValue("Ərazi", out int eraziCol)) asset.Erazi = row.Cell(eraziCol).GetString().Trim();
-
-                    if (columnMap.TryGetValue("Alış qiyməti", out int costCol) && row.Cell(costCol).TryGetValue(out decimal cost))
-                    {
-                        asset.PurchaseCost = cost;
-                    }
-
-                    if ((columnMap.TryGetValue("Alış tarixi", out int dateCol) ||
-                         columnMap.TryGetValue("Alınma tarixi", out dateCol) ||
-                         columnMap.TryGetValue("Alış vaxtı", out dateCol))
-                        && row.Cell(dateCol).TryGetValue(out DateTime date) && date > DateTime.MinValue)
-                    {
-                        asset.PurchaseDate = date;
-                    }
-
-                    if ((columnMap.TryGetValue("Faydalı ömür", out int lifeCol) ||
-                         columnMap.TryGetValue("Faydalı ömrü", out lifeCol) ||
-                         columnMap.TryGetValue("İstifadə müddəti (İl)", out lifeCol))
-                        && row.Cell(lifeCol).TryGetValue(out int usefulLife))
-                    {
-                        asset.UsefulLifeInYears = usefulLife;
-                    }
-
-                    if (columnMap.TryGetValue("Təhkim Olunan Əməkdaş", out int userCol))
-                    {
-                        string assignedUserName = row.Cell(userCol).GetString().Trim();
-                        if (!string.IsNullOrWhiteSpace(assignedUserName))
-                        {
-                            importedWorkerNames[asset] = assignedUserName;
-                        }
-                    }
-
-                    if (asset.UsefulLifeInYears <= 0)
-                    {
-                        asset.UsefulLifeInYears = 0;
-                        if (!string.IsNullOrWhiteSpace(asset.Kateqoriya) &&
-                            categoryDefaultLifecycles.TryGetValue(asset.Kateqoriya, out int defaultYears) &&
-                            defaultYears > 0)
-                        {
-                            asset.UsefulLifeInYears = defaultYears;
-                        }
-                    }
-
-                    assetsToImport.Add(asset);
-                }
             }
         }
 
@@ -594,7 +408,6 @@ namespace LoginAppFramework
         {
             _viewModel.Refresh();
             InitializeColumnFilters();
-            UpdateBulkActionPanelVisibility();
 
             if (assetIdToSelect.HasValue)
             {
@@ -694,50 +507,13 @@ namespace LoginAppFramework
 
         #endregion
 
-        // ---- YENİ METODLAR ----
-        private void CheckBox_Toggled(object sender, RoutedEventArgs e)
-        {
-            UpdateBulkActionPanelVisibility();
-        }
+        // ---- Selection helpers ----
         private void SelectAllCheckBox_Click(object sender, RoutedEventArgs e)
         {
             if (sender is CheckBox headerCheckBox && headerCheckBox.IsChecked.HasValue)
-            {
-                bool shouldBeChecked = headerCheckBox.IsChecked.Value;
-                // Yalnız filtrlənmiş, görünən elementlərə tətbiq edin
-                if (AssetsDataGrid.ItemsSource is IEnumerable<AssetCheckableViewModel> visibleItems)
-                {
-                    foreach (var vm in visibleItems)
-                    {
-                        vm.IsChecked = shouldBeChecked;
-                    }
-                }
-                UpdateBulkActionPanelVisibility();
-            }
+                _viewModel.SetAllVisibleChecked(headerCheckBox.IsChecked.Value);
         }
-        private void UpdateBulkActionPanelVisibility()
-        {
-            // İşarələnmiş elementlərin sayını hesablayın
-            int checkedCount = _viewModel.CheckedCount;
-            if (checkedCount > 0)
-            {
-                // Əgər ən azı bir element işarələnibsə, toplu əməliyyat panelini göstərin
-                BulkActionPanel.Visibility = Visibility.Visible;
-                SelectionCountText.Text = $"{checkedCount} element işarələnib";
-            }
-            else
-            {
-                BulkActionPanel.Visibility = Visibility.Collapsed;
-            }
-            if (AssetsDataGrid.ItemsSource is IEnumerable<AssetCheckableViewModel> visibleItems)
-            {
-                bool allVisibleAreChecked = visibleItems.Any() && visibleItems.All(vm => vm.IsChecked);
-                if (SelectAllCheckBox != null)
-                {
-                    SelectAllCheckBox.IsChecked = allVisibleAreChecked;
-                }
-            }
-        }
+
         #region Menu Handlers
         private void OpenDetailPanel()
         {

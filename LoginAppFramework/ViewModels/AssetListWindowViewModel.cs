@@ -43,13 +43,23 @@ namespace LoginAppFramework
         public bool HasResults => VisibleAssets.Count > 0;
         public string AssetCountText => $"{VisibleAssets.Count} vəsait tapıldı";
         public int CheckedCount => _allAssets.Count(vm => vm.IsChecked);
+        public bool HasCheckedAssets => CheckedCount > 0;
+        public string CheckedCountText => $"{CheckedCount} element işarələnib";
+        public bool AreAllVisibleChecked =>
+            VisibleAssets.Count > 0 && VisibleAssets.All(vm => vm.IsChecked);
 
         public void Refresh()
         {
+            foreach (var item in _allAssets)
+                item.PropertyChanged -= AssetCheckable_PropertyChanged;
+
             _allAssets.Clear();
             _allAssets.AddRange(
                 AppData.GetAssets()
                     .Select(asset => new AssetCheckableViewModel(asset)));
+
+            foreach (var item in _allAssets)
+                item.PropertyChanged += AssetCheckable_PropertyChanged;
 
             _workers.Clear();
             _workers.AddRange(AppData.GetWorkers());
@@ -60,7 +70,7 @@ namespace LoginAppFramework
 
             OnPropertyChanged(nameof(AllAssets));
             OnPropertyChanged(nameof(Workers));
-            OnPropertyChanged(nameof(CheckedCount));
+            NotifyCheckedStateChanged();
         }
 
         public void ClearFilters()
@@ -82,6 +92,28 @@ namespace LoginAppFramework
 
         public void ReapplyFilters()
             => ApplyFilters();
+
+        public void SetAllVisibleChecked(bool isChecked)
+        {
+            foreach (var item in VisibleAssets)
+                item.IsChecked = isChecked;
+
+            NotifyCheckedStateChanged();
+        }
+
+        private void AssetCheckable_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(AssetCheckableViewModel.IsChecked))
+                NotifyCheckedStateChanged();
+        }
+
+        private void NotifyCheckedStateChanged()
+        {
+            OnPropertyChanged(nameof(CheckedCount));
+            OnPropertyChanged(nameof(HasCheckedAssets));
+            OnPropertyChanged(nameof(CheckedCountText));
+            OnPropertyChanged(nameof(AreAllVisibleChecked));
+        }
 
         private void BuildColumnFilters()
         {
@@ -205,7 +237,7 @@ namespace LoginAppFramework
 
             OnPropertyChanged(nameof(HasResults));
             OnPropertyChanged(nameof(AssetCountText));
-            OnPropertyChanged(nameof(CheckedCount));
+            NotifyCheckedStateChanged();
         }
 
         private void ApplyColumnFilter(
