@@ -218,8 +218,8 @@ namespace LoginAppFramework
             var result = MessageBox.Show($"Are you sure you want to DEACTIVATE {selectedVMs.Count} workers?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (result == MessageBoxResult.Yes)
             {
-                int count = 0;
-                foreach (var vm in selectedVMs) { var worker = vm.GetModel(); if (worker.IsActive) { worker.IsActive = false; DataAccess.SaveWorker(worker); count++; } }
+                var workerIds = selectedVMs.Select(vm => vm.GetModel().Id).ToList();
+                int count = DataAccess.BulkSetWorkersActiveState(workerIds, false);
                 RefreshAllDataAndFilters();
                 MessageBox.Show($"{count} workers deactivated.", "Complete");
             }
@@ -238,8 +238,8 @@ namespace LoginAppFramework
             var result = MessageBox.Show($"Are you sure you want to ACTIVATE {selectedVMs.Count} workers?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (result == MessageBoxResult.Yes)
             {
-                int count = 0;
-                foreach (var vm in selectedVMs) { var worker = vm.GetModel(); if (!worker.IsActive) { worker.IsActive = true; DataAccess.SaveWorker(worker); count++; } }
+                var workerIds = selectedVMs.Select(vm => vm.GetModel().Id).ToList();
+                int count = DataAccess.BulkSetWorkersActiveState(workerIds, true);
                 RefreshAllDataAndFilters();
                 MessageBox.Show($"{count} workers activated.", "Complete");
             }

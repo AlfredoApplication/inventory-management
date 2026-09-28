@@ -273,7 +273,7 @@ namespace LoginAppFramework
             SupplierValue.Text = string.IsNullOrEmpty(_currentAsset.Supplier) ? "N/A" : _currentAsset.Supplier;
             WarrantyValue.Text = _currentAsset.WarrantyExpirationDate > DateTime.MinValue ? _currentAsset.WarrantyExpirationDate.ToString("yyyy-MM-dd") : "N/A";
             WarrantyValue.Foreground = _currentAsset.WarrantyExpirationDate < DateTime.Today ? Brushes.IndianRed : Brushes.Black;
-            UsefulLifeValue.Text = $"{_currentAsset.UsefulLifeInYears} İl";
+            UsefulLifeValue.Text = _currentAsset.UsefulLifeDisplay;
             AnnualDepreciationValue.Text = _currentAsset.AnnualDepreciation.ToString("C", cultureInfo);
             CurrentValueValue.Text = _currentAsset.CurrentValue.ToString("C", cultureInfo);
             CurrentValueValue.Foreground = _currentAsset.IsEndOfLife ? Brushes.IndianRed : Brushes.Black;

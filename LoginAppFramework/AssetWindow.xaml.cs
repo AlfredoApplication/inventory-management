@@ -377,6 +377,7 @@ namespace LoginAppFramework
                 else if (columnMap.ContainsKey("Vəsait adı")) { adiCol = columnMap["Vəsait adı"]; }
                 else { throw new Exception("Excel faylında tələb olunan 'Vəsaitin Adı' və ya 'Vəsait adı' sütunu tapılmadı."); }
 
+                var categoryDefaultLifecycles = AppData.GetCategoryDefaultLifecycles();
                 var dataRows = worksheet.RowsUsed().Skip(1);
                 foreach (var row in dataRows)
                 {
@@ -436,7 +437,13 @@ namespace LoginAppFramework
 
                     if (asset.UsefulLifeInYears <= 0)
                     {
-                        asset.UsefulLifeInYears = 3;
+                        asset.UsefulLifeInYears = 0;
+                        if (!string.IsNullOrWhiteSpace(asset.Kateqoriya) &&
+                            categoryDefaultLifecycles.TryGetValue(asset.Kateqoriya, out int defaultYears) &&
+                            defaultYears > 0)
+                        {
+                            asset.UsefulLifeInYears = defaultYears;
+                        }
                     }
 
                     assetsToImport.Add(asset);

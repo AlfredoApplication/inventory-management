@@ -62,12 +62,32 @@ namespace LoginAppFramework
         }
 
         [NotMapped] public Brush StatusColor => Status switch { "İstifadədədir" => Brushes.Green, "Anbarda" => Brushes.DodgerBlue, "Arxivdə" => Brushes.SlateGray, "İstifadəyə yararsız" => Brushes.Black, _ => Brushes.Gray };
+        [NotMapped] public bool HasUsefulLife => UsefulLifeInYears > 0 && PurchaseDate > DateTime.MinValue;
+        [NotMapped] public string UsefulLifeDisplay => UsefulLifeInYears > 0 ? $"{UsefulLifeInYears} il" : "Təyin edilməyib";
         [NotMapped] public decimal AnnualDepreciation => UsefulLifeInYears > 0 ? PurchaseCost / UsefulLifeInYears : 0;
         [NotMapped] public decimal MonthlyDepreciation => AnnualDepreciation / 12;
         [NotMapped] public decimal CurrentValue { get { if (UsefulLifeInYears <= 0 || PurchaseCost <= 0) return PurchaseCost; decimal ageInYears = (decimal)(DateTime.Now - PurchaseDate).TotalDays / 365.25m; decimal totalDepreciation = AnnualDepreciation * ageInYears; decimal val = PurchaseCost - totalDepreciation; return val < 0 ? 0 : val; } }
         [NotMapped] public decimal TotalDepreciation => (PurchaseCost > CurrentValue) ? (PurchaseCost - CurrentValue) : 0;
-        [NotMapped] public DateTime EndOfLifeDate => PurchaseDate.AddYears(UsefulLifeInYears);
-        [NotMapped] public bool IsEndOfLife => DateTime.Today >= EndOfLifeDate;
+
+        [NotMapped]
+        public DateTime? EndOfLifeDate
+        {
+            get
+            {
+                if (!HasUsefulLife) return null;
+                try
+                {
+                    return PurchaseDate.AddYears(UsefulLifeInYears);
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    return null;
+                }
+            }
+        }
+
+        [NotMapped] public string EndOfLifeDateDisplay => EndOfLifeDate?.ToString("yyyy-MM-dd") ?? "Təyin edilməyib";
+        [NotMapped] public bool IsEndOfLife => EndOfLifeDate is DateTime endOfLifeDate && DateTime.Today >= endOfLifeDate.Date;
 
         [NotMapped]
         public string ParentCategory

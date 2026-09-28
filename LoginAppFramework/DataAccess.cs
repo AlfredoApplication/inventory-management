@@ -78,6 +78,31 @@ namespace LoginAppFramework
             context.SaveChanges();
         }
 
+        public static int BulkSetWorkersActiveState(IEnumerable<int> workerIds, bool isActive)
+        {
+            var ids = workerIds?
+                .Where(id => id > 0)
+                .Distinct()
+                .ToList() ?? new List<int>();
+
+            if (!ids.Any()) return 0;
+
+            using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
+            int affectedRows = 0;
+
+            // Keep each IN clause comfortably below SQL Server's parameter limit.
+            foreach (var batch in ids.Chunk(1000))
+            {
+                var batchIds = batch.ToArray();
+                affectedRows += context.Workers
+                    .Where(w => batchIds.Contains(w.Id) && w.IsActive != isActive)
+                    .ExecuteUpdate(setters => setters
+                        .SetProperty(w => w.IsActive, isActive));
+            }
+
+            return affectedRows;
+        }
+
         public static async Task<int> SynchronizeWorkersFromRemoteAsync()
         {
             using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
@@ -261,33 +286,65 @@ namespace LoginAppFramework
         public static void BulkSaveAssets(List<Asset> assetsToSave, string changedByUser)
         {
             if (assetsToSave == null || !assetsToSave.Any()) return;
+
             using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
-            context.Database.ExecuteSqlRaw("EXEC sp_set_session_context @key=N'CurrentUser', @value=@user", new SqlParameter("@user", changedByUser));
+            using var transaction = context.Database.BeginTransaction();
 
-            foreach (var asset in assetsToSave)
+            try
             {
-                var originalAsset = context.Assets
-                                        .Include(a => a.History)
-                                        .FirstOrDefault(a => a.Id == asset.Id);
+                context.Database.ExecuteSqlRaw(
+                    "EXEC sp_set_session_context @key=N'CurrentUser', @value=@user",
+                    new SqlParameter("@user", changedByUser));
 
-                if (originalAsset != null)
+                var assetIds = assetsToSave
+                    .Where(a => a.Id > 0)
+                    .Select(a => a.Id)
+                    .Distinct()
+                    .ToList();
+
+                // One preload query replaces the previous per-asset SELECT (N+1 pattern).
+                var existingAssets = assetIds.Any()
+                    ? context.Assets
+                        .Include(a => a.History)
+                        .Where(a => assetIds.Contains(a.Id))
+                        .ToDictionary(a => a.Id)
+                    : new Dictionary<int, Asset>();
+
+                foreach (var asset in assetsToSave)
                 {
-                    // Update all properties except navigation properties
+                    if (asset.Id <= 0)
+                    {
+                        context.Assets.Add(asset);
+                        continue;
+                    }
+
+                    if (!existingAssets.TryGetValue(asset.Id, out var originalAsset))
+                    {
+                        continue;
+                    }
+
                     context.Entry(originalAsset).CurrentValues.SetValues(asset);
                     originalAsset.WorkerId = asset.WorkerId;
 
-                    // Handle history entries if they exist
-                    if (asset.History != null && asset.History.Any())
+                    if (asset.History != null)
                     {
-                        var entriesToAdd = asset.History.Where(h_ui => h_ui.Id == 0).ToList();
-                        foreach (var entry in entriesToAdd)
+                        foreach (var entry in asset.History.Where(h => h.Id == 0))
                         {
+                            entry.AssetId = originalAsset.Id;
+                            entry.Asset = originalAsset;
                             originalAsset.History.Add(entry);
                         }
                     }
                 }
+
+                context.SaveChanges();
+                transaction.Commit();
             }
-            context.SaveChanges();
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
         }
 
         public static List<AssetLog> GetAssetLogs()

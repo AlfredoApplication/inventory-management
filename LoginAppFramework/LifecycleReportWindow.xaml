@@ -110,10 +110,10 @@
 
                                 <!-- THE FIX IS HERE: Added the StringFormat -->
                                 <GridViewColumn Header="Amortizasiya müddəti (il)" 
-                                                DisplayMemberBinding="{Binding UsefulLifeInYears, StringFormat='{}{0} il'}" 
+                                                DisplayMemberBinding="{Binding UsefulLifeDisplay}" 
                                                 Width="140"/>
 
-                                <GridViewColumn Header="İstifadə Müddətinin Sonu" DisplayMemberBinding="{Binding EndOfLifeDate, StringFormat=d}" Width="170"/>
+                                <GridViewColumn Header="İstifadə Müddətinin Sonu" DisplayMemberBinding="{Binding EndOfLifeDateDisplay}" Width="170"/>
                                 <GridViewColumn Header="Alış qiyməti" DisplayMemberBinding="{Binding PurchaseCost, StringFormat=C, ConverterCulture=az-AZ}" Width="110"/>
 
                                 <GridViewColumn Header="Aylıq amortizasiya" Width="120">

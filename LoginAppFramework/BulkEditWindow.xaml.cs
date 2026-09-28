@@ -77,8 +77,21 @@ namespace LoginAppFramework
             if (PurchaseDatePicker.SelectedDate.HasValue) Changes.PurchaseDate = PurchaseDatePicker.SelectedDate.Value;
             if (!string.IsNullOrWhiteSpace(UsefulLifeTextBox.Text))
             {
-                if (int.TryParse(UsefulLifeTextBox.Text, out int life)) Changes.UsefulLifeInYears = life;
-                else { MessageBox.Show("İstifadə müddəti düzgün rəqəm formatında deyil.", "Xəta"); return; }
+                if (int.TryParse(UsefulLifeTextBox.Text, out int life))
+                {
+                    if (life < 0)
+                    {
+                        MessageBox.Show("İstifadə müddəti mənfi ola bilməz. 0 dəyəri 'təyin edilməyib' kimi qəbul olunur.", "Xəta");
+                        return;
+                    }
+
+                    Changes.UsefulLifeInYears = life;
+                }
+                else
+                {
+                    MessageBox.Show("İstifadə müddəti düzgün rəqəm formatında deyil.", "Xəta");
+                    return;
+                }
             }
 
             // --- NEW LOGIC ADDED ---
