@@ -1,8 +1,6 @@
 using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -10,91 +8,84 @@ namespace LoginAppFramework
 {
     public partial class ReportsWindow : Window
     {
-        private const string PurchaseDateExcelReportName =
-            "Alış Tarixinə Görə Excel Hesabatı";
-
-        private readonly Dictionary<string, ReportGenerator.ReportType> _pdfReportTypes;
+        private DateTime? _purchaseDateFrom;
+        private DateTime? _purchaseDateTo;
 
         public ReportsWindow()
         {
             InitializeComponent();
-
-            _pdfReportTypes = new Dictionary<string, ReportGenerator.ReportType>
-            {
-                { "Ümumi İnventar Hesabatı", ReportGenerator.ReportType.FullInventory },
-                { "Departamentlər Üzrə Vəsait Hesabatı", ReportGenerator.ReportType.AssetsByDepartment },
-                { "Zəmanəti Bitən / Bitmək Üzrə Olan Avadanlıqlar", ReportGenerator.ReportType.WarrantyExpiration }
-            };
         }
 
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+        private void OpenFromCalendarButton_Click(object sender, RoutedEventArgs e)
         {
-            ReportTypeComboBox.ItemsSource = _pdfReportTypes.Keys
-                .Concat(new[] { PurchaseDateExcelReportName })
-                .ToList();
-
-            ReportTypeComboBox.SelectedIndex = 0;
-            UpdateReportUi();
+            PurchaseDateToPopup.IsOpen = false;
+            PurchaseDateFromCalendar.SelectedDate = _purchaseDateFrom;
+            PurchaseDateFromCalendar.DisplayDate =
+                _purchaseDateFrom ?? DateTime.Today;
+            PurchaseDateFromPopup.IsOpen = !PurchaseDateFromPopup.IsOpen;
         }
 
-        private void ReportTypeComboBox_SelectionChanged(
+        private void OpenToCalendarButton_Click(object sender, RoutedEventArgs e)
+        {
+            PurchaseDateFromPopup.IsOpen = false;
+            PurchaseDateToCalendar.SelectedDate = _purchaseDateTo;
+            PurchaseDateToCalendar.DisplayDate =
+                _purchaseDateTo ?? DateTime.Today;
+            PurchaseDateToPopup.IsOpen = !PurchaseDateToPopup.IsOpen;
+        }
+
+        private void PurchaseDateFromCalendar_SelectedDatesChanged(
             object sender,
             SelectionChangedEventArgs e)
         {
-            UpdateReportUi();
+            if (!PurchaseDateFromCalendar.SelectedDate.HasValue)
+                return;
+
+            _purchaseDateFrom = PurchaseDateFromCalendar.SelectedDate.Value.Date;
+            PurchaseDateFromTextBox.Text =
+                _purchaseDateFrom.Value.ToString("dd.MM.yyyy");
+            PurchaseDateFromPopup.IsOpen = false;
         }
 
-        private void UpdateReportUi()
+        private void PurchaseDateToCalendar_SelectedDatesChanged(
+            object sender,
+            SelectionChangedEventArgs e)
         {
-            bool isExcelReport =
-                string.Equals(
-                    ReportTypeComboBox.SelectedItem as string,
-                    PurchaseDateExcelReportName,
-                    StringComparison.Ordinal);
+            if (!PurchaseDateToCalendar.SelectedDate.HasValue)
+                return;
 
-            PurchaseDateFilterPanel.Visibility =
-                isExcelReport ? Visibility.Visible : Visibility.Collapsed;
-
-            GenerateButton.Content =
-                isExcelReport
-                    ? "Excel Hesabatı Yarat və Yadda Saxla"
-                    : "PDF Yarat və Yadda Saxla";
-
-            StatusTextBlock.Text = isExcelReport
-                ? "Tarixlər boş saxlanılarsa bütün vəsaitlər export ediləcək."
-                : string.Empty;
+            _purchaseDateTo = PurchaseDateToCalendar.SelectedDate.Value.Date;
+            PurchaseDateToTextBox.Text =
+                _purchaseDateTo.Value.ToString("dd.MM.yyyy");
+            PurchaseDateToPopup.IsOpen = false;
         }
 
         private void ClearDateFilterButton_Click(object sender, RoutedEventArgs e)
         {
-            PurchaseDateFromPicker.SelectedDate = null;
-            PurchaseDateToPicker.SelectedDate = null;
+            _purchaseDateFrom = null;
+            _purchaseDateTo = null;
+
+            PurchaseDateFromTextBox.Clear();
+            PurchaseDateToTextBox.Clear();
+
+            PurchaseDateFromCalendar.SelectedDate = null;
+            PurchaseDateToCalendar.SelectedDate = null;
+
+            PurchaseDateFromPopup.IsOpen = false;
+            PurchaseDateToPopup.IsOpen = false;
+
+            StatusTextBlock.Text = string.Empty;
         }
 
         private void GenerateButton_Click(object sender, RoutedEventArgs e)
         {
-            var selectedReportName = ReportTypeComboBox.SelectedItem as string;
-            if (string.IsNullOrWhiteSpace(selectedReportName))
-            {
-                MessageBox.Show(
-                    "Zəhmət olmasa, etibarlı bir hesabat növü seçin.",
-                    "Xəta");
-                return;
-            }
-
-            if (selectedReportName == PurchaseDateExcelReportName)
-            {
-                GeneratePurchaseDateExcelReport();
-                return;
-            }
-
-            GeneratePdfReport(selectedReportName);
+            GeneratePurchaseDateExcelReport();
         }
 
         private void GeneratePurchaseDateExcelReport()
         {
-            DateTime? fromDate = PurchaseDateFromPicker.SelectedDate?.Date;
-            DateTime? toDate = PurchaseDateToPicker.SelectedDate?.Date;
+            DateTime? fromDate = _purchaseDateFrom;
+            DateTime? toDate = _purchaseDateTo;
 
             if (fromDate.HasValue &&
                 toDate.HasValue &&
@@ -125,13 +116,15 @@ namespace LoginAppFramework
             {
                 var allAssets = AppData.GetAssets();
 
-                int exportedCount = AppServices.AssetExcel.ExportPurchaseDateReport(
-                    saveFileDialog.FileName,
-                    allAssets,
-                    fromDate,
-                    toDate);
+                int exportedCount =
+                    AppServices.AssetExcel.ExportPurchaseDateReport(
+                        saveFileDialog.FileName,
+                        allAssets,
+                        fromDate,
+                        toDate);
 
-                StatusTextBlock.Text = string.Empty;
+                StatusTextBlock.Text =
+                    $"{exportedCount} vəsait hesabatına daxil edildi.";
 
                 var result = MessageBox.Show(
                     $"{exportedCount} vəsait Excel hesabatına çıxarıldı.\n\nFaylı indi açmaq istəyirsinizmi?",
@@ -151,84 +144,9 @@ namespace LoginAppFramework
             catch (Exception ex)
             {
                 StatusTextBlock.Text = string.Empty;
+
                 MessageBox.Show(
                     $"Excel hesabatı yaradılarkən xəta baş verdi: {ex.Message}",
-                    "Xəta",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
-            finally
-            {
-                GenerateButton.IsEnabled = true;
-            }
-        }
-
-        private void GeneratePdfReport(string selectedReportName)
-        {
-            if (!_pdfReportTypes.TryGetValue(selectedReportName, out var reportType))
-            {
-                MessageBox.Show(
-                    "Zəhmət olmasa, etibarlı bir hesabat növü seçin.",
-                    "Xəta");
-                return;
-            }
-
-            var saveFileDialog = new SaveFileDialog
-            {
-                Filter = "PDF Sənədi|*.pdf",
-                Title = "PDF Hesabatını Yadda Saxla",
-                FileName =
-                    $"{selectedReportName.Replace("/", "").Replace(" ", "_")}_{DateTime.Now:yyyyMMdd}.pdf"
-            };
-
-            if (saveFileDialog.ShowDialog() != true)
-                return;
-
-            string filePath = saveFileDialog.FileName;
-            GenerateButton.IsEnabled = false;
-            StatusTextBlock.Text = "Hesabat yaradılır...";
-
-            try
-            {
-                var allAssets = AppData.GetAssets();
-
-                switch (reportType)
-                {
-                    case ReportGenerator.ReportType.FullInventory:
-                        ReportGenerator.GenerateFullInventoryReport(allAssets, filePath);
-                        break;
-
-                    case ReportGenerator.ReportType.AssetsByDepartment:
-                        ReportGenerator.GenerateAssetsByDepartmentReport(allAssets, filePath);
-                        break;
-
-                    case ReportGenerator.ReportType.WarrantyExpiration:
-                        ReportGenerator.GenerateWarrantyExpirationReport(allAssets, filePath);
-                        break;
-                }
-
-                StatusTextBlock.Text = string.Empty;
-
-                var result = MessageBox.Show(
-                    "Hesabat uğurla yaradıldı!\nİndi faylı açmaq istəyirsinizmi?",
-                    "Uğurlu Əməliyyat",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Information);
-
-                if (result == MessageBoxResult.Yes)
-                {
-                    Process.Start(
-                        new ProcessStartInfo(filePath)
-                        {
-                            UseShellExecute = true
-                        });
-                }
-            }
-            catch (Exception ex)
-            {
-                StatusTextBlock.Text = string.Empty;
-                MessageBox.Show(
-                    $"Hesabat yaradılarkən xəta baş verdi: {ex.Message}",
                     "Xəta",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
@@ -245,7 +163,9 @@ namespace LoginAppFramework
         {
             string from = fromDate?.ToString("yyyyMMdd") ?? "ALL";
             string to = toDate?.ToString("yyyyMMdd") ?? "ALL";
-            return $"Alis_Tarixi_Hesabati_{from}_{to}_{DateTime.Now:HHmmss}.xlsx";
+
+            return
+                $"Alis_Tarixi_Hesabati_{from}_{to}_{DateTime.Now:HHmmss}.xlsx";
         }
     }
 }
