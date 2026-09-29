@@ -13,7 +13,6 @@ namespace LoginAppFramework
     public partial class HistoryLogWindow : Window
     {
         private readonly HistoryLogWindowViewModel _viewModel;
-        private bool isMenuOpen;
 
         public HistoryLogWindow()
         {
@@ -30,7 +29,6 @@ namespace LoginAppFramework
             await _viewModel.LoadAsync();
 
             GeneratePageButtons();
-            UpdateUserDisplay();
         }
 
         private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -187,55 +185,7 @@ namespace LoginAppFramework
             }
         }
 
-        private void CloseTheMenu()
-        {
-            isMenuOpen = false;
-            MenuOverlay.Visibility = Visibility.Collapsed;
-            (FindResource("CloseMenu") as Storyboard)?.Begin();
-        }
-
         private void MenuButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (isMenuOpen)
-            {
-                CloseTheMenu();
-                return;
-            }
-
-            isMenuOpen = true;
-            UserSwitchPopup.IsOpen = false;
-            MenuOverlay.Visibility = Visibility.Visible;
-            (FindResource("OpenMenu") as Storyboard)?.Begin();
-        }
-
-        private void CloseMenuButton_Click(object sender, RoutedEventArgs e) => CloseTheMenu();
-        private void MenuOverlay_MouseDown(object sender, MouseButtonEventArgs e) => CloseTheMenu();
-
-        private async void DashboardButton_Click(object sender, RoutedEventArgs e)
-            => await NavigationManager.GoToDashboard();
-
-        private async void UsersButton_Click(object sender, RoutedEventArgs e)
-            => await NavigationManager.GoToWorkerListWindow();
-
-        private async void AssetsButton_Click(object sender, RoutedEventArgs e)
-            => await NavigationManager.GoToAssetWindow();
-
-        private async void LifecycleReportButton_Click(object sender, RoutedEventArgs e)
-            => await NavigationManager.GoToLifecycleReportWindow();
-
-        private void UpdateUserDisplay()
-        {
-            if (SessionManager.CurrentUser == null) return;
-
-            UserProfileIcon.Text = SessionManager.CurrentUser.ProfilePicture;
-            UserProfileName.Text = SessionManager.CurrentUser.FullName;
-        }
-
-        private void UserProfileButton_Click(object sender, RoutedEventArgs e)
-            => UserSwitchPopup.IsOpen = true;
-
-        private void ReturnToLogin() => NavigationManager.RestartApplication();
-        private void SwitchUserButton_Click(object sender, RoutedEventArgs e) => ReturnToLogin();
-        private void LogoutButton_Click(object sender, RoutedEventArgs e) => ReturnToLogin();
+            => SharedNavigationMenu.Open();
     }
 }

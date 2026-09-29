@@ -15,7 +15,6 @@ namespace LoginAppFramework
         private List<Asset> _allAssets;
         private List<Worker> _allWorkers;
         private readonly DashboardViewModel _viewModel;
-        private bool isMenuOpen = false;
 
         public DashboardWindow()
         {
@@ -36,8 +35,6 @@ namespace LoginAppFramework
 
             _viewModel.LoadAllData(_allAssets, _allWorkers);
 
-            UpdateUserDisplay();
-            ApplyRoleBasedPermissions();
             LoadingOverlay.Visibility = Visibility.Collapsed;
         }
 
@@ -140,59 +137,7 @@ namespace LoginAppFramework
             filteredWindow.ShowDialog();
         }
 
-        private async void AssetsButton_Click(object _, RoutedEventArgs e) => await NavigationManager.GoToAssetWindow();
-        private async void UsersButton_Click(object _, RoutedEventArgs e) => await NavigationManager.GoToWorkerListWindow();
-        private async void HistoryLogButton_Click(object _, RoutedEventArgs e) => await NavigationManager.GoToHistoryLogWindow();
-        private void ReportsButton_Click(object _, RoutedEventArgs e)
-        {
-            CloseTheMenu();
-            var reportsWindow = new ReportsWindow { Owner = this };
-            reportsWindow.ShowDialog();
-        }
-
-        private void CloseTheMenu() { isMenuOpen = false; MenuOverlay.Visibility = Visibility.Collapsed; (FindResource("CloseMenu") as Storyboard)?.Begin(); }
-        private void MenuButton_Click(object _, RoutedEventArgs e) { if (isMenuOpen) CloseTheMenu(); else { isMenuOpen = true; UserSwitchPopup.IsOpen = false; MenuOverlay.Visibility = Visibility.Visible; (FindResource("OpenMenu") as Storyboard)?.Begin(); } }
-        private void CloseMenuButton_Click(object _, RoutedEventArgs e) => CloseTheMenu();
-        private void MenuOverlay_MouseDown(object _, MouseButtonEventArgs e) => CloseTheMenu();
-        private void DashboardButton_Click(object _, RoutedEventArgs e) => CloseTheMenu();
-        private void UpdateUserDisplay()
-        {
-            if (SessionManager.CurrentUser != null)
-            {
-                UserProfileName.Text = SessionManager.CurrentUser.FullName;
-                // Display role instead of "Onlayn"
-                UserRoleDisplay.Text = SessionManager.CurrentUser.Role == "Admin" ? "Admin" : "Yalnız Baxış";
-            }
-        }
-        private void UserProfileButton_Click(object _, RoutedEventArgs e) => UserSwitchPopup.IsOpen = true;
-        private void ReturnToLogin() { NavigationManager.RestartApplication(); }
-        private void SwitchUserButton_Click(object _, RoutedEventArgs e) => ReturnToLogin();
-        private void LogoutButton_Click(object _, RoutedEventArgs e) => ReturnToLogin();
-
-        private void ApplyRoleBasedPermissions()
-        {
-            // Show User Management button only to Admins
-            if (SessionManager.IsAdmin())
-            {
-                UserManagementButton.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                UserManagementButton.Visibility = Visibility.Collapsed;
-            }
-        }
-
-        private void UserManagementButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (!SessionManager.CanManageUsers())
-            {
-                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            var userManagementWindow = new UserManagementWindow { Owner = this };
-            userManagementWindow.ShowDialog();
-            CloseTheMenu();
-        }
+        private void MenuButton_Click(object _, RoutedEventArgs e)
+            => SharedNavigationMenu.Open();
     }
 }
