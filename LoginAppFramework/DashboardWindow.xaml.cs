@@ -144,6 +144,14 @@ namespace LoginAppFramework
         private async void UsersButton_Click(object _, RoutedEventArgs e) => await NavigationManager.GoToWorkerListWindow();
         private async void HistoryLogButton_Click(object _, RoutedEventArgs e) => await NavigationManager.GoToHistoryLogWindow();
         private async void LifecycleReportButton_Click(object _, RoutedEventArgs e) => await NavigationManager.GoToLifecycleReportWindow();
+
+        private void ReportsButton_Click(object _, RoutedEventArgs e)
+        {
+            CloseTheMenu();
+            var reportsWindow = new ReportsWindow { Owner = this };
+            reportsWindow.ShowDialog();
+        }
+
         private void CloseTheMenu() { isMenuOpen = false; MenuOverlay.Visibility = Visibility.Collapsed; (FindResource("CloseMenu") as Storyboard)?.Begin(); }
         private void MenuButton_Click(object _, RoutedEventArgs e) { if (isMenuOpen) CloseTheMenu(); else { isMenuOpen = true; UserSwitchPopup.IsOpen = false; MenuOverlay.Visibility = Visibility.Visible; (FindResource("OpenMenu") as Storyboard)?.Begin(); } }
         private void CloseMenuButton_Click(object _, RoutedEventArgs e) => CloseTheMenu();
