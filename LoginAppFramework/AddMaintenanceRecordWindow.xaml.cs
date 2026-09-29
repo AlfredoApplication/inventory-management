@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace LoginAppFramework
 {
@@ -82,9 +84,43 @@ namespace LoginAppFramework
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
-            if (MaintenanceDatePicker.SelectedDate == null) { MessageBox.Show("Zəhmət olmasa texniki xidmət tarixini seçin.", "Xəta"); return; }
-            if (!decimal.TryParse(CostTextBox.Text, NumberStyles.Any, CultureInfo.CurrentCulture, out var cost)) { MessageBox.Show("Xərc düzgün rəqəm formatında olmalıdır.", "Xəta"); return; }
-            if (string.IsNullOrWhiteSpace(DescriptionTextBox.Text)) { MessageBox.Show("Zəhmət olmasa təsvir daxil edin.", "Xəta"); return; }
+            ClearValidation();
+
+            if (MaintenanceDatePicker.SelectedDate == null)
+            {
+                ShowValidation(
+                    "Texniki xidmət tarixini seçin.",
+                    MaintenanceDatePicker);
+                return;
+            }
+
+            if (MaintenanceTypeComboBox.SelectedValue == null)
+            {
+                ShowValidation(
+                    "Texniki xidmət növünü seçin.",
+                    MaintenanceTypeComboBox);
+                return;
+            }
+
+            if (!decimal.TryParse(
+                CostTextBox.Text,
+                NumberStyles.Any,
+                CultureInfo.CurrentCulture,
+                out var cost))
+            {
+                ShowValidation(
+                    "Xərc düzgün rəqəm formatında olmalıdır.",
+                    CostTextBox);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(DescriptionTextBox.Text))
+            {
+                ShowValidation(
+                    "Təsvir daxil edin.",
+                    DescriptionTextBox);
+                return;
+            }
 
             // Create a new record or use the one being edited
             Record = _isEditMode ? _recordToEdit : new MaintenanceRecord();
@@ -98,6 +134,37 @@ namespace LoginAppFramework
             Result = MaintenanceEditResult.Saved;
             DialogResult = true;
             Close();
+        }
+
+        private void ClearValidation()
+        {
+            ValidationTextBlock.Text = string.Empty;
+            ValidationTextBlock.Visibility = Visibility.Collapsed;
+
+            foreach (Control control in new Control[]
+            {
+                MaintenanceDatePicker,
+                MaintenanceTypeComboBox,
+                CostTextBox,
+                DescriptionTextBox
+            })
+            {
+                control.ClearValue(Control.BorderBrushProperty);
+                control.ClearValue(Control.BorderThicknessProperty);
+            }
+        }
+
+        private void ShowValidation(
+            string message,
+            Control control)
+        {
+            ValidationTextBlock.Text = message;
+            ValidationTextBlock.Visibility = Visibility.Visible;
+
+            control.BorderBrush =
+                (Brush)FindResource("DangerBrush");
+            control.BorderThickness = new Thickness(2);
+            control.Focus();
         }
 
         private void DeleteButton_Click(object sender, RoutedEventArgs e)
