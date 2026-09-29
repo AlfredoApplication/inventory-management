@@ -9,6 +9,8 @@ namespace LoginAppFramework
 {
     public partial class WorkerAssetManager : UserControl
     {
+        public event EventHandler<Worker> OnEditWorker;
+        public event EventHandler<Worker> OnDeleteWorker;
         public event EventHandler AssetAssignmentChanged;
         public event EventHandler OnDetailPanelClosed;
         public event EventHandler<Asset> OnAssetDoubleClicked;
@@ -57,6 +59,8 @@ namespace LoginAppFramework
         {
             bool canEdit = !_isReadOnlyMode;
             AssignNewAssetButton.IsEnabled = canEdit;
+            EditWorkerButton.IsEnabled = canEdit;
+            DeleteWorkerButton.IsEnabled = canEdit;
             // Force re-evaluation of CanEditAssets property for XAML bindings
             OnPropertyChanged(nameof(CanEditAssets));
         }
@@ -67,6 +71,18 @@ namespace LoginAppFramework
         }
 
         public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+        private void EditWorkerButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_isReadOnlyMode || _currentWorker == null) return;
+            OnEditWorker?.Invoke(this, _currentWorker.GetModel());
+        }
+
+        private void DeleteWorkerButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_isReadOnlyMode || _currentWorker == null) return;
+            OnDeleteWorker?.Invoke(this, _currentWorker.GetModel());
+        }
 
         private void AssignedAssetsDataGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
