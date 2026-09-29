@@ -71,6 +71,12 @@
             <!-- ========================================================== -->
             <!-- ==                CONTROL STYLES                        == -->
             <!-- ========================================================== -->
+            <Style TargetType="{x:Type Window}">
+                <Setter Property="UseLayoutRounding" Value="True"/>
+                <Setter Property="SnapsToDevicePixels" Value="True"/>
+                <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+                <Setter Property="TextOptions.TextRenderingMode" Value="ClearType"/>
+            </Style>
             <Style x:Key="Win11TextBoxBaseStyle" TargetType="{x:Type Control}">
                 <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}" />
                 <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}" />
@@ -86,8 +92,12 @@
                                 <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4" SnapsToDevicePixels="True">
                                     <Grid>
                                         <ScrollViewer x:Name="PART_ContentHost" Focusable="false" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" Margin="25,0,7,0"/>
-                                        <TextBlock Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="{StaticResource SubtleTextBrush}" 
-                                                   VerticalAlignment="Center" HorizontalAlignment="Left" Margin="8,0,0,0" IsHitTestVisible="False"/>
+                                        <local:AppIcon Icon="Search"
+                                                       Size="15"
+                                                       Foreground="{StaticResource SubtleTextBrush}"
+                                                       HorizontalAlignment="Left"
+                                                       Margin="8,0,0,0"
+                                                       IsHitTestVisible="False"/>
                                         <TextBlock Text="{TemplateBinding Tag}" Foreground="{StaticResource SubtleTextBrush}" 
                                                    VerticalAlignment="Center" HorizontalAlignment="Left" Margin="32,0,0,0" IsHitTestVisible="False">
                                             <TextBlock.Style>
@@ -153,7 +163,11 @@
                                             <ToggleButton.Template>
                                                 <ControlTemplate TargetType="ToggleButton">
                                                     <Border Background="Transparent">
-                                                        <TextBlock Text="&#xE70D;" FontFamily="Segoe Fluent Icons" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,8,0"/>
+                                                        <local:AppIcon Icon="ChevronDown"
+                                                                       Size="14"
+                                                                       VerticalAlignment="Center"
+                                                                       HorizontalAlignment="Right"
+                                                                       Margin="0,0,8,0"/>
                                                     </Border>
                                                 </ControlTemplate>
                                             </ToggleButton.Template>
@@ -196,7 +210,11 @@
                                                     <ToggleButton.Template>
                                                         <ControlTemplate TargetType="ToggleButton">
                                                             <Border Background="Transparent">
-                                                                <TextBlock Text="&#xE70D;" FontFamily="Segoe Fluent Icons" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,8,0"/>
+                                                                <local:AppIcon Icon="ChevronDown"
+                                                                   Size="14"
+                                                                   VerticalAlignment="Center"
+                                                                   HorizontalAlignment="Right"
+                                                                   Margin="0,0,8,0"/>
                                                             </Border>
                                                         </ControlTemplate>
                                                     </ToggleButton.Template>
@@ -269,7 +287,7 @@
                                     </DatePickerTextBox>
 
                                     <Button x:Name="PART_Button" Grid.Column="1" Foreground="{StaticResource BodyTextBrush}" Width="30" Style="{x:Null}" BorderThickness="0" Background="Transparent" Cursor="Hand">
-                                        <TextBlock Text="&#xE787;" FontFamily="Segoe MDL2 Assets" FontSize="14"/>
+                                        <local:AppIcon Icon="Calendar" Size="16"/>
                                     </Button>
                                 </Grid>
                             </Border>
@@ -417,7 +435,13 @@
                             <Border Background="Transparent" Padding="3">
                                 <StackPanel Orientation="Horizontal">
                                     <Border x:Name="checkBoxBorder" Width="20" Height="20" BorderThickness="1" CornerRadius="4" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}">
-                                        <TextBlock x:Name="glyph" Text="&#xE73E;" FontFamily="Segoe Fluent Icons" FontSize="12" Foreground="{StaticResource PrimaryForegroundBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
+                                        <local:AppIcon x:Name="glyph"
+                                                       Icon="Check"
+                                                       Size="13"
+                                                       Foreground="{StaticResource PrimaryForegroundBrush}"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"
+                                                       Visibility="Collapsed"/>
                                     </Border>
                                     <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                                 </StackPanel>
@@ -457,12 +481,16 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
                                                     <ContentPresenter Grid.Column="0" ContentSource="Content"/>
-                                                    <TextBlock x:Name="arrow" Grid.Column="1" Text="&#xE70D;" FontFamily="Segoe Fluent Icons" FontSize="12" VerticalAlignment="Center"/>
+                                                    <local:AppIcon x:Name="arrow"
+                                                                   Grid.Column="1"
+                                                                   Icon="ChevronDown"
+                                                                   Size="14"
+                                                                   VerticalAlignment="Center"/>
                                                 </Grid>
                                             </Border>
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsChecked" Value="True">
-                                                    <Setter TargetName="arrow" Property="Text" Value="&#xE70E;"/>
+                                                    <Setter TargetName="arrow" Property="Icon" Value="ChevronUp"/>
                                                 </Trigger>
                                             </ControlTemplate.Triggers>
                                         </ControlTemplate>
@@ -556,7 +584,9 @@
 
 
 
-            <Style x:Key="MainScreenWindowStyle" TargetType="Window">
+            <Style x:Key="MainScreenWindowStyle"
+                   TargetType="Window"
+                   BasedOn="{StaticResource {x:Type Window}}">
                 <Setter Property="WindowState" Value="Maximized"/>
                 <Setter Property="Background" Value="{StaticResource AppBackgroundBrush}"/>
                 <Setter Property="FontFamily" Value="Segoe UI"/>

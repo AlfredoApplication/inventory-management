@@ -29,7 +29,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="&#xE716;" FontFamily="Segoe Fluent Icons" FontSize="48" VerticalAlignment="Center" Margin="0,0,20,0"/>
+                <local:AppIcon Grid.Column="0" Icon="User" Size="48" VerticalAlignment="Center" Margin="0,0,20,0"/>
                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                     <TextBlock x:Name="WorkerNameTextBlock" FontSize="22" FontWeight="Bold" Foreground="{StaticResource PrimaryTextBrush}" Text="İşçinin Adı"/>
                     <TextBlock x:Name="WorkerPositionTextBlock" FontSize="16" Foreground="{StaticResource BodyTextBrush}" Text="Vəzifə"/>

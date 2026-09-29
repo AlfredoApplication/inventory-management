@@ -24,3 +24,22 @@ jobs:
 
       - name: Test
         run: dotnet test LoginAppFramework.sln --configuration Release --no-build --verbosity normal
+
+      - name: Publish self-contained release
+        run: dotnet publish LoginAppFramework/LoginAppFramework.csproj --configuration Release --runtime win-x64 --self-contained true -o artifacts/publish
+
+      - name: Verify portable icon release assets
+        shell: pwsh
+        run: |
+          $requiredFiles = @(
+            "artifacts/publish/LoginAppFramework.exe",
+            "artifacts/publish/MahApps.Metro.IconPacks.dll"
+          )
+
+          foreach ($file in $requiredFiles) {
+            if (-not (Test-Path $file)) {
+              throw "Required release file is missing: $file"
+            }
+          }
+
+          Write-Host "Self-contained release contains the executable and portable icon pack."

@@ -19,12 +19,19 @@
             </Grid.RowDefinitions>
 
             <DockPanel Grid.Row="0">
-                <Button x:Name="CloseDetailPanelButton" DockPanel.Dock="Top" HorizontalAlignment="Right"
-                        Content="&#xE8BB;" FontFamily="Segoe Fluent Icons"
+                <Button x:Name="CloseDetailPanelButton"
+                        DockPanel.Dock="Top"
+                        HorizontalAlignment="Right"
                         Click="CloseDetailPanelButton_Click"
                         ToolTip="Detallı Görünüşü Bağla"
-                        Background="Transparent" BorderThickness="0" Foreground="{StaticResource BodyTextBrush}" 
-                        FontSize="14" Width="32" Height="32" Margin="0,-10,-10,-5"/>
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Foreground="{StaticResource BodyTextBrush}"
+                        Width="32"
+                        Height="32"
+                        Margin="0,-10,-10,-5">
+                    <local:AppIcon Icon="Close" Size="17"/>
+                </Button>
 
                 <Border DockPanel.Dock="Top" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="0,0,0,1" Padding="0,0,0,15" Margin="0,0,0,15">
                     <Grid>
@@ -32,7 +39,7 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="&#xE716;" FontFamily="Segoe Fluent Icons" FontSize="48" VerticalAlignment="Center" Margin="0,0,20,0"/>
+                        <local:AppIcon Grid.Column="0" Icon="User" Size="48" VerticalAlignment="Center" Margin="0,0,20,0"/>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                             <TextBlock Text="{Binding Name, Mode=OneWay, TargetNullValue='İşçi seçin'}" FontSize="22" FontWeight="Bold" Foreground="{StaticResource PrimaryTextBrush}" TextTrimming="CharacterEllipsis"/>
                             <TextBlock Text="{Binding Position, Mode=OneWay}" FontSize="16" Foreground="{StaticResource BodyTextBrush}" TextTrimming="CharacterEllipsis"/>

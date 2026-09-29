@@ -1,6 +1,7 @@
 <UserControl x:Class="LoginAppFramework.DateSelectorControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:LoginAppFramework">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
@@ -25,9 +26,7 @@
                 Padding="0"
                 ToolTip="Tarix seç"
                 Click="CalendarButton_Click">
-            <TextBlock Text="&#xE787;"
-                       FontFamily="Segoe MDL2 Assets"
-                       FontSize="16"/>
+            <local:AppIcon Icon="Calendar" Size="17"/>
         </Button>
 
         <Button x:Name="ClearButton"

@@ -22,22 +22,22 @@ namespace LoginAppFramework
             {
                 case ToastType.Success:
                     ToastBorder.Background = new SolidColorBrush(Color.FromRgb(22, 160, 133)); // Teal
-                    IconText.Text = "\uE73E"; // Checkmark
+                    IconVisual.Icon = AppIconKind.Success;
                     TitleText.Text = title ?? "Uğurlu!";
                     break;
                 case ToastType.Error:
                     ToastBorder.Background = new SolidColorBrush(Color.FromRgb(192, 57, 43)); // Red
-                    IconText.Text = "\uEA39"; // Error badge
+                    IconVisual.Icon = AppIconKind.Error;
                     TitleText.Text = title ?? "Xəta!";
                     break;
                 case ToastType.Warning:
                     ToastBorder.Background = new SolidColorBrush(Color.FromRgb(211, 84, 0)); // Orange
-                    IconText.Text = "\uE7BA"; // Warning
+                    IconVisual.Icon = AppIconKind.Warning;
                     TitleText.Text = title ?? "Diqqət!";
                     break;
                 case ToastType.Info:
                     ToastBorder.Background = new SolidColorBrush(Color.FromRgb(41, 128, 185)); // Blue
-                    IconText.Text = "\uE946"; // Info
+                    IconVisual.Icon = AppIconKind.Info;
                     TitleText.Text = title ?? "Məlumat";
                     break;
             }

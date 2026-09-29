@@ -53,7 +53,7 @@
                     </Grid.ColumnDefinitions>
                     <Button x:Name="MenuButton" Style="{StaticResource PrimaryActionButton}" Height="40" Padding="15,0" Click="MenuButton_Click">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE700;" FontFamily="Segoe Fluent Icons" Foreground="White" FontSize="16" VerticalAlignment="Center"/>
+                            <local:AppIcon Icon="Menu" Size="18" Foreground="White" VerticalAlignment="Center"/>
                             <TextBlock Text="Menyu" Foreground="White" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0"/>
                         </StackPanel>
                     </Button>
@@ -121,7 +121,7 @@
                             IsEnabled="{Binding CanRestoreSelected}"
                             Padding="20,8">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE72C;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <local:AppIcon Icon="Filter" Size="17" VerticalAlignment="Center" Margin="0,0,8,0"/>
                             <TextBlock Text="Seçilənləri Bərpa Et" FontWeight="SemiBold" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
@@ -174,7 +174,11 @@
                                                       Visibility="{Binding CanRestore, Converter={StaticResource BoolToVis}}"
                                                       VerticalAlignment="Center"/>
 
-                                            <TextBlock Grid.Column="1" Text="{Binding Icon}" FontSize="24" VerticalAlignment="Center" Margin="5,0,20,0"/>
+                                            <local:AppIcon Grid.Column="1"
+                                                           Icon="{Binding Icon}"
+                                                           Size="24"
+                                                           VerticalAlignment="Center"
+                                                           Margin="5,0,20,0"/>
                                             <StackPanel Grid.Column="2" VerticalAlignment="Center">
                                                 <TextBlock FontWeight="SemiBold" Text="{Binding Description}" TextWrapping="Wrap" Foreground="{StaticResource BodyTextBrush}" FontSize="14"/>
                                             </StackPanel>
