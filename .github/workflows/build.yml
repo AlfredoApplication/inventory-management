@@ -21,3 +21,6 @@ jobs:
 
       - name: Build
         run: dotnet build LoginAppFramework.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test LoginAppFramework.sln --configuration Release --no-build --verbosity normal
