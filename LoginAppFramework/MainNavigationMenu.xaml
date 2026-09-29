@@ -1,7 +1,8 @@
 <UserControl x:Class="LoginAppFramework.MainNavigationMenu"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             Visibility="Collapsed">
+             Visibility="Collapsed"
+             PreviewKeyDown="MainNavigationMenu_PreviewKeyDown">
     <UserControl.Resources>
         <Style x:Key="SharedNavButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
@@ -40,9 +41,12 @@
         <Border Background="#66000000"
                 MouseDown="Overlay_MouseDown"/>
 
-        <Border HorizontalAlignment="Left"
+        <Border x:Name="NavigationPanel"
+                HorizontalAlignment="Left"
                 Width="320"
-                Background="{StaticResource MenuBackgroundBrush}">
+                Background="{StaticResource MenuBackgroundBrush}"
+                KeyboardNavigation.TabNavigation="Cycle"
+                KeyboardNavigation.DirectionalNavigation="Cycle">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="64"/>
@@ -177,7 +181,7 @@
                             Click="LogoutButton_Click">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE7E8;" FontFamily="Segoe Fluent Icons"/>
-                            <TextBlock Text="Çıxış" Margin="15,0,0,0"/>
+                            <TextBlock Text="Proqramdan Çıxış" Margin="15,0,0,0"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>

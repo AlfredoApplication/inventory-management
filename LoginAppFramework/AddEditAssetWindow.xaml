@@ -43,7 +43,12 @@
                     <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding VesaitinKodu, Mode=TwoWay}" Margin="0,0,0,10" Padding="5"/>
 
                     <Label Grid.Row="1" Content="Vəsaitin Adı:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
-                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding VesaitinAdi, Mode=TwoWay}" Margin="0,0,0,10" Padding="5"/>
+                    <TextBox x:Name="AssetNameTextBox"
+                             Grid.Row="1"
+                             Grid.Column="1"
+                             Text="{Binding VesaitinAdi, Mode=TwoWay}"
+                             Margin="0,0,0,10"
+                             Padding="5"/>
 
                     <Label Grid.Row="2" Content="Seriya Nömrəsi:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
                     <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding ITAvadanliqlarininSeriyaNomresi, Mode=TwoWay}" Margin="0,0,0,10" Padding="5"/>
@@ -154,19 +159,35 @@
                 BorderThickness="0,1,0,0"
                 Margin="0,12,0,0"
                 Padding="0,14,0,0">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="Yadda Saxla"
-                        Width="110"
-                        Margin="0,0,10,0"
-                        Padding="10,5"
-                        Style="{StaticResource PrimaryActionButton}"
-                        IsDefault="True"
-                        Click="SaveButton_Click"/>
-                <Button Content="Ləğv et"
-                        Width="90"
-                        Padding="10,5"
-                        IsCancel="True"/>
-            </StackPanel>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock x:Name="ValidationTextBlock"
+                           Grid.Row="0"
+                           Visibility="Collapsed"
+                           Foreground="{StaticResource DangerBrush}"
+                           TextWrapping="Wrap"
+                           Margin="0,0,0,10"/>
+
+                <StackPanel Grid.Row="1"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right">
+                    <Button Content="Yadda Saxla"
+                            Width="110"
+                            Margin="0,0,10,0"
+                            Padding="10,5"
+                            Style="{StaticResource PrimaryActionButton}"
+                            IsDefault="True"
+                            Click="SaveButton_Click"/>
+                    <Button Content="Ləğv et"
+                            Width="90"
+                            Padding="10,5"
+                            IsCancel="True"/>
+                </StackPanel>
+            </Grid>
         </Border>
     </Grid>
 </Window>

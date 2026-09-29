@@ -157,6 +157,44 @@ namespace LoginAppFramework
             Window callingWindow = null)
             => await NavigateAsync<HistoryLogWindow>(callingWindow);
 
+        public static void SwitchUser()
+        {
+            SessionManager.Logout();
+
+            var loginWindow = new MainWindow();
+            Application.Current.MainWindow = loginWindow;
+
+            _isShuttingDown = true;
+            try
+            {
+                loginWindow.Show();
+
+                var windowsToClose = Application.Current.Windows
+                    .OfType<Window>()
+                    .Where(window => !ReferenceEquals(window, loginWindow))
+                    .ToList();
+
+                foreach (var window in windowsToClose)
+                    window.Close();
+
+                _pageCache.Clear();
+                _currentWindow = loginWindow;
+            }
+            finally
+            {
+                _isShuttingDown = false;
+            }
+
+            loginWindow.Activate();
+        }
+
+        public static void ExitApplication()
+        {
+            _isShuttingDown = true;
+            SessionManager.Logout();
+            Application.Current.Shutdown();
+        }
+
         public static void RestartApplication()
         {
             _isShuttingDown = true;

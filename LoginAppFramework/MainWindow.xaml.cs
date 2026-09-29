@@ -58,7 +58,6 @@ namespace LoginAppFramework
                 ErrorMessage.Text = "Qoşulma uğurlu oldu və yadda saxlanıldı!";
                 ErrorMessage.Foreground = Brushes.Green;
                 ErrorMessage.Visibility = Visibility.Visible;
-                await Task.Delay(1000);
                 UpdateUiState();
             }
             else

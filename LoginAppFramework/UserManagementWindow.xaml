@@ -1,60 +1,178 @@
-﻿<Window x:Class="LoginAppFramework.UserManagementWindow"
+<Window x:Class="LoginAppFramework.UserManagementWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Application User Management" Height="Auto" Width="400"
-        WindowStartupLocation="CenterOwner" SizeToContent="Height"
-        Background="{StaticResource AppBackgroundBrush}" FontFamily="Segoe UI">
-    <Grid Margin="20">
+        Title="İstifadəçi İdarəetməsi"
+        Width="820"
+        Height="560"
+        MinWidth="700"
+        MinHeight="500"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResizeWithGrip"
+        Background="{StaticResource AppBackgroundBrush}"
+        FontFamily="Segoe UI">
+    <Grid Margin="22">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Manage Application Users" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,15" Foreground="{StaticResource PrimaryTextBrush}"/>
+        <StackPanel Grid.Row="0" Margin="0,0,0,16">
+            <TextBlock Text="İstifadəçi İdarəetməsi"
+                       FontSize="22"
+                       FontWeight="SemiBold"
+                       Foreground="{StaticResource PrimaryTextBrush}"/>
+            <TextBlock Text="Tətbiq istifadəçilərini, rolları və giriş məlumatlarını idarə edin."
+                       Margin="0,4,0,0"
+                       Foreground="{StaticResource SubtleTextBrush}"/>
+        </StackPanel>
 
-        <ListView Grid.Row="1" x:Name="UsersListView" MaxHeight="200" Margin="0,0,0,15" SelectionChanged="UsersListView_SelectionChanged">
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn Header="Username" DisplayMemberBinding="{Binding Username}" Width="120"/>
-                    <GridViewColumn Header="Full Name" DisplayMemberBinding="{Binding FullName}" Width="120"/>
-                    <GridViewColumn Header="Role" DisplayMemberBinding="{Binding Role}" Width="80"/>
-                </GridView>
-            </ListView.View>
-        </ListView>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.1*"/>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="1.35*"/>
+            </Grid.ColumnDefinitions>
 
-        <Grid Grid.Row="2" x:Name="DetailPanel">
-            <StackPanel>
-                <Border Background="{StaticResource PanelBackgroundBrush}" CornerRadius="4" Padding="15">
-                    <StackPanel>
-                        <TextBlock Text="User Details" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,10"/>
-                        <Label Content="Username:"/>
-                        <TextBox x:Name="UsernameTextBox" Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"/>
-                        <Label Content="Full Name:"/>
-                        <TextBox x:Name="FullNameTextBox" Text="{Binding FullName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
-                        <Label Content="Employee Code (e.g., per_kod):"/>
-                        <TextBox x:Name="EmployeeCodeTextBox" Text="{Binding EmployeeCode, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+            <Border Grid.Column="0"
+                    Background="{StaticResource PanelBackgroundBrush}"
+                    BorderBrush="{StaticResource ControlBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="12">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
 
-                        <Label Content="Rol:"/>
-                        <ComboBox x:Name="RoleComboBox" Margin="0,0,0,5">
-                            <ComboBoxItem Content="Admin" Tag="Admin"/>
-                            <ComboBoxItem Content="ReadOnly" Tag="ReadOnly"/>
-                        </ComboBox>
-                        <TextBlock Text="Admin: Tam giriş | ReadOnly: Yalnız baxış"
-                                   FontSize="11" FontStyle="Italic" Foreground="Gray" Margin="0,0,0,10"/>
+                    <TextBlock Text="İstifadəçilər"
+                               FontWeight="SemiBold"
+                               FontSize="15"
+                               Margin="2,0,0,10"/>
 
-                        <Label Content="Set/Change Password:"/>
-                        <PasswordBox x:Name="PasswordBox"/>
-                        <TextBlock Text="Leave blank to keep the current password unchanged." FontSize="11" FontStyle="Italic" Foreground="Gray"/>
+                    <ListView Grid.Row="1"
+                              x:Name="UsersListView"
+                              SelectionChanged="UsersListView_SelectionChanged">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="İstifadəçi adı"
+                                                DisplayMemberBinding="{Binding Username}"
+                                                Width="120"/>
+                                <GridViewColumn Header="Ad Soyad"
+                                                DisplayMemberBinding="{Binding FullName}"
+                                                Width="145"/>
+                                <GridViewColumn Header="Rol" Width="95">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock>
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Text" Value="{Binding Role}"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Role}" Value="ReadOnly">
+                                                                <Setter Property="Text" Value="Yalnız baxış"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="2"
+                    x:Name="DetailPanel"
+                    Background="{StaticResource PanelBackgroundBrush}"
+                    BorderBrush="{StaticResource ControlBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="18">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <ScrollViewer Grid.Row="0"
+                                  VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <TextBlock Text="İstifadəçi Məlumatları"
+                                       FontSize="15"
+                                       FontWeight="SemiBold"
+                                       Margin="0,0,0,12"/>
+
+                            <Label Content="İstifadəçi adı:"/>
+                            <TextBox x:Name="UsernameTextBox"
+                                     Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
+                                     Margin="0,0,0,8"/>
+
+                            <Label Content="Ad Soyad:"/>
+                            <TextBox x:Name="FullNameTextBox"
+                                     Text="{Binding FullName, UpdateSourceTrigger=PropertyChanged}"
+                                     Margin="0,0,0,8"/>
+
+                            <Label Content="İşçi kodu (per_kod):"/>
+                            <TextBox x:Name="EmployeeCodeTextBox"
+                                     Text="{Binding EmployeeCode, UpdateSourceTrigger=PropertyChanged}"
+                                     Margin="0,0,0,8"/>
+
+                            <Label Content="Rol:"/>
+                            <ComboBox x:Name="RoleComboBox"
+                                      Margin="0,0,0,6">
+                                <ComboBoxItem Content="Admin" Tag="Admin"/>
+                                <ComboBoxItem Content="Yalnız baxış" Tag="ReadOnly"/>
+                            </ComboBox>
+                            <TextBlock Text="Admin: tam giriş  •  Yalnız baxış: dəyişiklik edə bilməz"
+                                       FontSize="11"
+                                       FontStyle="Italic"
+                                       Foreground="Gray"
+                                       Margin="0,0,0,12"/>
+
+                            <Label Content="Yeni şifrə:"/>
+                            <PasswordBox x:Name="PasswordBox"/>
+                            <TextBlock Text="Mövcud istifadəçidə şifrəni dəyişməmək üçün boş saxlayın."
+                                       FontSize="11"
+                                       FontStyle="Italic"
+                                       Foreground="Gray"
+                                       Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <TextBlock x:Name="ValidationTextBlock"
+                               Grid.Row="1"
+                               Visibility="Collapsed"
+                               Foreground="{StaticResource DangerBrush}"
+                               TextWrapping="Wrap"
+                               Margin="0,12,0,0"/>
+
+                    <StackPanel Grid.Row="2"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                Margin="0,16,0,0">
+                        <Button x:Name="NewUserButton"
+                                Content="Yeni İstifadəçi"
+                                Click="NewUserButton_Click"/>
+                        <Button x:Name="SaveButton"
+                                Content="Yadda Saxla"
+                                Click="SaveButton_Click"
+                                IsDefault="True"
+                                Style="{StaticResource PrimaryActionButton}"
+                                Margin="10,0,0,0"/>
+                        <Button x:Name="DeleteButton"
+                                Content="İstifadəçini Sil"
+                                Click="DeleteButton_Click"
+                                Background="{StaticResource DangerBrush}"
+                                Foreground="{StaticResource PrimaryForegroundBrush}"
+                                Margin="10,0,0,0"/>
                     </StackPanel>
-                </Border>
-
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-                    <Button x:Name="NewUserButton" Content="New User" Click="NewUserButton_Click"/>
-                    <Button x:Name="SaveButton" Content="Save Changes" Click="SaveButton_Click" IsDefault="True" FontWeight="SemiBold" Background="{StaticResource SuccessBrush}" Foreground="{StaticResource PrimaryForegroundBrush}" Margin="10,0,0,0"/>
-                    <Button x:Name="DeleteButton" Content="Delete User" Click="DeleteButton_Click" Background="{StaticResource DangerBrush}" Foreground="{StaticResource PrimaryForegroundBrush}" Margin="10,0,0,0"/>
-                </StackPanel>
-            </StackPanel>
+                </Grid>
+            </Border>
         </Grid>
     </Grid>
 </Window>

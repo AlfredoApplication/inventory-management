@@ -99,6 +99,10 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <Button x:Name="FilterPanelToggleButton"
+                                Content="Filtrləri Gizlət"
+                                Click="ToggleFilterPanelButton_Click"
+                                Margin="0,0,10,0"/>
                         <Button x:Name="ExportButton" Click="ExportButton_Click" Style="{StaticResource PrimaryActionButton}" Margin="0,0,10,0">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock FontFamily="Segoe Fluent Icons" Text="&#xE74E;" VerticalAlignment="Center" Margin="0,0,8,0" FontSize="12"/>
@@ -122,10 +126,10 @@
             </Border>
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" MinWidth="280" />
+                    <ColumnDefinition x:Name="FilterColumn" Width="280" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Border Grid.Column="0" Background="{StaticResource GlassBackgroundBrush}" Padding="15" BorderThickness="0,0,1,0" BorderBrush="{StaticResource GlassBorderBrush}">
+                <Border x:Name="FilterSidebar" Grid.Column="0" Background="{StaticResource GlassBackgroundBrush}" Padding="15" BorderThickness="0,0,1,0" BorderBrush="{StaticResource GlassBorderBrush}">
                     <DockPanel>
                         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Right">
                             <TextBlock Text="FILTRLƏR" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryTextBrush}" VerticalAlignment="Center"/>
@@ -244,7 +248,7 @@
                             </DataGridTemplateColumn>
 
                             <!-- Vəsaitin Kodu with filter -->
-                            <DataGridTextColumn Binding="{Binding VesaitinKodu, TargetNullValue='-'}" MinWidth="120" Width="Auto">
+                            <DataGridTextColumn Binding="{Binding VesaitinKodu, TargetNullValue='-'}" MinWidth="90" Width="110">
                                 <DataGridTextColumn.Header>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
@@ -258,7 +262,7 @@
                             </DataGridTextColumn>
 
                             <!-- Vəsaitin Adı with filter -->
-                            <DataGridTextColumn Binding="{Binding VesaitinAdi, TargetNullValue='-'}" MinWidth="200" Width="Auto">
+                            <DataGridTextColumn Binding="{Binding VesaitinAdi, TargetNullValue='-'}" MinWidth="150" Width="1.4*">
                                 <DataGridTextColumn.Header>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
@@ -271,10 +275,10 @@
                                 </DataGridTextColumn.Header>
                             </DataGridTextColumn>
 
-                            <DataGridTextColumn Header="Seriya Nömrəsi" Binding="{Binding ITAvadanliqlarininSeriyaNomresi, TargetNullValue='-'}" MinWidth="180" Width="Auto"/>
+                            <DataGridTextColumn Header="Seriya Nömrəsi" Binding="{Binding ITAvadanliqlarininSeriyaNomresi, TargetNullValue='-'}" MinWidth="120" Width="145"/>
 
                             <!-- Kateqoriya with filter -->
-                            <DataGridTextColumn Binding="{Binding Kateqoriya, TargetNullValue='-'}" MinWidth="150" Width="Auto">
+                            <DataGridTextColumn Binding="{Binding Kateqoriya, TargetNullValue='-'}" MinWidth="110" Width="130">
                                 <DataGridTextColumn.Header>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
@@ -288,7 +292,7 @@
                             </DataGridTextColumn>
 
                             <!-- Təhkim Olunan Əməkdaş with filter -->
-                            <DataGridTextColumn Binding="{Binding Worker.per_adiper_soyadi, TargetNullValue='(Boşdur)'}" MinWidth="200" Width="Auto">
+                            <DataGridTextColumn Binding="{Binding Worker.per_adiper_soyadi, TargetNullValue='(Boşdur)'}" MinWidth="150" Width="165">
                                 <DataGridTextColumn.Header>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
@@ -301,10 +305,10 @@
                                 </DataGridTextColumn.Header>
                             </DataGridTextColumn>
 
-                            <DataGridTextColumn Header="Vəzifəsi" Binding="{Binding Worker.pgk_gorev_adi, TargetNullValue='-'}" MinWidth="150" Width="Auto"/>
+                            <DataGridTextColumn Header="Vəzifəsi" Binding="{Binding Worker.pgk_gorev_adi, TargetNullValue='-'}" MinWidth="110" Width="135"/>
 
                             <!-- Bölmə/Şöbə/Departament with filter -->
-                            <DataGridTextColumn Binding="{Binding Worker.pdp_adi, TargetNullValue='-'}" MinWidth="200" Width="Auto">
+                            <DataGridTextColumn Binding="{Binding Worker.pdp_adi, TargetNullValue='-'}" MinWidth="140" Width="165">
                                 <DataGridTextColumn.Header>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
@@ -318,7 +322,7 @@
                             </DataGridTextColumn>
 
                             <!-- Yerləşmə Yeri with filter -->
-                            <DataGridTextColumn Binding="{Binding YerleshmeYeri, TargetNullValue='-'}" MinWidth="150" Width="Auto">
+                            <DataGridTextColumn Binding="{Binding YerleshmeYeri, TargetNullValue='-'}" MinWidth="110" Width="130">
                                 <DataGridTextColumn.Header>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
@@ -332,7 +336,7 @@
                             </DataGridTextColumn>
 
                             <!-- Ərazi with filter -->
-                            <DataGridTextColumn Binding="{Binding Erazi, TargetNullValue='-'}" MinWidth="120" Width="Auto">
+                            <DataGridTextColumn Binding="{Binding Erazi, TargetNullValue='-'}" MinWidth="90" Width="105">
                                 <DataGridTextColumn.Header>
                                     <Grid>
                                         <Grid.ColumnDefinitions>

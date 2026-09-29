@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace LoginAppFramework
 {
@@ -123,28 +125,63 @@ namespace LoginAppFramework
                 option.Kind == resolution.Kind);
         }
 
+        private void ClearValidation()
+        {
+            ValidationTextBlock.Text = string.Empty;
+            ValidationTextBlock.Visibility = Visibility.Collapsed;
+
+            foreach (Control control in new Control[]
+            {
+                UserComboBox,
+                PurchaseCostTextBox,
+                UsefulLifeTextBox
+            })
+            {
+                control.ClearValue(Control.BorderBrushProperty);
+                control.ClearValue(Control.BorderThicknessProperty);
+            }
+        }
+
+        private void ShowValidation(
+            string message,
+            Control control)
+        {
+            ValidationTextBlock.Text = message;
+            ValidationTextBlock.Visibility = Visibility.Visible;
+
+            control.BorderBrush =
+                (Brush)FindResource("DangerBrush");
+            control.BorderThickness = new Thickness(2);
+            control.Focus();
+        }
+
         private void ApplyButton_Click(object sender, RoutedEventArgs e)
         {
+            ClearValidation();
             Changes = new BulkAssetChanges();
 
-            if (!string.IsNullOrWhiteSpace(VesaitinKoduTextBox.Text))
-                Changes.VesaitinKodu = VesaitinKoduTextBox.Text.Trim();
+            Changes.VesaitinKodu = BulkAssetChanges.ResolveTextChange(
+                VesaitinKoduTextBox.Text,
+                ClearVesaitinKoduCheckBox.IsChecked == true);
 
             if (!string.IsNullOrWhiteSpace(VesaitinAdiTextBox.Text))
                 Changes.VesaitinAdi = VesaitinAdiTextBox.Text.Trim();
 
-            if (!string.IsNullOrWhiteSpace(SeriyaNomresiTextBox.Text))
-                Changes.ITAvadanliqlarininSeriyaNomresi =
-                    SeriyaNomresiTextBox.Text.Trim();
+            Changes.ITAvadanliqlarininSeriyaNomresi =
+                BulkAssetChanges.ResolveTextChange(
+                    SeriyaNomresiTextBox.Text,
+                    ClearSerialCheckBox.IsChecked == true);
 
             if (CategoryComboBox.SelectedIndex > 0)
                 Changes.Kateqoriya = CategoryComboBox.SelectedItem.ToString();
 
-            if (!string.IsNullOrWhiteSpace(LocationTextBox.Text))
-                Changes.YerleshmeYeri = LocationTextBox.Text.Trim();
+            Changes.YerleshmeYeri = BulkAssetChanges.ResolveTextChange(
+                LocationTextBox.Text,
+                ClearLocationCheckBox.IsChecked == true);
 
-            if (!string.IsNullOrWhiteSpace(AreaTextBox.Text))
-                Changes.Erazi = AreaTextBox.Text.Trim();
+            Changes.Erazi = BulkAssetChanges.ResolveTextChange(
+                AreaTextBox.Text,
+                ClearAreaCheckBox.IsChecked == true);
 
             if (StatusComboBox.SelectedIndex > 0)
                 Changes.Status = StatusComboBox.SelectedItem.ToString();
@@ -153,13 +190,9 @@ namespace LoginAppFramework
 
             if (!workerResolution.IsValid)
             {
-                MessageBox.Show(
+                ShowValidation(
                     workerResolution.ErrorMessage,
-                    "Əməkdaş Seçimi",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
-
-                UserComboBox.Focus();
+                    UserComboBox);
                 return;
             }
 
@@ -182,11 +215,9 @@ namespace LoginAppFramework
                 }
                 else
                 {
-                    MessageBox.Show(
+                    ShowValidation(
                         "Alış qiyməti düzgün rəqəm formatında deyil.",
-                        "Xəta",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Warning);
+                        PurchaseCostTextBox);
                     return;
                 }
             }
@@ -203,11 +234,9 @@ namespace LoginAppFramework
                 {
                     if (life < 0)
                     {
-                        MessageBox.Show(
+                        ShowValidation(
                             "İstifadə müddəti mənfi ola bilməz. 0 dəyəri 'təyin edilməyib' kimi qəbul olunur.",
-                            "Xəta",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Warning);
+                            UsefulLifeTextBox);
                         return;
                     }
 
@@ -215,17 +244,16 @@ namespace LoginAppFramework
                 }
                 else
                 {
-                    MessageBox.Show(
+                    ShowValidation(
                         "İstifadə müddəti düzgün rəqəm formatında deyil.",
-                        "Xəta",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Warning);
+                        UsefulLifeTextBox);
                     return;
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(SupplierTextBox.Text))
-                Changes.Supplier = SupplierTextBox.Text.Trim();
+            Changes.Supplier = BulkAssetChanges.ResolveTextChange(
+                SupplierTextBox.Text,
+                ClearSupplierCheckBox.IsChecked == true);
 
             if (WarrantyDateSelector.SelectedDate.HasValue)
                 Changes.WarrantyExpirationDate =
