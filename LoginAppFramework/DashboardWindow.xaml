@@ -445,6 +445,12 @@
                         <TextBlock Text="Həyat Dövrü Hesabatı" Margin="15,0,0,0"/>
                     </StackPanel>
                 </Button>
+                <Button x:Name="ReportsButton" Click="ReportsButton_Click" Style="{StaticResource ModernNavButtonStyle}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE9D2;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center"/>
+                        <TextBlock Text="Hesabatlar" Margin="15,0,0,0"/>
+                    </StackPanel>
+                </Button>
                 <Button x:Name="UserManagementButton" Click="UserManagementButton_Click" Style="{StaticResource ModernNavButtonStyle}" Visibility="Collapsed">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="&#xE77B;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center"/>
