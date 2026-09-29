@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace LoginAppFramework
 {
     public partial class AddEditAssetWindow : Window
     {
         public Asset Asset { get; }
+
         private List<Worker> _availableWorkers;
+        private List<WorkerSelectionOption> _workerOptions;
 
         public AddEditAssetWindow(Asset assetToEdit)
         {
@@ -20,9 +23,15 @@ namespace LoginAppFramework
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            ApplyResponsiveBounds();
+
             if (!SessionManager.CanEdit())
             {
-                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(
+                    "Bu əməliyyat üçün icazəniz yoxdur.",
+                    "Giriş Qadağandır",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
                 Close();
                 return;
             }
@@ -30,112 +39,229 @@ namespace LoginAppFramework
             _availableWorkers = AppData.GetWorkers();
             CategoryComboBox.ItemsSource = AppData.GetDeviceCategories();
 
-            PopulateUserComboBox(_availableWorkers.Where(w => w.IsActive).ToList());
+            PopulateUserComboBox();
 
-            if (Asset.PurchaseDate <= DateTime.MinValue) Asset.PurchaseDate = DateTime.Today;
+            if (Asset.PurchaseDate <= DateTime.MinValue)
+                Asset.PurchaseDate = DateTime.Today;
 
-            // When editing, find the assigned worker by ID to select them in the ComboBox
-            if (Asset.WorkerId.HasValue)
-            {
-                var assignedWorker = _availableWorkers.FirstOrDefault(w => w.Id == Asset.WorkerId.Value);
-                if (assignedWorker != null)
-                {
-                    UserComboBox.SelectedItem = assignedWorker;
-                }
-            }
-            else
-            {
-                UserComboBox.SelectedIndex = 0;
-            }
+            PurchaseDateSelector.SelectedDate = Asset.PurchaseDate;
+            WarrantyDateSelector.SelectedDate =
+                Asset.WarrantyExpirationDate > DateTime.MinValue
+                    ? Asset.WarrantyExpirationDate
+                    : null;
 
+            SelectCurrentWorker();
             UpdateStatusBehavior();
             GenerateCustomFields(Asset.Kateqoriya);
         }
 
-        private void PopulateUserComboBox(List<Worker> workers)
+        private void ApplyResponsiveBounds()
         {
-            var workerList = new List<object> { "(Boşdur)" };
-            workerList.AddRange(workers);
-            UserComboBox.ItemsSource = workerList;
+            var workArea = SystemParameters.WorkArea;
+
+            MaxWidth = Math.Max(460, workArea.Width - 40);
+            MaxHeight = Math.Max(420, workArea.Height - 40);
+
+            MinWidth = Math.Min(520, MaxWidth);
+            MinHeight = Math.Min(480, MaxHeight);
+
+            Width = Math.Min(620, MaxWidth);
+            Height = Math.Min(720, MaxHeight);
         }
 
-        private void UserComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void PopulateUserComboBox()
+        {
+            int? currentWorkerId = Asset.WorkerId;
+
+            var visibleWorkers = _availableWorkers
+                .Where(worker =>
+                    worker.IsActive ||
+                    (currentWorkerId.HasValue && worker.Id == currentWorkerId.Value))
+                .GroupBy(worker => worker.Id)
+                .Select(group => group.First())
+                .OrderBy(worker => worker.per_adiper_soyadi)
+                .ToList();
+
+            _workerOptions = new List<WorkerSelectionOption>
+            {
+                WorkerSelectionOption.Clear()
+            };
+
+            _workerOptions.AddRange(
+                visibleWorkers.Select(WorkerSelectionOption.ForWorker));
+
+            UserComboBox.ItemsSource = _workerOptions;
+        }
+
+        private void SelectCurrentWorker()
+        {
+            if (Asset.WorkerId.HasValue)
+            {
+                var option = _workerOptions.FirstOrDefault(item =>
+                    item.Kind == WorkerSelectionKind.Worker &&
+                    item.Worker?.Id == Asset.WorkerId.Value);
+
+                if (option != null)
+                {
+                    UserComboBox.SelectedItem = option;
+                    return;
+                }
+            }
+
+            UserComboBox.SelectedItem = _workerOptions
+                .First(option => option.Kind == WorkerSelectionKind.ClearAssignment);
+        }
+
+        private void UserComboBox_SelectionChanged(
+            object sender,
+            SelectionChangedEventArgs e)
         {
             UpdateStatusBehavior();
         }
 
+        private void UserComboBox_LostKeyboardFocus(
+            object sender,
+            KeyboardFocusChangedEventArgs e)
+        {
+            var resolution = ResolveWorkerSelection();
+
+            if (!resolution.IsValid)
+                return;
+
+            var matchingOption = FindOptionForResolution(resolution);
+            if (matchingOption != null &&
+                !ReferenceEquals(UserComboBox.SelectedItem, matchingOption))
+            {
+                UserComboBox.SelectedItem = matchingOption;
+            }
+
+            UpdateStatusBehavior();
+        }
+
+        private WorkerSelectionResolution ResolveWorkerSelection()
+            => WorkerSelectionResolver.Resolve(
+                UserComboBox.Text,
+                UserComboBox.SelectedItem as WorkerSelectionOption,
+                _workerOptions,
+                WorkerSelectionKind.ClearAssignment);
+
+        private WorkerSelectionOption FindOptionForResolution(
+            WorkerSelectionResolution resolution)
+        {
+            if (resolution.Kind == WorkerSelectionKind.Worker)
+            {
+                return _workerOptions.FirstOrDefault(option =>
+                    option.Kind == WorkerSelectionKind.Worker &&
+                    option.Worker?.Id == resolution.Worker?.Id);
+            }
+
+            return _workerOptions.FirstOrDefault(option =>
+                option.Kind == resolution.Kind);
+        }
+
         private void UpdateStatusBehavior()
         {
-            if (!this.IsLoaded) return;
+            if (!IsLoaded) return;
+
             var allStatuses = AppData.GetAssetStatuses();
-            if (UserComboBox.SelectedItem is Worker selectedWorker)
+            var selectedOption = UserComboBox.SelectedItem as WorkerSelectionOption;
+
+            if (selectedOption?.Kind == WorkerSelectionKind.Worker &&
+                selectedOption.Worker != null)
             {
-                AssignedDepartmentTextBox.Text = selectedWorker.pdp_adi ?? "—";
+                AssignedDepartmentTextBox.Text =
+                    selectedOption.Worker.pdp_adi ?? "—";
+
                 StatusComboBox.ItemsSource = allStatuses;
                 StatusComboBox.SelectedItem = "İstifadədədir";
                 StatusComboBox.IsEnabled = false;
+                return;
+            }
+
+            AssignedDepartmentTextBox.Text = "—";
+
+            var manualStatuses = allStatuses
+                .Where(status =>
+                    status != "İstifadədədir" &&
+                    status != "Arxivdə")
+                .ToList();
+
+            StatusComboBox.ItemsSource = manualStatuses;
+
+            if (Asset.Status == "İstifadədədir" ||
+                string.IsNullOrEmpty(Asset.Status) ||
+                !manualStatuses.Contains(Asset.Status))
+            {
+                StatusComboBox.SelectedItem = "Anbarda";
             }
             else
             {
-                AssignedDepartmentTextBox.Text = "—";
-                var manualStatuses = allStatuses
-                    .Where(s => s != "İstifadədədir" && s != "Arxivdə")
-                    .ToList();
-                StatusComboBox.ItemsSource = manualStatuses;
-                if (Asset.Status == "İstifadədədir" || string.IsNullOrEmpty(Asset.Status))
-                {
-                    StatusComboBox.SelectedItem = "Anbarda";
-                }
-                else
-                {
-                    if (manualStatuses.Contains(Asset.Status))
-                    {
-                        StatusComboBox.SelectedItem = Asset.Status;
-                    }
-                    else
-                    {
-                        StatusComboBox.SelectedItem = "Anbarda";
-                    }
-                }
-                StatusComboBox.IsEnabled = true;
+                StatusComboBox.SelectedItem = Asset.Status;
             }
+
+            StatusComboBox.IsEnabled = true;
         }
 
-        private void StatusComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void StatusComboBox_SelectionChanged(
+            object sender,
+            SelectionChangedEventArgs e)
         {
             if (StatusComboBox.SelectedItem != null)
-            {
                 Asset.Status = StatusComboBox.SelectedItem.ToString();
-            }
         }
 
-        private void SaveButton_Click(object _, RoutedEventArgs e)
+        private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(Asset.VesaitinAdi)) { MessageBox.Show("Vəsaitin Adı tələb olunur.", "Xəta"); return; }
-
-            if (UserComboBox.SelectedItem is Worker assignedWorker && assignedWorker.Id > 0)
+            if (string.IsNullOrWhiteSpace(Asset.VesaitinAdi))
             {
-                Asset.AssignWorker(assignedWorker);
+                MessageBox.Show(
+                    "Vəsaitin Adı tələb olunur.",
+                    "Xəta",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+                return;
             }
-            else
+
+            var workerResolution = ResolveWorkerSelection();
+
+            if (!workerResolution.IsValid)
             {
+                MessageBox.Show(
+                    workerResolution.ErrorMessage,
+                    "Əməkdaş Seçimi",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+
+                UserComboBox.Focus();
+                return;
+            }
+
+            if (workerResolution.Kind == WorkerSelectionKind.Worker)
+                Asset.AssignWorker(workerResolution.Worker);
+            else
                 Asset.ClearWorkerAssignment();
-            }
+
+            Asset.PurchaseDate =
+                PurchaseDateSelector.SelectedDate ?? DateTime.Today;
+
+            Asset.WarrantyExpirationDate =
+                WarrantyDateSelector.SelectedDate ?? DateTime.MinValue;
 
             if (StatusComboBox.SelectedItem != null)
-            {
                 Asset.Status = StatusComboBox.SelectedItem.ToString();
-            }
 
             Asset.Name = Asset.VesaitinAdi;
             Asset.SerialNumber = Asset.ITAvadanliqlarininSeriyaNomresi;
 
-            if (Asset.UsefulLifeInYears <= 0) Asset.UsefulLifeInYears = 0;
+            if (Asset.UsefulLifeInYears <= 0)
+                Asset.UsefulLifeInYears = 0;
 
             Asset.CustomFields.Clear();
+
             foreach (var child in CustomFieldsPanel.Children)
             {
-                if (child is Grid grid && grid.Children.OfType<TextBox>().FirstOrDefault() is { } textBox)
+                if (child is Grid grid &&
+                    grid.Children.OfType<TextBox>().FirstOrDefault() is { } textBox)
                 {
                     Asset.CustomFields[textBox.Tag.ToString()] = textBox.Text;
                 }
@@ -146,15 +272,24 @@ namespace LoginAppFramework
             Close();
         }
 
-        private void CategoryComboBox_SelectionChanged(object _, SelectionChangedEventArgs e)
+        private void CategoryComboBox_SelectionChanged(
+            object sender,
+            SelectionChangedEventArgs e)
         {
-            if (e.AddedItems.Count > 0 && e.AddedItems[0] is string category)
+            if (e.AddedItems.Count > 0 &&
+                e.AddedItems[0] is string category)
             {
                 GenerateCustomFields(category);
-                if (Asset.Id <= 0 && Asset.UsefulLifeInYears == 0)
+
+                if (Asset.Id <= 0 &&
+                    Asset.UsefulLifeInYears == 0)
                 {
-                    var defaultLifecycles = AppData.GetCategoryDefaultLifecycles();
-                    if (defaultLifecycles.TryGetValue(category, out int defaultYears))
+                    var defaultLifecycles =
+                        AppData.GetCategoryDefaultLifecycles();
+
+                    if (defaultLifecycles.TryGetValue(
+                        category,
+                        out int defaultYears))
                     {
                         Asset.UsefulLifeInYears = defaultYears;
                     }
@@ -166,22 +301,54 @@ namespace LoginAppFramework
         {
             CustomFieldsPanel.Children.Clear();
             CustomFieldsSeparator.Visibility = Visibility.Collapsed;
+
             var categoryCustomFields = AppData.GetCategoryCustomFields();
-            if (category == null || !categoryCustomFields.TryGetValue(category, out var fields))
+
+            if (category == null ||
+                !categoryCustomFields.TryGetValue(category, out var fields))
             {
                 return;
             }
+
             CustomFieldsSeparator.Visibility = Visibility.Visible;
+
             foreach (var fieldName in fields)
             {
                 var grid = new Grid();
-                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(200) });
-                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-                var label = new Label { Content = $"{fieldName}:", VerticalAlignment = VerticalAlignment.Center };
-                var textBox = new TextBox { Margin = new Thickness(0, 0, 0, 10), Padding = new Thickness(5), Tag = fieldName };
-                if (Asset.CustomFields.TryGetValue(fieldName, out var fieldValue)) { textBox.Text = fieldValue; }
-                Grid.SetColumn(label, 0); Grid.SetColumn(textBox, 1);
-                grid.Children.Add(label); grid.Children.Add(textBox);
+                grid.ColumnDefinitions.Add(
+                    new ColumnDefinition { Width = new GridLength(190) });
+                grid.ColumnDefinitions.Add(
+                    new ColumnDefinition
+                    {
+                        Width = new GridLength(1, GridUnitType.Star)
+                    });
+
+                var label = new Label
+                {
+                    Content = $"{fieldName}:",
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+
+                var textBox = new TextBox
+                {
+                    Margin = new Thickness(0, 0, 0, 10),
+                    Padding = new Thickness(5),
+                    Tag = fieldName
+                };
+
+                if (Asset.CustomFields.TryGetValue(
+                    fieldName,
+                    out var fieldValue))
+                {
+                    textBox.Text = fieldValue;
+                }
+
+                Grid.SetColumn(label, 0);
+                Grid.SetColumn(textBox, 1);
+
+                grid.Children.Add(label);
+                grid.Children.Add(textBox);
+
                 CustomFieldsPanel.Children.Add(grid);
             }
         }
