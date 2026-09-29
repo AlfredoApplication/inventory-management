@@ -11,6 +11,10 @@
         ResizeMode="CanResizeWithGrip"
         Background="{StaticResource AppBackgroundBrush}"
         FontFamily="Segoe UI">
+    <Window.Resources>
+        <local:InvertedBooleanConverter x:Key="InvertedBooleanConverter"/>
+    </Window.Resources>
+
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

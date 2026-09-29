@@ -3,6 +3,18 @@ namespace LoginAppFramework
 {
     public class BulkAssetChanges
     {
+        public static string ResolveTextChange(
+            string text,
+            bool clearRequested)
+        {
+            if (clearRequested)
+                return string.Empty;
+
+            return string.IsNullOrWhiteSpace(text)
+                ? null
+                : text.Trim();
+        }
+
         public string VesaitinKodu { get; set; }
         public string VesaitinAdi { get; set; }
         public string ITAvadanliqlarininSeriyaNomresi { get; set; }

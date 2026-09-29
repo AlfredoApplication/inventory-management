@@ -61,15 +61,18 @@ namespace LoginAppFramework
             CountTextBlock.Text = $"{results.Count} element tapıldı";
         }
 
-        private void AssetsListView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        private async void AssetsListView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (AssetsListView.SelectedItem is Asset selectedAsset)
-            {
-                var assetWindow = new AssetWindow(selectedAsset.Id);
-                assetWindow.Show();
-                this.Owner?.Close();
-                this.Close();
-            }
+            if (AssetsListView.SelectedItem is not Asset selectedAsset)
+                return;
+
+            var ownerWindow = Owner;
+
+            Close();
+
+            await NavigationManager.GoToAssetWindow(
+                ownerWindow,
+                selectedAsset.Id);
         }
 
         private void GridViewColumnHeader_Click(object sender, RoutedEventArgs e)
