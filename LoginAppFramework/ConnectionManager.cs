@@ -1,72 +1,129 @@
-﻿using Microsoft.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration; // Add this if missing
 
 namespace LoginAppFramework
 {
     public static class ConnectionManager
     {
         public static string DynamicConnectionString { get; private set; }
-        public static bool IsConfigured { get; set; }
+        public static bool IsConfigured { get; private set; }
 
-        private static readonly string AppDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "InventoryApp");
-        private static readonly string SettingsFilePath = Path.Combine(AppDataFolder, "settings.json");
+        private static readonly string AppDataFolder =
+            Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "InventoryApp");
 
-        // This new helper method is for the local AppUsers table, ensuring it always has credentials
-        public static string GetDefaultConnectionString()
-        {
-            var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
-            IConfigurationRoot config = builder.Build();
-            return config.GetConnectionString("DefaultConnection");
-        }
+        private static readonly string SettingsFilePath =
+            Path.Combine(AppDataFolder, "settings.json");
 
         public static void LoadSettings()
         {
-            if (File.Exists(SettingsFilePath))
-            {
-                try
-                {
-                    string json = File.ReadAllText(SettingsFilePath);
-                    var settings = JsonSerializer.Deserialize<ConnectionSettings>(json);
-                    if (settings != null && !string.IsNullOrEmpty(settings.ServerAddress) && !string.IsNullOrEmpty(settings.EncryptedSqlPassword))
-                    {
-                        // DECRYPT the password from the file for use in the app
-                        string decryptedPassword = EncryptionHelper.Decrypt(settings.EncryptedSqlPassword);
-                        DynamicConnectionString = BuildConnectionString(settings.ServerAddress, settings.SqlUsername, decryptedPassword);
-
-                        IsConfigured = true;
-                        return;
-                    }
-                }
-                catch { /* Fail silently */ }
-            }
+            DynamicConnectionString = null;
             IsConfigured = false;
+
+            if (!File.Exists(SettingsFilePath))
+                return;
+
+            try
+            {
+                string json = File.ReadAllText(SettingsFilePath);
+                var settings = JsonSerializer.Deserialize<ConnectionSettings>(json);
+
+                if (settings == null ||
+                    string.IsNullOrWhiteSpace(settings.ServerAddress) ||
+                    string.IsNullOrWhiteSpace(settings.SqlUsername) ||
+                    string.IsNullOrWhiteSpace(settings.EncryptedSqlPassword))
+                {
+                    return;
+                }
+
+                string decryptedPassword =
+                    EncryptionHelper.Decrypt(settings.EncryptedSqlPassword);
+
+                if (string.IsNullOrWhiteSpace(decryptedPassword))
+                    return;
+
+                DynamicConnectionString = BuildConnectionString(
+                    settings.ServerAddress,
+                    settings.SqlUsername,
+                    decryptedPassword);
+
+                IsConfigured = true;
+            }
+            catch
+            {
+                DynamicConnectionString = null;
+                IsConfigured = false;
+            }
+        }
+
+        public static string GetActiveConnectionString()
+        {
+            if (!IsConfigured || string.IsNullOrWhiteSpace(DynamicConnectionString))
+                LoadSettings();
+
+            if (!IsConfigured || string.IsNullOrWhiteSpace(DynamicConnectionString))
+            {
+                throw new InvalidOperationException(
+                    "Verilənlər bazası bağlantısı konfiqurasiya edilməyib.");
+            }
+
+            return DynamicConnectionString;
         }
 
         public static void SaveSettings(ConnectionSettings settings)
         {
+            if (settings == null)
+                throw new ArgumentNullException(nameof(settings));
+
+            if (string.IsNullOrWhiteSpace(settings.ServerAddress) ||
+                string.IsNullOrWhiteSpace(settings.SqlUsername) ||
+                string.IsNullOrWhiteSpace(settings.SqlPassword))
+            {
+                throw new ArgumentException(
+                    "Server, SQL istifadəçi adı və şifrə boş ola bilməz.",
+                    nameof(settings));
+            }
+
             Directory.CreateDirectory(AppDataFolder);
 
-            // Before saving, ENCRYPT the plaintext password that the user typed in the form.
-            settings.EncryptedSqlPassword = EncryptionHelper.Encrypt(settings.SqlPassword);
+            settings.EncryptedSqlPassword =
+                EncryptionHelper.Encrypt(settings.SqlPassword);
 
-            string json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
+            string json = JsonSerializer.Serialize(
+                settings,
+                new JsonSerializerOptions { WriteIndented = true });
+
             File.WriteAllText(SettingsFilePath, json);
 
-            // Build the connection string with the unencrypted password for the current session to use immediately
-            DynamicConnectionString = BuildConnectionString(settings.ServerAddress, settings.SqlUsername, settings.SqlPassword);
+            DynamicConnectionString = BuildConnectionString(
+                settings.ServerAddress,
+                settings.SqlUsername,
+                settings.SqlPassword);
+
             IsConfigured = true;
         }
 
         public static async Task<bool> TestConnection(ConnectionSettings settings)
         {
+            if (settings == null ||
+                string.IsNullOrWhiteSpace(settings.ServerAddress) ||
+                string.IsNullOrWhiteSpace(settings.SqlUsername) ||
+                string.IsNullOrWhiteSpace(settings.SqlPassword))
+            {
+                return false;
+            }
+
             try
             {
-                // Test connection with the plaintext password from the form
-                string testConnectionString = BuildConnectionString(settings.ServerAddress, settings.SqlUsername, settings.SqlPassword);
+                string testConnectionString = BuildConnectionString(
+                    settings.ServerAddress,
+                    settings.SqlUsername,
+                    settings.SqlPassword);
+
                 await using var connection = new SqlConnection(testConnectionString);
                 await connection.OpenAsync();
                 return true;
@@ -77,7 +134,16 @@ namespace LoginAppFramework
             }
         }
 
-        private static string BuildConnectionString(string server, string username, string password)
+        public static void BeginReconfiguration()
+        {
+            DynamicConnectionString = null;
+            IsConfigured = false;
+        }
+
+        private static string BuildConnectionString(
+            string server,
+            string username,
+            string password)
         {
             var builder = new SqlConnectionStringBuilder
             {
@@ -87,8 +153,9 @@ namespace LoginAppFramework
                 InitialCatalog = "InventoryDB",
                 IntegratedSecurity = false,
                 TrustServerCertificate = true,
-                ConnectTimeout = 15 // Increased timeout for potentially slower initial connections
+                ConnectTimeout = 15
             };
+
             return builder.ConnectionString;
         }
     }

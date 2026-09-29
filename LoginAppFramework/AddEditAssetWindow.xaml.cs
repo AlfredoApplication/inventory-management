@@ -29,7 +29,6 @@ namespace LoginAppFramework
 
             _availableWorkers = AppData.GetWorkers();
             CategoryComboBox.ItemsSource = AppData.GetDeviceCategories();
-            DepartmentComboBox.ItemsSource = AppData.GetWorkerDepartments();
 
             PopulateUserComboBox(_availableWorkers.Where(w => w.IsActive).ToList());
 
@@ -69,14 +68,16 @@ namespace LoginAppFramework
         {
             if (!this.IsLoaded) return;
             var allStatuses = AppData.GetAssetStatuses();
-            if (UserComboBox.SelectedItem is Worker)
+            if (UserComboBox.SelectedItem is Worker selectedWorker)
             {
+                AssignedDepartmentTextBox.Text = selectedWorker.pdp_adi ?? "—";
                 StatusComboBox.ItemsSource = allStatuses;
                 StatusComboBox.SelectedItem = "İstifadədədir";
                 StatusComboBox.IsEnabled = false;
             }
             else
             {
+                AssignedDepartmentTextBox.Text = "—";
                 var manualStatuses = allStatuses
                     .Where(s => s != "İstifadədədir" && s != "Arxivdə")
                     .ToList();
@@ -112,21 +113,13 @@ namespace LoginAppFramework
         {
             if (string.IsNullOrWhiteSpace(Asset.VesaitinAdi)) { MessageBox.Show("Vəsaitin Adı tələb olunur.", "Xəta"); return; }
 
-            // --- THE FIX: We now set the WorkerId foreign key ---
             if (UserComboBox.SelectedItem is Worker assignedWorker && assignedWorker.Id > 0)
             {
-                Asset.WorkerId = assignedWorker.Id;
-                // We still set these for immediate display, but they are no longer the source of truth.
-                Asset.TehkimOlunanEmekdas = assignedWorker.per_adiper_soyadi;
-                Asset.Vezifesi = assignedWorker.pgk_gorev_adi;
-                Asset.BolmeShobeDepartment = assignedWorker.pdp_adi;
+                Asset.AssignWorker(assignedWorker);
             }
             else
             {
-                Asset.WorkerId = null; // Unassign the asset
-                Asset.TehkimOlunanEmekdas = null;
-                Asset.Vezifesi = null;
-                Asset.BolmeShobeDepartment = null;
+                Asset.ClearWorkerAssignment();
             }
 
             if (StatusComboBox.SelectedItem != null)
@@ -148,7 +141,7 @@ namespace LoginAppFramework
                 }
             }
 
-            AppData.SaveAndRefreshAsset(Asset);
+            AppServices.Assets.Save(Asset);
             DialogResult = true;
             Close();
         }

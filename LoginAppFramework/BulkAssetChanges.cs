@@ -8,7 +8,6 @@ namespace LoginAppFramework
         public string ITAvadanliqlarininSeriyaNomresi { get; set; }
         public string Kateqoriya { get; set; }
         public Worker AssignedWorker { get; set; }
-        public string BolmeShobeDepartment { get; set; }
         public string YerleshmeYeri { get; set; }
         public string Erazi { get; set; }
         public string Status { get; set; }

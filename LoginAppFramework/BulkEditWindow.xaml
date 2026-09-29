@@ -53,8 +53,8 @@
             <Label Grid.Row="4" Content="Yeni Təhkim Olunan Əməkdaş:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
             <ComboBox x:Name="UserComboBox" Grid.Row="4" Grid.Column="1" DisplayMemberPath="per_adiper_soyadi" Margin="0,0,0,10" Padding="5" IsEditable="True" IsTextSearchEnabled="True"/>
 
-            <Label Grid.Row="5" Content="Yeni Bölmə/Şöbə:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
-            <ComboBox x:Name="DepartmentComboBox" Grid.Row="5" Grid.Column="1" IsEditable="True" Margin="0,0,0,10" Padding="5"/>
+            <Label Grid.Row="5" Content="Bölmə/Şöbə əməkdaşdan avtomatik müəyyən edilir" Visibility="Collapsed"/>
+            <ComboBox x:Name="DepartmentComboBox" Grid.Row="5" Grid.Column="1" Visibility="Collapsed"/>
 
             <Label Grid.Row="6" Content="Yeni Yerləşmə Yeri:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
             <TextBox x:Name="LocationTextBox" Grid.Row="6" Grid.Column="1" Margin="0,0,0,10" Padding="5"/>

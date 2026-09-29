@@ -4,6 +4,8 @@ VisualStudioVersion = 17.14.36301.6
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LoginAppFramework", "LoginAppFramework\LoginAppFramework.csproj", "{6BB781E2-F2B5-4826-B4C6-4C8792DC5EC9}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LoginAppFramework.Tests", "LoginAppFramework.Tests\LoginAppFramework.Tests.csproj", "{D91A19E4-352E-4C77-AFD9-DA548AE3BC0E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -14,6 +16,10 @@ Global
 		{6BB781E2-F2B5-4826-B4C6-4C8792DC5EC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6BB781E2-F2B5-4826-B4C6-4C8792DC5EC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6BB781E2-F2B5-4826-B4C6-4C8792DC5EC9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D91A19E4-352E-4C77-AFD9-DA548AE3BC0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D91A19E4-352E-4C77-AFD9-DA548AE3BC0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D91A19E4-352E-4C77-AFD9-DA548AE3BC0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D91A19E4-352E-4C77-AFD9-DA548AE3BC0E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

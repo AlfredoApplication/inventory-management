@@ -1,8 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
 
 namespace LoginAppFramework
 {
@@ -16,16 +13,8 @@ namespace LoginAppFramework
         }
 
         public InventoryDbContext()
+            : this(ConnectionManager.GetActiveConnectionString())
         {
-            var exePath = Assembly.GetExecutingAssembly().Location;
-            var directory = Path.GetDirectoryName(exePath);
-
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(directory)
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-
-            IConfigurationRoot configuration = builder.Build();
-
         }
 
         public DbSet<AppUser> AppUsers { get; set; }

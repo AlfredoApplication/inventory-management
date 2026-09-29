@@ -57,7 +57,7 @@ namespace LoginAppFramework
         {
             public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
             {
-                return value as string switch
+                return (value as string) switch
                 {
                     "Yaradılan" => "\uE710", // Add
                     "Dəyişdirilən" => "\uE70F", // Edit

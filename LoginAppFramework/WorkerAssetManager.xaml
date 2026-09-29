@@ -97,9 +97,23 @@
 
             </DockPanel>
 
-            <Button Grid.Row="1" x:Name="AssignNewAssetButton" Content="Bu İşçiyə Yeni Vəsait Təhkim et..."
-                    Click="AssignNewAssetButton_Click" Style="{StaticResource PrimaryActionButton}"
-                    Margin="0,15,0,0"/>
+            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+                <Button x:Name="EditWorkerButton"
+                        Content="İşçini Redaktə et"
+                        Click="EditWorkerButton_Click"
+                        Style="{StaticResource PrimaryActionButton}"
+                        Margin="0,0,10,0"/>
+                <Button x:Name="DeleteWorkerButton"
+                        Content="İşçini Sil"
+                        Click="DeleteWorkerButton_Click"
+                        Background="{StaticResource DangerBrush}"
+                        Foreground="{StaticResource PrimaryForegroundBrush}"
+                        Margin="0,0,10,0"/>
+                <Button x:Name="AssignNewAssetButton"
+                        Content="Bu İşçiyə Yeni Vəsait Təhkim et..."
+                        Click="AssignNewAssetButton_Click"
+                        Style="{StaticResource PrimaryActionButton}"/>
+            </StackPanel>
 
         </Grid>
     </Grid>

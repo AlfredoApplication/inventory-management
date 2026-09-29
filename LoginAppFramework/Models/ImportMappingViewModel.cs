@@ -11,7 +11,19 @@ namespace LoginAppFramework
         public event PropertyChangedEventHandler PropertyChanged;
         public string ExcelUserName { get; set; }
         public List<Worker> AllDbWorkers { get; set; }
-        public Worker SelectedDbWorker { get; set; }
+        private Worker _selectedDbWorker;
+
+        public Worker SelectedDbWorker
+        {
+            get => _selectedDbWorker;
+            set
+            {
+                if (ReferenceEquals(_selectedDbWorker, value)) return;
+                _selectedDbWorker = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SelectedDbWorker)));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsUnmapped)));
+            }
+        }
 
         // IsUnmapped is true if the user has not selected a valid worker.
         public bool IsUnmapped => SelectedDbWorker == null || SelectedDbWorker.Id == 0;

@@ -1,11 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
@@ -14,117 +12,79 @@ namespace LoginAppFramework
 {
     public partial class HistoryLogWindow : Window
     {
-        private List<HistoryLogViewModel> _allHistoryEntries;
-        private List<HistoryLogViewModel> _filteredHistoryEntries;
+        private readonly HistoryLogWindowViewModel _viewModel;
         private bool isMenuOpen;
 
-        private const int PageSize = 100;
-        private int _currentPage = 1;
-        private int _totalPages;
+        public HistoryLogWindow()
+        {
+            InitializeComponent();
 
-        public HistoryLogWindow() { InitializeComponent(); }
+            _viewModel = new HistoryLogWindowViewModel();
+            _viewModel.PropertyChanged += ViewModel_PropertyChanged;
+            DataContext = _viewModel;
+        }
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
             await Task.Delay(20);
-            await Task.Run(() => LoadAllHistory());
+            await _viewModel.LoadAsync();
 
-            _filteredHistoryEntries = new List<HistoryLogViewModel>(_allHistoryEntries);
-
-            PopulateFilters();
-            UpdatePagedView();
-            UpdateRestoreBar();
+            GeneratePageButtons();
             UpdateUserDisplay();
         }
 
-        private void LoadAllHistory()
+        private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            var assetLogs = DataAccess.GetAssetLogs();
-            var assignmentHistory = DataAccess.GetAssignmentHistoryEntries();
-
-            var assetLogViewModels = assetLogs.Select(log => new HistoryLogViewModel(log));
-
-            var assignmentViewModels = assignmentHistory
-                .Where(h => h.Asset != null)
-                .Select(h => new HistoryLogViewModel(h, h.Asset.Name));
-
-            _allHistoryEntries = assetLogViewModels
-                .Concat(assignmentViewModels)
-                .OrderByDescending(vm => vm.Timestamp)
-                .ToList();
-        }
-
-        private void ApplyFilters()
-        {
-            if (_allHistoryEntries == null) return;
-
-            IEnumerable<HistoryLogViewModel> filtered = _allHistoryEntries;
-
-            DateTime? selectedDate = DateFilterCalendar.SelectedDate;
-            if (selectedDate.HasValue)
+            if (e.PropertyName == nameof(HistoryLogWindowViewModel.CurrentPage) ||
+                e.PropertyName == nameof(HistoryLogWindowViewModel.TotalPages) ||
+                e.PropertyName == nameof(HistoryLogWindowViewModel.FilteredCount))
             {
-                filtered = filtered.Where(e => e.Timestamp.Date == selectedDate.Value.Date);
+                GeneratePageButtons();
             }
-
-            if (ActionFilterComboBox.SelectedIndex > 0 && ActionFilterComboBox.SelectedItem is string actionStr)
-            {
-                filtered = filtered.Where(entry =>
-                    (actionStr == "Təhkimat" && entry.Status == "Təhkimat") ||
-                    (actionStr != "Təhkimat" && entry.Status == actionStr)
-                );
-            }
-
-            string searchText = SearchBox.Text;
-            if (!string.IsNullOrWhiteSpace(searchText))
-            {
-                filtered = filtered.Where(entry =>
-                    entry.Description?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false);
-            }
-
-            _filteredHistoryEntries = filtered.ToList();
-            _currentPage = 1;
-            UpdatePagedView();
-            UpdateRestoreBar();
-        }
-
-        private void UpdatePagedView()
-        {
-            if (_filteredHistoryEntries == null) return;
-
-            _totalPages = (int)Math.Ceiling((double)_filteredHistoryEntries.Count / PageSize);
-            if (_totalPages == 0) _totalPages = 1;
-            if (_currentPage > _totalPages) _currentPage = _totalPages;
-
-            var pagedItems = _filteredHistoryEntries.Skip((_currentPage - 1) * PageSize).Take(PageSize).ToList();
-            HistoryListView.ItemsSource = pagedItems;
-
-            PageInfoTextBlock.Text = $"Səhifə {_currentPage} / {_totalPages} ({_filteredHistoryEntries.Count} qeyd)";
-            PrevButton.IsEnabled = _currentPage > 1;
-            NextButton.IsEnabled = _currentPage < _totalPages;
-            GeneratePageButtons();
         }
 
         private void GeneratePageButtons()
         {
+            if (PageNumbersPanel == null) return;
+
             PageNumbersPanel.Children.Clear();
-            int startPage = Math.Max(1, _currentPage - 3);
-            int endPage = Math.Min(_totalPages, _currentPage + 3);
+
+            int startPage = Math.Max(1, _viewModel.CurrentPage - 3);
+            int endPage = Math.Min(_viewModel.TotalPages, _viewModel.CurrentPage + 3);
 
             if (startPage > 1)
             {
                 PageNumbersPanel.Children.Add(CreatePageButton(1));
-                if (startPage > 2) PageNumbersPanel.Children.Add(new TextBlock { Text = "...", VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(5, 0, 5, 0) });
+
+                if (startPage > 2)
+                {
+                    PageNumbersPanel.Children.Add(new TextBlock
+                    {
+                        Text = "...",
+                        VerticalAlignment = VerticalAlignment.Center,
+                        Margin = new Thickness(5, 0, 5, 0)
+                    });
+                }
             }
 
-            for (int i = startPage; i <= endPage; i++)
+            for (int page = startPage; page <= endPage; page++)
             {
-                PageNumbersPanel.Children.Add(CreatePageButton(i));
+                PageNumbersPanel.Children.Add(CreatePageButton(page));
             }
 
-            if (endPage < _totalPages)
+            if (endPage < _viewModel.TotalPages)
             {
-                if (endPage < _totalPages - 1) PageNumbersPanel.Children.Add(new TextBlock { Text = "...", VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(5, 0, 5, 0) });
-                PageNumbersPanel.Children.Add(CreatePageButton(_totalPages));
+                if (endPage < _viewModel.TotalPages - 1)
+                {
+                    PageNumbersPanel.Children.Add(new TextBlock
+                    {
+                        Text = "...",
+                        VerticalAlignment = VerticalAlignment.Center,
+                        Margin = new Thickness(5, 0, 5, 0)
+                    });
+                }
+
+                PageNumbersPanel.Children.Add(CreatePageButton(_viewModel.TotalPages));
             }
         }
 
@@ -136,12 +96,14 @@ namespace LoginAppFramework
                 Style = (Style)FindResource("PageButtonStyle"),
                 Tag = pageNumber
             };
-            if (pageNumber == _currentPage)
+
+            if (pageNumber == _viewModel.CurrentPage)
             {
                 button.Background = (Brush)FindResource("PrimaryBrush");
                 button.Foreground = Brushes.White;
                 button.IsEnabled = false;
             }
+
             button.Click += PageButton_Click;
             return button;
         }
@@ -150,103 +112,43 @@ namespace LoginAppFramework
         {
             if (sender is Button { Tag: int pageNumber })
             {
-                _currentPage = pageNumber;
-                UpdatePagedView();
+                _viewModel.GoToPage(pageNumber);
             }
         }
 
         private void PrevButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (_currentPage > 1)
-            {
-                _currentPage--;
-                UpdatePagedView();
-            }
-        }
+            => _viewModel.GoToPreviousPage();
 
         private void NextButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (_currentPage < _totalPages)
-            {
-                _currentPage++;
-                UpdatePagedView();
-            }
-        }
+            => _viewModel.GoToNextPage();
 
         private void HistoryListView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (HistoryListView.SelectedItem is HistoryLogViewModel vm && vm.Log != null && vm.Log.status == "Dəyişdirilən")
+            if (HistoryListView.SelectedItem is HistoryLogViewModel vm &&
+                vm.Log != null &&
+                vm.Log.status == "Dəyişdirilən")
             {
                 var detailWindow = new ChangeDetailWindow(vm.Log) { Owner = this };
                 detailWindow.ShowDialog();
-
-                if (detailWindow.LogWasDeleted)
-                {
-                    LoadAllHistory();
-                    ApplyFilters();
-                }
             }
         }
 
-        private void PopulateFilters()
-        {
-            var actionTypes = new List<string> { "Bütün Əməliyyatlar", "Təhkimat", "Yaradılan", "Dəyişdirilən", "Silinən" };
-            ActionFilterComboBox.ItemsSource = actionTypes;
-            ActionFilterComboBox.SelectedIndex = 0;
-        }
-
-        private void Filters_Changed(object sender, RoutedEventArgs e) => ApplyFilters();
-
         private void ClearFiltersButton_Click(object sender, RoutedEventArgs e)
         {
-            SearchBox.Clear();
-            ActionFilterComboBox.SelectedIndex = 0;
-            DateFilterCalendar.SelectedDate = null;
+            _viewModel.ClearFilters();
             DateFilterCalendar.DisplayDate = DateTime.Today;
-            ApplyFilters();
         }
-
-        // ─── Multi-select Restore ────────────────────────────────────────────
-
-        private void ItemCheckBox_Changed(object sender, RoutedEventArgs e)
-            => UpdateRestoreBar();
 
         private void SelectAllDeletedCheckBox_Checked(object sender, RoutedEventArgs e)
-        {
-            if (_filteredHistoryEntries == null) return;
-            foreach (var vm in _filteredHistoryEntries.Where(v => v.IsDeleted))
-                vm.IsSelected = true;
-            UpdateRestoreBar();
-        }
+            => _viewModel.SelectAllRestorable(true);
 
         private void SelectAllDeletedCheckBox_Unchecked(object sender, RoutedEventArgs e)
-        {
-            if (_filteredHistoryEntries == null) return;
-            foreach (var vm in _filteredHistoryEntries.Where(v => v.IsDeleted))
-                vm.IsSelected = false;
-            UpdateRestoreBar();
-        }
-
-        private void UpdateRestoreBar()
-        {
-            if (_allHistoryEntries == null) return;
-
-            // Count across ALL pages, not just the current page slice
-            int count = _allHistoryEntries.Count(v => v.IsDeleted && v.IsSelected);
-            bool anyDeleted = _allHistoryEntries.Any(v => v.IsDeleted);
-
-            RestoreActionBar.Visibility = anyDeleted ? Visibility.Visible : Visibility.Collapsed;
-            SelectedCountBadge.Text = $"{count} seçilib";
-            RestoreSelectedButton.IsEnabled = count > 0;
-        }
+            => _viewModel.SelectAllRestorable(false);
 
         private async void RestoreSelectedButton_Click(object sender, RoutedEventArgs e)
         {
-            var toRestore = _allHistoryEntries
-                .Where(v => v.IsDeleted && v.IsSelected && v.Log != null)
-                .ToList();
-
-            if (!toRestore.Any()) return;
+            var toRestore = _viewModel.GetSelectedRestoreEntries();
+            if (toRestore.Count == 0) return;
 
             var confirm = MessageBox.Show(
                 $"{toRestore.Count} vəsaiti bərpa etmək istəyirsiniz?\n\n" +
@@ -257,39 +159,82 @@ namespace LoginAppFramework
 
             if (confirm != MessageBoxResult.Yes) return;
 
-            int success = 0, fail = 0;
-            foreach (var vm in toRestore)
+            RestoreSelectedButton.IsEnabled = false;
+
+            try
             {
-                bool ok = DataAccess.RestoreAssetFromLog(vm.Log);
-                if (ok) success++; else fail++;
+                var result = await _viewModel.RestoreSelectedAsync();
+
+                string message = $"{result.SuccessCount} vəsait uğurla bərpa edildi.";
+                if (result.FailureCount > 0)
+                {
+                    message += $"\n{result.FailureCount} vəsait bərpa edilə bilmədi.";
+                    if (result.Failures.Count > 0)
+                    {
+                        message += $"\n\n{string.Join("\n", result.Failures.Take(10))}";
+                    }
+                }
+
+                MessageBox.Show(
+                    message,
+                    "Bərpa Nəticəsi",
+                    MessageBoxButton.OK,
+                    result.SuccessCount > 0 ? MessageBoxImage.Information : MessageBoxImage.Warning);
             }
-
-            string msg = $"{success} vəsait uğurla bərpa edildi.";
-            if (fail > 0) msg += $"\n{fail} vəsait bərpa edilə bilmədi (yuxarıda xəta mesajı göstərilib).";
-
-            MessageBox.Show(msg, "Bərpa Nəticəsi",
-                MessageBoxButton.OK,
-                success > 0 ? MessageBoxImage.Information : MessageBoxImage.Warning);
-
-            // Refresh list
-            await Task.Run(() => LoadAllHistory());
-            _filteredHistoryEntries = new List<HistoryLogViewModel>(_allHistoryEntries);
-            PopulateFilters();
-            UpdatePagedView();
-            UpdateRestoreBar();
+            finally
+            {
+                SelectAllDeletedCheckBox.IsChecked = false;
+            }
         }
 
-        private void CloseTheMenu() { isMenuOpen = false; MenuOverlay.Visibility = Visibility.Collapsed; (FindResource("CloseMenu") as Storyboard)?.Begin(); }
-        private void MenuButton_Click(object sender, RoutedEventArgs e) { if (isMenuOpen) CloseTheMenu(); else { isMenuOpen = true; UserSwitchPopup.IsOpen = false; MenuOverlay.Visibility = Visibility.Visible; (FindResource("OpenMenu") as Storyboard)?.Begin(); } }
+        private void CloseTheMenu()
+        {
+            isMenuOpen = false;
+            MenuOverlay.Visibility = Visibility.Collapsed;
+            (FindResource("CloseMenu") as Storyboard)?.Begin();
+        }
+
+        private void MenuButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (isMenuOpen)
+            {
+                CloseTheMenu();
+                return;
+            }
+
+            isMenuOpen = true;
+            UserSwitchPopup.IsOpen = false;
+            MenuOverlay.Visibility = Visibility.Visible;
+            (FindResource("OpenMenu") as Storyboard)?.Begin();
+        }
+
         private void CloseMenuButton_Click(object sender, RoutedEventArgs e) => CloseTheMenu();
         private void MenuOverlay_MouseDown(object sender, MouseButtonEventArgs e) => CloseTheMenu();
-        private async void DashboardButton_Click(object sender, RoutedEventArgs e) => await NavigationManager.GoToDashboard();
-        private async void UsersButton_Click(object sender, RoutedEventArgs e) => await NavigationManager.GoToWorkerListWindow();
-        private async void AssetsButton_Click(object sender, RoutedEventArgs e) => await NavigationManager.GoToAssetWindow();
-        private async void LifecycleReportButton_Click(object sender, RoutedEventArgs e) => await NavigationManager.GoToLifecycleReportWindow();
-        private void UpdateUserDisplay() { if (SessionManager.CurrentUser != null) { UserProfileIcon.Text = SessionManager.CurrentUser.ProfilePicture; UserProfileName.Text = SessionManager.CurrentUser.FullName; } }
-        private void UserProfileButton_Click(object sender, RoutedEventArgs e) => UserSwitchPopup.IsOpen = true;
-        private void ReturnToLogin() { NavigationManager.RestartApplication(); }
+
+        private async void DashboardButton_Click(object sender, RoutedEventArgs e)
+            => await NavigationManager.GoToDashboard();
+
+        private async void UsersButton_Click(object sender, RoutedEventArgs e)
+            => await NavigationManager.GoToWorkerListWindow();
+
+        private async void AssetsButton_Click(object sender, RoutedEventArgs e)
+            => await NavigationManager.GoToAssetWindow();
+
+        private async void LifecycleReportButton_Click(object sender, RoutedEventArgs e)
+            => await NavigationManager.GoToLifecycleReportWindow();
+
+        private void UpdateUserDisplay()
+        {
+            if (SessionManager.CurrentUser == null) return;
+
+            UserProfileIcon.Text = SessionManager.CurrentUser.ProfilePicture;
+            UserProfileName.Text = SessionManager.CurrentUser.FullName;
+        }
+
+        private void UserProfileButton_Click(object sender, RoutedEventArgs e)
+            => UserSwitchPopup.IsOpen = true;
+
+        private void ReturnToLogin() => NavigationManager.RestartApplication();
         private void SwitchUserButton_Click(object sender, RoutedEventArgs e) => ReturnToLogin();
         private void LogoutButton_Click(object sender, RoutedEventArgs e) => ReturnToLogin();
     }

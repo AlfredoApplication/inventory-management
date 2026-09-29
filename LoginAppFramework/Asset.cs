@@ -16,11 +16,17 @@ namespace LoginAppFramework
         public string ITAvadanliqlarininSeriyaNomresi { get; set; }
         public string Kateqoriya { get; set; }
 
-        // --- THESE PROPERTIES ARE NOW DERIVED FROM THE WORKER OBJECT ---
-        // They are no longer directly stored as separate columns in the Assets table (except for TehkimOlunanEmekdas for legacy/display reasons).
-        public string TehkimOlunanEmekdas { get; set; }
-        public string Vezifesi { get; set; }
-        public string BolmeShobeDepartment { get; set; }
+        // Legacy compatibility snapshots. New application logic must use WorkerId + Worker.
+        // The existing database/audit trigger still references these physical columns, so they
+        // remain mapped until a dedicated database migration removes them safely.
+        [Column("TehkimOlunanEmekdas")]
+        public string LegacyAssignedWorkerName { get; set; }
+
+        [Column("Vezifesi")]
+        public string LegacyAssignedWorkerPosition { get; set; }
+
+        [Column("BolmeShobeDepartment")]
+        public string LegacyAssignedWorkerDepartment { get; set; }
 
         public string YerleshmeYeri { get; set; }
         public string Erazi { get; set; }
@@ -45,29 +51,78 @@ namespace LoginAppFramework
         [NotMapped] public string SerialNumber { get => ITAvadanliqlarininSeriyaNomresi; set => ITAvadanliqlarininSeriyaNomresi = value; }
         [NotMapped] public string Category { get => Kateqoriya; set => Kateqoriya = value; }
 
-        // The AssignedUser now gets its value from the linked Worker object
-        [NotMapped]
-        public string AssignedUser
+        [NotMapped] public string AssignedUser => Worker?.per_adiper_soyadi;
+        [NotMapped] public string AssignedPosition => Worker?.pgk_gorev_adi;
+        [NotMapped] public string Department => Worker?.pdp_adi;
+
+        public void AssignWorker(Worker worker)
         {
-            get => Worker?.per_adiper_soyadi;
-            set { /* This setter is now intentionally empty as it's read-only from the Worker */ }
+            if (worker == null)
+            {
+                ClearWorkerAssignment();
+                return;
+            }
+
+            WorkerId = worker.Id;
+            Worker = worker;
+
+            // Keep the old physical columns synchronized only as compatibility snapshots.
+            LegacyAssignedWorkerName = worker.per_adiper_soyadi;
+            LegacyAssignedWorkerPosition = worker.pgk_gorev_adi;
+            LegacyAssignedWorkerDepartment = worker.pdp_adi;
+
+            Status = "İstifadədədir";
+            OnPropertyChanged(nameof(AssignedUser));
+            OnPropertyChanged(nameof(AssignedPosition));
+            OnPropertyChanged(nameof(Department));
         }
 
-        // The Department now gets its value from the linked Worker object
-        [NotMapped]
-        public string Department
+        public void ClearWorkerAssignment(string nextStatus = null)
         {
-            get => Worker?.pdp_adi;
-            set { /* This setter is now intentionally empty */ }
+            WorkerId = null;
+            Worker = null;
+
+            LegacyAssignedWorkerName = null;
+            LegacyAssignedWorkerPosition = null;
+            LegacyAssignedWorkerDepartment = null;
+
+            if (!string.IsNullOrWhiteSpace(nextStatus))
+                Status = nextStatus;
+            else if (Status == "İstifadədədir")
+                Status = "Anbarda";
+
+            OnPropertyChanged(nameof(AssignedUser));
+            OnPropertyChanged(nameof(AssignedPosition));
+            OnPropertyChanged(nameof(Department));
         }
 
         [NotMapped] public Brush StatusColor => Status switch { "İstifadədədir" => Brushes.Green, "Anbarda" => Brushes.DodgerBlue, "Arxivdə" => Brushes.SlateGray, "İstifadəyə yararsız" => Brushes.Black, _ => Brushes.Gray };
+        [NotMapped] public bool HasUsefulLife => UsefulLifeInYears > 0 && PurchaseDate > DateTime.MinValue;
+        [NotMapped] public string UsefulLifeDisplay => UsefulLifeInYears > 0 ? $"{UsefulLifeInYears} il" : "Təyin edilməyib";
         [NotMapped] public decimal AnnualDepreciation => UsefulLifeInYears > 0 ? PurchaseCost / UsefulLifeInYears : 0;
         [NotMapped] public decimal MonthlyDepreciation => AnnualDepreciation / 12;
         [NotMapped] public decimal CurrentValue { get { if (UsefulLifeInYears <= 0 || PurchaseCost <= 0) return PurchaseCost; decimal ageInYears = (decimal)(DateTime.Now - PurchaseDate).TotalDays / 365.25m; decimal totalDepreciation = AnnualDepreciation * ageInYears; decimal val = PurchaseCost - totalDepreciation; return val < 0 ? 0 : val; } }
         [NotMapped] public decimal TotalDepreciation => (PurchaseCost > CurrentValue) ? (PurchaseCost - CurrentValue) : 0;
-        [NotMapped] public DateTime EndOfLifeDate => PurchaseDate.AddYears(UsefulLifeInYears);
-        [NotMapped] public bool IsEndOfLife => DateTime.Today >= EndOfLifeDate;
+
+        [NotMapped]
+        public DateTime? EndOfLifeDate
+        {
+            get
+            {
+                if (!HasUsefulLife) return null;
+                try
+                {
+                    return PurchaseDate.AddYears(UsefulLifeInYears);
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    return null;
+                }
+            }
+        }
+
+        [NotMapped] public string EndOfLifeDateDisplay => EndOfLifeDate?.ToString("yyyy-MM-dd") ?? "Təyin edilməyib";
+        [NotMapped] public bool IsEndOfLife => EndOfLifeDate is DateTime endOfLifeDate && DateTime.Today >= endOfLifeDate.Date;
 
         [NotMapped]
         public string ParentCategory

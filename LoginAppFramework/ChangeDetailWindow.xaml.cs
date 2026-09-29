@@ -19,10 +19,9 @@ namespace LoginAppFramework
             TitleTextBlock.Text = $"Vəsait Dəyişiklikləri: {logEntry.VesaitinAdi}";
             SubtitleTextBlock.Text = logEntry.ChangeDate.ToString("yyyy-MM-dd HH:mm:ss");
 
-            if (logEntry.status != "Dəyişdirilən")
-            {
-                DeleteButton.Visibility = Visibility.Collapsed;
-            }
+            // Audit records are immutable. They can be inspected and deleted assets can be
+            // restored, but the audit evidence itself is never removed from the UI.
+            DeleteButton.Visibility = Visibility.Collapsed;
 
             var changes = new List<ChangeDetailViewModel>();
             try
@@ -91,25 +90,11 @@ namespace LoginAppFramework
 
         private void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
-            var result = MessageBox.Show(
-                "Bu tarixçə qeydini həmişəlik silmək istədiyinizə əminsinizmi?\n\nBu əməliyyat geri qaytarıla bilməz.",
-                "Silməni Təsdiq Et",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning);
-
-            if (result == MessageBoxResult.Yes)
-            {
-                try
-                {
-                    DataAccess.DeleteAssetLog(_logEntry);
-                    LogWasDeleted = true;
-                    this.Close();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Tarixçəni silərkən xəta baş verdi: {ex.Message}", "Xəta", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
+            MessageBox.Show(
+                "Audit qeydləri dəyişdirilmir və silinmir.",
+                "Audit qorunması",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
         }
 
         // --- THIS METHOD CONTAINS THE FINAL FIX ---

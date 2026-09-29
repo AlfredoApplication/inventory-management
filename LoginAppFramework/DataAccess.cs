@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows;
 
 namespace LoginAppFramework
 {
@@ -26,25 +25,41 @@ namespace LoginAppFramework
         public static void SaveAppUser(AppUser user)
         {
             using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
-            if (user.Id > 0 && context.AppUsers.Any(u => u.Id != user.Id && u.Username.ToLower() == user.Username.ToLower()))
+
+            string normalizedUsername = user.Username?.Trim().ToLower();
+            bool duplicateUsername = context.AppUsers.Any(u =>
+                u.Id != user.Id &&
+                u.Username != null &&
+                u.Username.ToLower() == normalizedUsername);
+
+            if (duplicateUsername)
             {
-                throw new Exception($"An app user with the username '{user.Username}' already exists.");
+                throw new InvalidOperationException(
+                    $"An app user with the username '{user.Username}' already exists.");
             }
+
             if (user.Id > 0)
             {
                 var existingUser = context.AppUsers.Find(user.Id);
-                if (existingUser != null)
+                if (existingUser == null)
+                    throw new InvalidOperationException("The app user no longer exists.");
+
+                existingUser.Username = user.Username?.Trim();
+                existingUser.FullName = user.FullName;
+                existingUser.EmployeeCode = user.EmployeeCode;
+                existingUser.Role = user.Role;
+
+                if (!string.IsNullOrWhiteSpace(user.PasswordHash))
                 {
-                    existingUser.Username = user.Username;
-                    existingUser.FullName = user.FullName;
-                    existingUser.EmployeeCode = user.EmployeeCode;
-                    if (!string.IsNullOrWhiteSpace(user.PasswordHash))
-                    {
-                        existingUser.PasswordHash = user.PasswordHash;
-                    }
+                    existingUser.PasswordHash = user.PasswordHash;
                 }
             }
-            else { context.AppUsers.Add(user); }
+            else
+            {
+                user.Username = user.Username?.Trim();
+                context.AppUsers.Add(user);
+            }
+
             context.SaveChanges();
         }
 
@@ -63,6 +78,13 @@ namespace LoginAppFramework
             return context.Workers.OrderBy(w => w.per_adiper_soyadi).ToList();
         }
 
+        public static Worker GetWorkerById(int workerId)
+        {
+            if (workerId <= 0) return null;
+            using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
+            return context.Workers.AsNoTracking().FirstOrDefault(w => w.Id == workerId);
+        }
+
         public static void SaveWorker(Worker worker)
         {
             using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
@@ -76,6 +98,70 @@ namespace LoginAppFramework
             using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
             context.Workers.Remove(worker);
             context.SaveChanges();
+        }
+
+        public static List<int> DeleteWorkerAndUnassignAssets(int workerId, string changedByUser)
+        {
+            if (workerId <= 0) return new List<int>();
+
+            using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
+            using var transaction = context.Database.BeginTransaction();
+
+            try
+            {
+                context.Database.ExecuteSqlRaw(
+                    "EXEC sp_set_session_context @key=N'CurrentUser', @value=@user",
+                    new SqlParameter("@user", changedByUser));
+
+                var affectedAssets = context.Assets
+                    .Where(a => a.WorkerId == workerId)
+                    .ToList();
+
+                foreach (var asset in affectedAssets)
+                {
+                    asset.ClearWorkerAssignment();
+                }
+
+                var worker = context.Workers.Find(workerId);
+                if (worker != null)
+                {
+                    context.Workers.Remove(worker);
+                }
+
+                context.SaveChanges();
+                transaction.Commit();
+                return affectedAssets.Select(a => a.Id).ToList();
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+
+        public static int BulkSetWorkersActiveState(IEnumerable<int> workerIds, bool isActive)
+        {
+            var ids = workerIds?
+                .Where(id => id > 0)
+                .Distinct()
+                .ToList() ?? new List<int>();
+
+            if (!ids.Any()) return 0;
+
+            using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
+            int affectedRows = 0;
+
+            // Keep each IN clause comfortably below SQL Server's parameter limit.
+            foreach (var batch in ids.Chunk(1000))
+            {
+                var batchIds = batch.ToArray();
+                affectedRows += context.Workers
+                    .Where(w => batchIds.Contains(w.Id) && w.IsActive != isActive)
+                    .ExecuteUpdate(setters => setters
+                        .SetProperty(w => w.IsActive, isActive));
+            }
+
+            return affectedRows;
         }
 
         public static async Task<int> SynchronizeWorkersFromRemoteAsync()
@@ -174,6 +260,45 @@ namespace LoginAppFramework
             return assets;
         }
 
+        public static Asset GetAssetById(int assetId)
+        {
+            if (assetId <= 0) return null;
+
+            using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
+            return context.Assets
+                .AsNoTracking()
+                .Include(a => a.Worker)
+                .Include(a => a.History)
+                .FirstOrDefault(a => a.Id == assetId);
+        }
+
+        public static List<Asset> GetAssetsByIds(IEnumerable<int> assetIds)
+        {
+            var ids = assetIds?
+                .Where(id => id > 0)
+                .Distinct()
+                .ToList() ?? new List<int>();
+
+            if (!ids.Any()) return new List<Asset>();
+
+            using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
+            var assets = new List<Asset>();
+
+            foreach (var batch in ids.Chunk(1000))
+            {
+                var batchIds = batch.ToArray();
+                assets.AddRange(
+                    context.Assets
+                        .AsNoTracking()
+                        .Include(a => a.Worker)
+                        .Include(a => a.History)
+                        .Where(a => batchIds.Contains(a.Id))
+                        .ToList());
+            }
+
+            return assets.OrderBy(a => a.Id).ToList();
+        }
+
         public static List<AssignmentHistoryEntry> GetAssignmentHistoryEntries()
         {
             using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
@@ -230,15 +355,41 @@ namespace LoginAppFramework
             }
             else
             {
+                asset.Worker = null;
                 context.Assets.Add(asset);
             }
             context.SaveChanges();
         }
 
-        public static void SaveAssetInTransaction(InventoryDbContext context, Asset asset)
+        public static void InsertAssets(List<Asset> assets, string changedByUser)
         {
-            if (asset.Id > 0) { context.Assets.Update(asset); }
-            else { context.Assets.Add(asset); }
+            if (assets == null || assets.Count == 0) return;
+
+            using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
+            using var transaction = context.Database.BeginTransaction();
+
+            try
+            {
+                context.Database.ExecuteSqlRaw(
+                    "EXEC sp_set_session_context @key=N'CurrentUser', @value=@user",
+                    new SqlParameter("@user", changedByUser));
+
+                foreach (var asset in assets)
+                {
+                    // WorkerId is the persisted source of truth. A Worker navigation object
+                    // from AppData belongs to a different DbContext and must not be inserted.
+                    asset.Worker = null;
+                }
+
+                context.Assets.AddRange(assets);
+                context.SaveChanges();
+                transaction.Commit();
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
         }
 
         public static void DeleteAsset(Asset asset)
@@ -261,33 +412,66 @@ namespace LoginAppFramework
         public static void BulkSaveAssets(List<Asset> assetsToSave, string changedByUser)
         {
             if (assetsToSave == null || !assetsToSave.Any()) return;
+
             using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
-            context.Database.ExecuteSqlRaw("EXEC sp_set_session_context @key=N'CurrentUser', @value=@user", new SqlParameter("@user", changedByUser));
+            using var transaction = context.Database.BeginTransaction();
 
-            foreach (var asset in assetsToSave)
+            try
             {
-                var originalAsset = context.Assets
-                                        .Include(a => a.History)
-                                        .FirstOrDefault(a => a.Id == asset.Id);
+                context.Database.ExecuteSqlRaw(
+                    "EXEC sp_set_session_context @key=N'CurrentUser', @value=@user",
+                    new SqlParameter("@user", changedByUser));
 
-                if (originalAsset != null)
+                var assetIds = assetsToSave
+                    .Where(a => a.Id > 0)
+                    .Select(a => a.Id)
+                    .Distinct()
+                    .ToList();
+
+                // One preload query replaces the previous per-asset SELECT (N+1 pattern).
+                var existingAssets = assetIds.Any()
+                    ? context.Assets
+                        .Include(a => a.History)
+                        .Where(a => assetIds.Contains(a.Id))
+                        .ToDictionary(a => a.Id)
+                    : new Dictionary<int, Asset>();
+
+                foreach (var asset in assetsToSave)
                 {
-                    // Update all properties except navigation properties
+                    if (asset.Id <= 0)
+                    {
+                        asset.Worker = null;
+                        context.Assets.Add(asset);
+                        continue;
+                    }
+
+                    if (!existingAssets.TryGetValue(asset.Id, out var originalAsset))
+                    {
+                        continue;
+                    }
+
                     context.Entry(originalAsset).CurrentValues.SetValues(asset);
                     originalAsset.WorkerId = asset.WorkerId;
 
-                    // Handle history entries if they exist
-                    if (asset.History != null && asset.History.Any())
+                    if (asset.History != null)
                     {
-                        var entriesToAdd = asset.History.Where(h_ui => h_ui.Id == 0).ToList();
-                        foreach (var entry in entriesToAdd)
+                        foreach (var entry in asset.History.Where(h => h.Id == 0))
                         {
+                            entry.AssetId = originalAsset.Id;
+                            entry.Asset = originalAsset;
                             originalAsset.History.Add(entry);
                         }
                     }
                 }
+
+                context.SaveChanges();
+                transaction.Commit();
             }
-            context.SaveChanges();
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
         }
 
         public static List<AssetLog> GetAssetLogs()
@@ -296,70 +480,63 @@ namespace LoginAppFramework
             return context.AssetLogs.OrderByDescending(log => log.ChangeDate).ToList();
         }
 
-        public static void DeleteAssetLog(AssetLog logToDelete)
-        {
-            if (logToDelete == null) return;
-            using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
-            var logInDb = context.AssetLogs.Find(logToDelete.Id);
-            if (logInDb != null)
-            {
-                context.AssetLogs.Remove(logInDb);
-                context.SaveChanges();
-            }
-        }
-
         public static List<UnifiedHistoryEntry> GetUnifiedHistory()
         {
             using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
             return context.Set<UnifiedHistoryEntry>().FromSqlRaw("EXEC dbo.GetUnifiedHistory").ToList();
         }
 
-        public static bool RestoreAssetFromLog(AssetLog logEntry)
+        public static HashSet<string> GetExistingAssetCodes()
         {
             using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
+            return context.Assets
+                .AsNoTracking()
+                .Where(a => a.VesaitinKodu != null && a.VesaitinKodu != "")
+                .Select(a => a.VesaitinKodu)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        }
+
+        public static bool AssetCodeExists(string assetCode)
+        {
+            if (string.IsNullOrWhiteSpace(assetCode)) return false;
+
+            using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
+            return context.Assets.AsNoTracking().Any(a => a.VesaitinKodu == assetCode);
+        }
+
+        public static int RestoreDeletedAsset(Asset asset, string changedByUser)
+        {
+            if (asset == null) throw new ArgumentNullException(nameof(asset));
+
+            using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
             using var transaction = context.Database.BeginTransaction();
+
             try
             {
-                var existingAsset = context.Assets.FirstOrDefault(a => a.VesaitinKodu == logEntry.VesaitinKodu);
-                if (existingAsset != null)
+                context.Database.ExecuteSqlRaw(
+                    "EXEC sp_set_session_context @key=N'CurrentUser', @value=@user",
+                    new SqlParameter("@user", changedByUser));
+
+                if (!string.IsNullOrWhiteSpace(asset.VesaitinKodu) &&
+                    context.Assets.Any(a => a.VesaitinKodu == asset.VesaitinKodu))
                 {
-                    MessageBox.Show($"'{logEntry.VesaitinKodu}' kodlu vəsait artıq əsas cədvəldə mövcuddur. Silinmiş elementi eyni kodla bərpa etmək olmaz.", "Bərpa edilmədi", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    transaction.Rollback();
-                    return false;
+                    throw new InvalidOperationException(
+                        $"'{asset.VesaitinKodu}' kodlu vəsait artıq mövcuddur.");
                 }
-                var assetToRestore = new Asset
-                {
-                    VesaitinKodu = logEntry.VesaitinKodu,
-                    VesaitinAdi = logEntry.VesaitinAdi,
-                    ITAvadanliqlarininSeriyaNomresi = logEntry.ITAvadanliqlarininSeriyaNomresi,
-                    Kateqoriya = logEntry.Kateqoriya,
-                    TehkimOlunanEmekdas = logEntry.TehkimOlunanEmekdas,
-                    Vezifesi = logEntry.Vezifesi,
-                    BolmeShobeDepartment = logEntry.BolmeShobeDepartment,
-                    YerleshmeYeri = logEntry.YerleshmeYeri,
-                    Erazi = logEntry.Erazi,
-                    Status = "Anbarda"
-                };
-                context.Assets.Add(assetToRestore);
-                var logToDelete = context.AssetLogs.FirstOrDefault(log =>
-                    log.VesaitinKodu == logEntry.VesaitinKodu &&
-                    log.ChangeDate == logEntry.ChangeDate
-                );
-                if (logToDelete != null)
-                {
-                    context.AssetLogs.Remove(logToDelete);
-                }
+
+                asset.Worker = null;
+                context.Assets.Add(asset);
                 context.SaveChanges();
                 transaction.Commit();
-                return true;
+                return asset.Id;
             }
-            catch (Exception ex)
+            catch
             {
                 transaction.Rollback();
-                MessageBox.Show($"Məlumat bazası xətası baş verdi:\n\n{ex.Message}", "Məlumat Bazası Xətası", MessageBoxButton.OK, MessageBoxImage.Error);
-                return false;
+                throw;
             }
         }
+
         #endregion
     }
 }

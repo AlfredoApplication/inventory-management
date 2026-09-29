@@ -1,12 +1,40 @@
-﻿// In SessionManager.cs
-
-using Microsoft.Extensions.Configuration;
+using Microsoft.Data.SqlClient;
 using System;
-using System.IO;
-using System.Linq;
 
 namespace LoginAppFramework
 {
+    public enum LoginFailureReason
+    {
+        None,
+        InvalidCredentials,
+        ConfigurationMissing,
+        DatabaseUnavailable,
+        UnexpectedError
+    }
+
+    public sealed class LoginResult
+    {
+        public bool Success { get; init; }
+        public LoginFailureReason FailureReason { get; init; }
+        public string Message { get; init; }
+
+        public static LoginResult Ok()
+            => new()
+            {
+                Success = true,
+                FailureReason = LoginFailureReason.None
+            };
+
+        public static LoginResult Fail(
+            LoginFailureReason reason,
+            string message)
+            => new()
+            {
+                Success = false,
+                FailureReason = reason,
+                Message = message
+            };
+    }
 
     public class SessionUser
     {
@@ -19,67 +47,78 @@ namespace LoginAppFramework
     public static class SessionManager
     {
         public static SessionUser CurrentUser { get; private set; }
-
-        // This will now hold the single, consistent connection string for the entire session.
         public static string CurrentUserConnectionString { get; private set; }
 
-        // THE LOGIN LOGIC IS NOW COMPLETELY DIFFERENT AND CORRECT FOR YOUR GOAL
-        // In SessionManager.cs
-
-        public static bool Login(string username, string password)
+        public static LoginResult Login(string username, string password)
         {
+            if (string.IsNullOrWhiteSpace(username) ||
+                string.IsNullOrEmpty(password))
+            {
+                return LoginResult.Fail(
+                    LoginFailureReason.InvalidCredentials,
+                    "İstifadəçi adı və şifrəni daxil edin.");
+            }
+
             try
             {
-                string serviceAccountConnectionString = ConnectionManager.GetDefaultConnectionString();
-                var appUser = DataAccess.GetAppUserByUsername(username, serviceAccountConnectionString);
-                if (appUser == null)
+                string connectionString =
+                    ConnectionManager.GetActiveConnectionString();
+
+                var appUser =
+                    DataAccess.GetAppUserByUsername(username, connectionString);
+
+                if (appUser == null ||
+                    !PasswordHasher.VerifyPassword(appUser.PasswordHash, password))
                 {
-                    return false;
+                    return LoginResult.Fail(
+                        LoginFailureReason.InvalidCredentials,
+                        "İstifadəçi adı və ya şifrə yanlışdır.");
                 }
-                if (PasswordHasher.VerifyPassword(appUser.PasswordHash, password))
+
+                CurrentUserConnectionString = connectionString;
+                CurrentUser = new SessionUser
                 {
-                    CurrentUserConnectionString = serviceAccountConnectionString;
-                    CurrentUser = new SessionUser
-                    {
-                        Username = appUser.Username,
-                        FullName = appUser.FullName,
-                        Role = appUser.Role ?? "Admin" // Default to Admin if role is null (backward compatibility)
-                    };
-                    return true;
-                }
-                return false;
+                    Username = appUser.Username,
+                    FullName = appUser.FullName,
+                    Role = appUser.Role ?? "Admin"
+                };
+
+                return LoginResult.Ok();
             }
-            catch (Exception)
+            catch (InvalidOperationException ex)
             {
-                return false;
+                return LoginResult.Fail(
+                    LoginFailureReason.ConfigurationMissing,
+                    ex.Message);
+            }
+            catch (SqlException)
+            {
+                return LoginResult.Fail(
+                    LoginFailureReason.DatabaseUnavailable,
+                    "Verilənlər bazasına qoşulmaq mümkün olmadı. Server bağlantısını yoxlayın.");
+            }
+            catch
+            {
+                return LoginResult.Fail(
+                    LoginFailureReason.UnexpectedError,
+                    "Daxil olma zamanı gözlənilməz xəta baş verdi.");
             }
         }
 
-        // Role-based permission helper methods
         public static bool IsAdmin()
-        {
-            return CurrentUser?.Role == "Admin";
-        }
+            => CurrentUser?.Role == "Admin";
 
         public static bool IsReadOnly()
-        {
-            return CurrentUser?.Role == "ReadOnly";
-        }
+            => CurrentUser?.Role == "ReadOnly";
 
         public static bool CanEdit()
-        {
-            return IsAdmin();
-        }
+            => IsAdmin();
 
         public static bool CanDelete()
-        {
-            return IsAdmin();
-        }
+            => IsAdmin();
 
         public static bool CanManageUsers()
-        {
-            return IsAdmin();
-        }
+            => IsAdmin();
 
         public static void Logout()
         {

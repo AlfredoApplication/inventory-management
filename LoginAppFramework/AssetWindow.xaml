@@ -12,6 +12,7 @@
 
     <Window.Resources>
         <local:InvertedBooleanConverter x:Key="InvertedBooleanConverter"/>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <Style TargetType="{x:Type DataGridRow}" BasedOn="{StaticResource {x:Type DataGridRow}}">
             <Style.Triggers>
                 <Trigger Property="AlternationIndex" Value="1">
@@ -94,7 +95,7 @@
 
                     <StackPanel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <TextBlock Text="Vəsait İdarəetməsi" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="{StaticResource PrimaryTextBrush}"/>
-                        <TextBlock x:Name="AssetCountTextBlock" HorizontalAlignment="Center" Foreground="{StaticResource SubtleTextBrush}" Visibility="Collapsed"/>
+                        <TextBlock x:Name="AssetCountTextBlock" Text="{Binding AssetCountText}" HorizontalAlignment="Center" Foreground="{StaticResource SubtleTextBrush}"/>
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
@@ -131,7 +132,7 @@
                             <Button x:Name="ClearFiltersButton" Content="Hamısını Təmizlə" Click="ClearFiltersButton_Click" Margin="10,0,0,0"/>
                         </StackPanel>
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,10,0,0">
-                            <StackPanel x:Name="FilterPanel">
+                            <StackPanel x:Name="FilterPanel" DataContext="{Binding Filters}">
                                 <TextBlock Text="Ad/Seriya üzrə Axtarış" Style="{StaticResource FilterHeader}" Margin="0,0,0,5"/>
                                 <TextBox Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Tag="Axtarış..."/>
 
@@ -185,11 +186,25 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <Border Grid.Row="0" Background="#EAECEE" Padding="5" MinHeight="30">
-                        <WrapPanel x:Name="ActiveFiltersPanel"/>
+                        <ItemsControl x:Name="ActiveFiltersPanel" ItemsSource="{Binding ActiveFilterTags}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="LightGray" CornerRadius="10" Margin="2" Padding="8,3">
+                                        <TextBlock Text="{Binding}" Foreground="Black"/>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </Border>
-                    <Border Grid.Row="1" x:Name="BulkActionPanel" Background="#EDF2F7" Padding="8" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="0,0,0,1" Visibility="Collapsed">
+                    <Border Grid.Row="1" x:Name="BulkActionPanel" Background="#EDF2F7" Padding="8" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="0,0,0,1"
+                            Visibility="{Binding HasCheckedAssets, Converter={StaticResource BoolToVis}}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock x:Name="SelectionCountText" Text="0 element seçildi" FontWeight="SemiBold" VerticalAlignment="Center" Margin="5,0,20,0"/>
+                            <TextBlock x:Name="SelectionCountText" Text="{Binding CheckedCountText}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="5,0,20,0"/>
                             <Button x:Name="BulkDeleteButton" Content="Seçilmişləri Sil" Click="BulkDeleteButton_Click" Background="{StaticResource DangerBrush}" Foreground="{StaticResource PrimaryForegroundBrush}" Padding="8,4" Margin="0,0,10,0"/>
                             <Button x:Name="BulkEditButton" Content="Seçilmişləri Dəyiş" Click="BulkEditButton_Click" Style="{StaticResource PrimaryActionButton}" Padding="8,4" Margin="0,0,10,0"/>
                             <Button x:Name="BulkAssignButton" Content="Seçilmişləri Təhkim et..." Click="BulkAssignButton_Click" Background="{StaticResource SuccessBrush}" Foreground="{StaticResource PrimaryForegroundBrush}" Padding="8,4" Margin="0,0,10,0"/>
@@ -201,7 +216,7 @@
                             </Button>
                         </StackPanel>
                     </Border>
-                    <DataGrid Grid.Row="2" x:Name="AssetsDataGrid" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Extended" SelectionChanged="AssetsDataGrid_SelectionChanged" AlternationCount="2">
+                    <DataGrid Grid.Row="2" x:Name="AssetsDataGrid" ItemsSource="{Binding VisibleAssets}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Extended" SelectionChanged="AssetsDataGrid_SelectionChanged" AlternationCount="2">
                         <DataGrid.Resources>
                             <ContextMenu x:Key="CellContextMenu">
                                 <MenuItem Header="Kopyala" Click="CopyCellContent_Click"/>
@@ -215,15 +230,15 @@
                         <DataGrid.Columns>
                             <DataGridTemplateColumn Width="Auto">
                                 <DataGridTemplateColumn.Header>
-                                    <CheckBox x:Name="SelectAllCheckBox" Content="Seç" Click="SelectAllCheckBox_Click"/>
+                                    <CheckBox x:Name="SelectAllCheckBox"
+                                              Content="Seç"
+                                              IsChecked="{Binding DataContext.AreAllVisibleChecked, RelativeSource={RelativeSource AncestorType=Window}, Mode=TwoWay}"/>
                                 </DataGridTemplateColumn.Header>
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                              HorizontalAlignment="Center"
-                              VerticalAlignment="Center"
-                              Checked="CheckBox_Toggled"
-                              Unchecked="CheckBox_Toggled"/>
+                                                  HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"/>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
@@ -331,7 +346,18 @@
                             </DataGridTextColumn>
                         </DataGrid.Columns>
                     </DataGrid>
-                    <TextBlock Grid.Row="2" x:Name="NoResultsTextBlock" Text="Heç bir vəsait tapılmadı." Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="2" x:Name="NoResultsTextBlock" Text="Heç bir vəsait tapılmadı." HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasResults}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
                 </Grid>
                 <Border Grid.Column="1" x:Name="DetailPanelContainer" HorizontalAlignment="Right" Width="0" Background="{StaticResource GlassBackgroundBrush}" BorderThickness="1,0,0,0" BorderBrush="{StaticResource GlassBorderBrush}">
                     <Border.Effect>

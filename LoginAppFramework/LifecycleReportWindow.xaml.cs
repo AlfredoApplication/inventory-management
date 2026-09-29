@@ -60,7 +60,7 @@ namespace LoginAppFramework
             // 2. Apply the new RadioButton lifecycle filter
             if (ActiveAssetsFilterButton.IsChecked == true)
             {
-                filteredAssets = filteredAssets.Where(a => !a.IsEndOfLife);
+                filteredAssets = filteredAssets.Where(a => a.HasUsefulLife && !a.IsEndOfLife);
                 TitleTextBlock.Text = "İstifadə Müddəti Davam Edən Vəsaitlər";
             }
             else if (ExpiredAssetsFilterButton.IsChecked == true)
@@ -75,8 +75,9 @@ namespace LoginAppFramework
 
             // 3. Apply the new default sorting logic
             var results = filteredAssets
-                .OrderBy(a => a.IsEndOfLife)
-                .ThenBy(a => a.EndOfLifeDate)
+                .OrderBy(a => a.HasUsefulLife ? 0 : 1)
+                .ThenBy(a => a.IsEndOfLife)
+                .ThenBy(a => a.EndOfLifeDate ?? DateTime.MaxValue)
                 .ToList();
 
             // 4. Update the UI
@@ -172,9 +173,16 @@ namespace LoginAppFramework
                 ws.Cell(row, 3).Value  = a.AssignedUser ?? "(Boşdur)";
                 ws.Cell(row, 4).Value  = a.PurchaseDate;
                 ws.Cell(row, 4).Style.DateFormat.Format = "dd.MM.yyyy";
-                ws.Cell(row, 5).Value  = $"{a.UsefulLifeInYears} il";
-                ws.Cell(row, 6).Value  = a.EndOfLifeDate;
-                ws.Cell(row, 6).Style.DateFormat.Format = "dd.MM.yyyy";
+                ws.Cell(row, 5).Value  = a.UsefulLifeDisplay;
+                if (a.EndOfLifeDate.HasValue)
+                {
+                    ws.Cell(row, 6).Value = a.EndOfLifeDate.Value;
+                    ws.Cell(row, 6).Style.DateFormat.Format = "dd.MM.yyyy";
+                }
+                else
+                {
+                    ws.Cell(row, 6).Value = "Təyin edilməyib";
+                }
 
                 // Currency cells
                 ws.Cell(row, 7).Value  = a.PurchaseCost;
