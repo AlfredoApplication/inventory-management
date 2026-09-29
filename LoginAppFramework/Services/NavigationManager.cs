@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Linq;
 using System.Windows.Input;
 
 namespace LoginAppFramework
@@ -10,10 +11,22 @@ namespace LoginAppFramework
     {
         private static Window _currentWindow;
 
-        private static async Task NavigateAsync<T>() where T : Window, new()
+        private static async Task NavigateAsync<T>(Window callingWindow = null) where T : Window, new()
         {
-            Window previousWindow = _currentWindow;
-            if (previousWindow == null) return; // Safety check
+            Window previousWindow =
+                callingWindow ??
+                _currentWindow ??
+                Application.Current.Windows
+                    .OfType<Window>()
+                    .FirstOrDefault(window => window.IsActive);
+
+            if (previousWindow == null) return;
+
+            if (previousWindow is T)
+            {
+                _currentWindow = previousWindow;
+                return;
+            }
 
             // --- ALL ANIMATION AND FADING LOGIC HAS BEEN REMOVED ---
 
@@ -36,29 +49,26 @@ namespace LoginAppFramework
             previousWindow.Close();
         }
 
-        public static void GoToReportsWindow()
+        public static void GoToReportsWindow(Window owner = null)
         {
-            // Yeni ReportsWindow pəncərəsindən bir obyekt yaradırıq
             var reportsWindow = new ReportsWindow
             {
-                // `Owner = Application.Current.MainWindow` təyin etməklə,
-                // hesabat pəncərəsinin həmişə əsas pəncərənin üzərində qalmasını təmin edirik.
-                Owner = Application.Current.MainWindow
+                Owner = owner ?? _currentWindow ?? Application.Current.MainWindow
             };
-            // `ShowDialog()` metodu pəncərəni modal olaraq açır, yəni
-            // bu pəncərə bağlanana qədər arxadakı əsas pəncərəyə keçid etmək olmur.
+
             reportsWindow.ShowDialog();
         }
         public static async Task GoToDashboard(Window callingWindow = null)
-        {
-            if (callingWindow != null) _currentWindow = callingWindow;
-            await NavigateAsync<DashboardWindow>();
-        }
+            => await NavigateAsync<DashboardWindow>(callingWindow);
 
-        public static async Task GoToAssetWindow() => await NavigateAsync<AssetWindow>();
-        public static async Task GoToWorkerListWindow() => await NavigateAsync<WorkerListWindow>();
-        public static async Task GoToHistoryLogWindow() => await NavigateAsync<HistoryLogWindow>();
-        public static async Task GoToLifecycleReportWindow() => await NavigateAsync<LifecycleReportWindow>();
+        public static async Task GoToAssetWindow(Window callingWindow = null)
+            => await NavigateAsync<AssetWindow>(callingWindow);
+
+        public static async Task GoToWorkerListWindow(Window callingWindow = null)
+            => await NavigateAsync<WorkerListWindow>(callingWindow);
+
+        public static async Task GoToHistoryLogWindow(Window callingWindow = null)
+            => await NavigateAsync<HistoryLogWindow>(callingWindow);
 
         // Restart logic is unchanged and correct.
         public static void RestartApplication()

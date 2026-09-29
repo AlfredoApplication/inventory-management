@@ -15,7 +15,6 @@ namespace LoginAppFramework
         private readonly DispatcherTimer _selectionTimer;
 
         private WorkerViewModel _selectedWorker;
-        private bool isMenuOpen;
         private bool isDetailPanelOpen;
 
         public WorkerListWindow()
@@ -50,8 +49,6 @@ namespace LoginAppFramework
             }
 
             _viewModel.Refresh();
-            UpdateUserDisplay();
-
             WorkerAssetManager.OnDetailPanelClosed += DetailControl_PanelClosed;
             WorkerAssetManager.OnAssetDoubleClicked += Manager_AssetDoubleClicked;
 
@@ -360,64 +357,8 @@ namespace LoginAppFramework
             _viewModel.ClearFilters();
         }
 
-        private void CloseTheMenu()
-        {
-            isMenuOpen = false;
-            MenuOverlay.Visibility = Visibility.Collapsed;
-            (FindResource("CloseMenu") as Storyboard)?.Begin();
-        }
-
         private void MenuButton_Click(object _, RoutedEventArgs e)
-        {
-            if (isMenuOpen)
-            {
-                CloseTheMenu();
-                return;
-            }
-
-            isMenuOpen = true;
-            UserSwitchPopup.IsOpen = false;
-            MenuOverlay.Visibility = Visibility.Visible;
-            (FindResource("OpenMenu") as Storyboard)?.Begin();
-        }
-
-        private void CloseMenuButton_Click(object _, RoutedEventArgs e) => CloseTheMenu();
-        private void MenuOverlay_MouseDown(object _, MouseButtonEventArgs e) => CloseTheMenu();
-
-        private void UpdateUserDisplay()
-        {
-            if (SessionManager.CurrentUser == null) return;
-
-            UserProfileIcon.Text = SessionManager.CurrentUser.ProfilePicture;
-            UserProfileName.Text = SessionManager.CurrentUser.FullName;
-        }
-
-        private async void DashboardButton_Click(object _, RoutedEventArgs e)
-            => await NavigationManager.GoToDashboard();
-
-        private void UsersButton_Click(object _, RoutedEventArgs e)
-            => CloseTheMenu();
-
-        private async void AssetsButton_Click(object _, RoutedEventArgs e)
-            => await NavigationManager.GoToAssetWindow();
-
-        private async void HistoryLogButton_Click(object _, RoutedEventArgs e)
-            => await NavigationManager.GoToHistoryLogWindow();
-
-        private async void LifecycleReportButton_Click(object _, RoutedEventArgs e)
-            => await NavigationManager.GoToLifecycleReportWindow();
-
-        private void UserProfileButton_Click(object _, RoutedEventArgs e)
-            => UserSwitchPopup.IsOpen = true;
-
-        private void SwitchUserButton_Click(object _, RoutedEventArgs e)
-            => ReturnToLogin();
-
-        private void LogoutButton_Click(object _, RoutedEventArgs e)
-            => ReturnToLogin();
-
-        private void ReturnToLogin()
-            => NavigationManager.RestartApplication();
+            => SharedNavigationMenu.Open();
 
         private void ApplyRoleBasedPermissions()
         {
