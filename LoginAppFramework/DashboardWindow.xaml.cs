@@ -143,8 +143,6 @@ namespace LoginAppFramework
         private async void AssetsButton_Click(object _, RoutedEventArgs e) => await NavigationManager.GoToAssetWindow();
         private async void UsersButton_Click(object _, RoutedEventArgs e) => await NavigationManager.GoToWorkerListWindow();
         private async void HistoryLogButton_Click(object _, RoutedEventArgs e) => await NavigationManager.GoToHistoryLogWindow();
-        private async void LifecycleReportButton_Click(object _, RoutedEventArgs e) => await NavigationManager.GoToLifecycleReportWindow();
-
         private void ReportsButton_Click(object _, RoutedEventArgs e)
         {
             CloseTheMenu();

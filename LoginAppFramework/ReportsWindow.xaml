@@ -4,14 +4,16 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Hesabatlar" Height="430" Width="600"
+        Title="Alış Tarixinə Görə Excel Hesabatı"
+        Height="365"
+        Width="700"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
-        Background="{StaticResource AppBackgroundBrush}" FontFamily="Segoe UI"
-        Loaded="Window_Loaded">
+        Background="{StaticResource AppBackgroundBrush}"
+        FontFamily="Segoe UI">
+
     <Grid Margin="25">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -20,35 +22,28 @@
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0"
-                   Text="Hesabat Generatoru"
+                   Text="Alış Tarixinə Görə Excel Hesabatı"
                    FontSize="22"
                    FontWeight="SemiBold"
                    Foreground="{StaticResource PrimaryTextBrush}"
-                   Margin="0,0,0,10"/>
+                   Margin="0,0,0,8"/>
 
         <TextBlock Grid.Row="1"
-                   Text="Hesabat növünü seçin. Excel hesabatında alış tarixi üzrə interval tətbiq edə bilərsiniz."
-                   TextWrapping="Wrap"/>
+                   Text="Alış tarixi intervalını seçin. Tarixləri boş saxlasanız bütün vəsaitlər export olunacaq."
+                   Foreground="{StaticResource BodyTextBrush}"
+                   TextWrapping="Wrap"
+                   Margin="0,0,0,18"/>
 
-        <ComboBox x:Name="ReportTypeComboBox"
-                  Grid.Row="2"
-                  Margin="0,15,0,0"
-                  Padding="5"
-                  SelectionChanged="ReportTypeComboBox_SelectionChanged"/>
-
-        <Border x:Name="PurchaseDateFilterPanel"
-                Grid.Row="3"
-                Margin="0,15,0,0"
-                Padding="12"
-                Visibility="Collapsed"
+        <Border Grid.Row="2"
+                Padding="16"
                 Background="#F7F9FC"
                 BorderBrush="{StaticResource ControlBorderBrush}"
                 BorderThickness="1"
-                CornerRadius="6">
+                CornerRadius="8">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="20"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
@@ -57,35 +52,131 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Grid.Column="0"
+                <TextBlock Grid.Row="0"
+                           Grid.Column="0"
                            Text="Başlanğıc alış tarixi"
                            FontWeight="SemiBold"
-                           Margin="0,0,0,5"/>
-                <TextBlock Grid.Row="0" Grid.Column="2"
+                           Margin="0,0,0,6"/>
+
+                <TextBlock Grid.Row="0"
+                           Grid.Column="2"
                            Text="Son alış tarixi"
                            FontWeight="SemiBold"
-                           Margin="0,0,0,5"/>
+                           Margin="0,0,0,6"/>
 
-                <DatePicker x:Name="PurchaseDateFromPicker"
-                            Grid.Row="1"
-                            Grid.Column="0"/>
-                <DatePicker x:Name="PurchaseDateToPicker"
-                            Grid.Row="1"
-                            Grid.Column="2"/>
+                <Grid x:Name="PurchaseDateFromContainer"
+                      Grid.Row="1"
+                      Grid.Column="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="46"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox x:Name="PurchaseDateFromTextBox"
+                             Grid.Column="0"
+                             Height="42"
+                             IsReadOnly="True"
+                             VerticalContentAlignment="Center"
+                             Padding="10,0"
+                             Background="White"
+                             BorderBrush="{StaticResource ControlBorderBrush}"
+                             BorderThickness="1"
+                             ToolTip="Başlanğıc tarixini seçmək üçün kalendar düyməsinə klikləyin."/>
+
+                    <Button Grid.Column="1"
+                            Height="42"
+                            Margin="6,0,0,0"
+                            Padding="0"
+                            ToolTip="Kalendarı aç"
+                            Click="OpenFromCalendarButton_Click">
+                        <TextBlock Text="&#xE787;"
+                                   FontFamily="Segoe MDL2 Assets"
+                                   FontSize="17"/>
+                    </Button>
+
+                    <Popup x:Name="PurchaseDateFromPopup"
+                           PlacementTarget="{Binding ElementName=PurchaseDateFromContainer}"
+                           Placement="Bottom"
+                           HorizontalOffset="0"
+                           VerticalOffset="4"
+                           AllowsTransparency="True"
+                           StaysOpen="False"
+                           PopupAnimation="Fade">
+                        <Border Background="White"
+                                BorderBrush="{StaticResource ControlBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Padding="8">
+                            <Calendar x:Name="PurchaseDateFromCalendar"
+                                      SelectionMode="SingleDate"
+                                      SelectedDatesChanged="PurchaseDateFromCalendar_SelectedDatesChanged"/>
+                        </Border>
+                    </Popup>
+                </Grid>
+
+                <Grid x:Name="PurchaseDateToContainer"
+                      Grid.Row="1"
+                      Grid.Column="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="46"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox x:Name="PurchaseDateToTextBox"
+                             Grid.Column="0"
+                             Height="42"
+                             IsReadOnly="True"
+                             VerticalContentAlignment="Center"
+                             Padding="10,0"
+                             Background="White"
+                             BorderBrush="{StaticResource ControlBorderBrush}"
+                             BorderThickness="1"
+                             ToolTip="Son tarixini seçmək üçün kalendar düyməsinə klikləyin."/>
+
+                    <Button Grid.Column="1"
+                            Height="42"
+                            Margin="6,0,0,0"
+                            Padding="0"
+                            ToolTip="Kalendarı aç"
+                            Click="OpenToCalendarButton_Click">
+                        <TextBlock Text="&#xE787;"
+                                   FontFamily="Segoe MDL2 Assets"
+                                   FontSize="17"/>
+                    </Button>
+
+                    <Popup x:Name="PurchaseDateToPopup"
+                           PlacementTarget="{Binding ElementName=PurchaseDateToContainer}"
+                           Placement="Bottom"
+                           HorizontalOffset="0"
+                           VerticalOffset="4"
+                           AllowsTransparency="True"
+                           StaysOpen="False"
+                           PopupAnimation="Fade">
+                        <Border Background="White"
+                                BorderBrush="{StaticResource ControlBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Padding="8">
+                            <Calendar x:Name="PurchaseDateToCalendar"
+                                      SelectionMode="SingleDate"
+                                      SelectedDatesChanged="PurchaseDateToCalendar_SelectedDatesChanged"/>
+                        </Border>
+                    </Popup>
+                </Grid>
 
                 <Button Grid.Row="1"
                         Grid.Column="3"
                         Content="Təmizlə"
-                        Margin="12,0,0,0"
-                        Padding="10,4"
+                        Margin="14,0,0,0"
+                        Padding="14,8"
                         VerticalAlignment="Center"
                         Click="ClearDateFilterButton_Click"/>
             </Grid>
         </Border>
 
         <TextBlock x:Name="StatusTextBlock"
-                   Grid.Row="4"
-                   Margin="0,15,0,15"
+                   Grid.Row="3"
+                   Margin="0,16,0,12"
                    VerticalAlignment="Center"
                    HorizontalAlignment="Center"
                    Foreground="{StaticResource SubtleTextBrush}"
@@ -93,10 +184,10 @@
                    TextAlignment="Center"/>
 
         <Button x:Name="GenerateButton"
-                Grid.Row="5"
-                Content="PDF Yarat və Yadda Saxla"
+                Grid.Row="4"
+                Content="Excel Hesabatı Yarat və Yadda Saxla"
                 Style="{StaticResource PrimaryActionButton}"
-                Padding="8"
+                Padding="10"
                 Click="GenerateButton_Click"/>
     </Grid>
 </Window>

@@ -439,12 +439,6 @@
                         <TextBlock Text="Tarixçə" Margin="15,0,0,0"/>
                     </StackPanel>
                 </Button>
-                <Button x:Name="LifecycleReportButton" Click="LifecycleReportButton_Click" Style="{StaticResource ModernNavButtonStyle}">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="&#xE78B;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center"/>
-                        <TextBlock Text="Həyat Dövrü Hesabatı" Margin="15,0,0,0"/>
-                    </StackPanel>
-                </Button>
                 <Button x:Name="ReportsButton" Click="ReportsButton_Click" Style="{StaticResource ModernNavButtonStyle}">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="&#xE9D2;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center"/>
