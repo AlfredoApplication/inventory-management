@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Hesabatlar" Height="300" Width="500"
+        Title="Hesabatlar" Height="430" Width="600"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         Background="{StaticResource AppBackgroundBrush}" FontFamily="Segoe UI"
@@ -14,20 +14,88 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Hesabat Generatoru" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,10"/>
+        <TextBlock Grid.Row="0"
+                   Text="Hesabat Generatoru"
+                   FontSize="22"
+                   FontWeight="SemiBold"
+                   Foreground="{StaticResource PrimaryTextBrush}"
+                   Margin="0,0,0,10"/>
 
-        <TextBlock Grid.Row="1" Text="Zəhmət olmasa, yaratmaq istədiyiniz hesabat növünü seçin." TextWrapping="Wrap"/>
+        <TextBlock Grid.Row="1"
+                   Text="Hesabat növünü seçin. Excel hesabatında alış tarixi üzrə interval tətbiq edə bilərsiniz."
+                   TextWrapping="Wrap"/>
 
-        <ComboBox x:Name="ReportTypeComboBox" Grid.Row="2" Margin="0,15,0,0" Padding="5"/>
+        <ComboBox x:Name="ReportTypeComboBox"
+                  Grid.Row="2"
+                  Margin="0,15,0,0"
+                  Padding="5"
+                  SelectionChanged="ReportTypeComboBox_SelectionChanged"/>
 
-        <TextBlock x:Name="StatusTextBlock" Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{StaticResource SubtleTextBrush}" TextWrapping="Wrap" TextAlignment="Center"/>
+        <Border x:Name="PurchaseDateFilterPanel"
+                Grid.Row="3"
+                Margin="0,15,0,0"
+                Padding="12"
+                Visibility="Collapsed"
+                Background="#F7F9FC"
+                BorderBrush="{StaticResource ControlBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="6">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-        <Button x:Name="GenerateButton" Grid.Row="4" Content="PDF Yarat və Yadda Saxla" 
-                Style="{StaticResource PrimaryActionButton}" 
+                <TextBlock Grid.Row="0" Grid.Column="0"
+                           Text="Başlanğıc alış tarixi"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,5"/>
+                <TextBlock Grid.Row="0" Grid.Column="2"
+                           Text="Son alış tarixi"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,5"/>
+
+                <DatePicker x:Name="PurchaseDateFromPicker"
+                            Grid.Row="1"
+                            Grid.Column="0"/>
+                <DatePicker x:Name="PurchaseDateToPicker"
+                            Grid.Row="1"
+                            Grid.Column="2"/>
+
+                <Button Grid.Row="1"
+                        Grid.Column="3"
+                        Content="Təmizlə"
+                        Margin="12,0,0,0"
+                        Padding="10,4"
+                        VerticalAlignment="Center"
+                        Click="ClearDateFilterButton_Click"/>
+            </Grid>
+        </Border>
+
+        <TextBlock x:Name="StatusTextBlock"
+                   Grid.Row="4"
+                   Margin="0,15,0,15"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Center"
+                   Foreground="{StaticResource SubtleTextBrush}"
+                   TextWrapping="Wrap"
+                   TextAlignment="Center"/>
+
+        <Button x:Name="GenerateButton"
+                Grid.Row="5"
+                Content="PDF Yarat və Yadda Saxla"
+                Style="{StaticResource PrimaryActionButton}"
                 Padding="8"
                 Click="GenerateButton_Click"/>
     </Grid>
