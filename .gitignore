@@ -25,3 +25,10 @@ publish/
 # Build / diagnostic output
 build_output.txt
 *.log
+
+# Local secrets / machine-specific configuration
+.env
+.env.*
+!.env.example
+appsettings.*.local.json
+*.secrets.json
