@@ -14,6 +14,12 @@ namespace LoginAppFramework
 
     public sealed class AuditService : IAuditService
     {
+        private readonly IAuthorizationService _authorization;
+
+        public AuditService(IAuthorizationService authorization = null)
+        {
+            _authorization = authorization ?? AppServices.Authorization;
+        }
         public List<AssetLog> GetAssetLogs() => DataAccess.GetAssetLogs();
 
         public List<AssignmentHistoryEntry> GetAssignmentHistory()
@@ -24,6 +30,8 @@ namespace LoginAppFramework
 
         public AuditRestoreResult RestoreDeletedAsset(AssetLog log)
         {
+            _authorization.RequireEdit();
+
             if (log == null)
                 return AuditRestoreResult.Fail("Audit qeydi tapılmadı.");
 

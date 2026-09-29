@@ -13,9 +13,15 @@ namespace LoginAppFramework
 
     public sealed class UserService : IUserService
     {
+        private readonly IAuthorizationService _authorization;
+
+        public UserService(IAuthorizationService authorization = null)
+        {
+            _authorization = authorization ?? AppServices.Authorization;
+        }
         public List<AppUser> GetAll()
         {
-            EnsureCanManageUsers();
+            _authorization.RequireManageUsers();
             return DataAccess.GetAllAppUsers()
                 .OrderBy(u => u.Username)
                 .ToList();
@@ -23,7 +29,7 @@ namespace LoginAppFramework
 
         public void Save(AppUser user, string newPassword)
         {
-            EnsureCanManageUsers();
+            _authorization.RequireManageUsers();
 
             if (user == null)
                 throw new ArgumentNullException(nameof(user));
@@ -73,7 +79,7 @@ namespace LoginAppFramework
 
         public void Delete(AppUser user)
         {
-            EnsureCanManageUsers();
+            _authorization.RequireManageUsers();
 
             if (user == null)
                 throw new ArgumentNullException(nameof(user));
@@ -96,11 +102,5 @@ namespace LoginAppFramework
             DataAccess.DeleteAppUser(user);
         }
 
-        private static void EnsureCanManageUsers()
-        {
-            if (!SessionManager.CanManageUsers())
-                throw new UnauthorizedAccessException(
-                    "İstifadəçi idarəetməsi üçün Admin icazəsi tələb olunur.");
-        }
     }
 }

@@ -63,3 +63,36 @@ public class AssetServiceTests
         Assert.Equal("Assigned Worker", history.FromWorkerName);
     }
 }
+
+
+public class AssetServiceAuthorizationTests
+{
+    private sealed class DenyAuthorizationService : IAuthorizationService
+    {
+        public void RequireEdit() => throw new UnauthorizedAccessException("edit denied");
+        public void RequireDelete() => throw new UnauthorizedAccessException("delete denied");
+        public void RequireManageUsers() => throw new UnauthorizedAccessException("manage denied");
+    }
+
+    [Fact]
+    public void Save_WhenEditPermissionDenied_ThrowsBeforePersistence()
+    {
+        var service = new AssetService(new DenyAuthorizationService());
+
+        var ex = Assert.Throws<UnauthorizedAccessException>(
+            () => service.Save(new Asset()));
+
+        Assert.Equal("edit denied", ex.Message);
+    }
+
+    [Fact]
+    public void Delete_WhenDeletePermissionDenied_ThrowsBeforePersistence()
+    {
+        var service = new AssetService(new DenyAuthorizationService());
+
+        var ex = Assert.Throws<UnauthorizedAccessException>(
+            () => service.Delete(new Asset()));
+
+        Assert.Equal("delete denied", ex.Message);
+    }
+}

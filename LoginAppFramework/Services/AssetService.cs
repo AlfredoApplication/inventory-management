@@ -25,8 +25,15 @@ namespace LoginAppFramework
 
     public sealed class AssetService : IAssetService
     {
+        private readonly IAuthorizationService _authorization;
+
+        public AssetService(IAuthorizationService authorization = null)
+        {
+            _authorization = authorization ?? AppServices.Authorization;
+        }
         public void Save(Asset asset)
         {
+            _authorization.RequireEdit();
             if (asset == null) throw new ArgumentNullException(nameof(asset));
 
             AddAssignmentHistoryForEdit(asset);
@@ -35,12 +42,14 @@ namespace LoginAppFramework
 
         public void SaveMany(List<Asset> assets)
         {
+            _authorization.RequireEdit();
             if (assets == null || assets.Count == 0) return;
             AppData.BulkSaveAndRefreshAssets(assets);
         }
 
         public void ImportNewAssets(List<Asset> assets)
         {
+            _authorization.RequireEdit();
             if (assets == null || assets.Count == 0) return;
 
             foreach (var asset in assets.Where(a => a.WorkerId.HasValue && a.History?.Any(h => h.Id == 0) != true))
@@ -62,12 +71,14 @@ namespace LoginAppFramework
 
         public void Delete(Asset asset)
         {
+            _authorization.RequireDelete();
             if (asset == null) return;
             AppData.DeleteAndRefreshAsset(asset);
         }
 
         public void DeleteMany(List<Asset> assets)
         {
+            _authorization.RequireDelete();
             if (assets == null || assets.Count == 0) return;
             AppData.BulkDeleteAndRefreshAssets(assets);
         }
@@ -111,18 +122,21 @@ namespace LoginAppFramework
 
         public void Assign(Asset asset, Worker worker, string source)
         {
+            _authorization.RequireEdit();
             ApplyAssignment(asset, worker, source);
             AppData.SaveAndRefreshAsset(asset);
         }
 
         public void Unassign(Asset asset, string source, string nextStatus = "Anbarda")
         {
+            _authorization.RequireEdit();
             ApplyUnassignment(asset, source, nextStatus);
             AppData.SaveAndRefreshAsset(asset);
         }
 
         public void Archive(Asset asset, string source)
         {
+            _authorization.RequireEdit();
             ApplyUnassignment(asset, source, "Arxivdə");
             asset.Status = "Arxivdə";
             AppData.SaveAndRefreshAsset(asset);
@@ -130,6 +144,7 @@ namespace LoginAppFramework
 
         public void AssignMany(IEnumerable<Asset> assets, Worker worker, string source)
         {
+            _authorization.RequireEdit();
             if (assets == null) return;
             if (worker == null) throw new ArgumentNullException(nameof(worker));
 
@@ -147,6 +162,7 @@ namespace LoginAppFramework
             BulkAssetChanges changes,
             string source)
         {
+            _authorization.RequireEdit();
             if (assets == null) throw new ArgumentNullException(nameof(assets));
             if (changes == null) throw new ArgumentNullException(nameof(changes));
 
