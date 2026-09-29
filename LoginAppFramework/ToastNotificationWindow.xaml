@@ -1,6 +1,7 @@
 <Window x:Class="LoginAppFramework.ToastNotificationWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:LoginAppFramework"
         Width="380"
         SizeToContent="Height"
         WindowStyle="None"
@@ -26,12 +27,11 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Text="&#xE73E;"
-                       FontFamily="Segoe Fluent Icons"
-                       Foreground="#FF14804A"
-                       FontSize="18"
-                       VerticalAlignment="Top"
-                       Margin="0,2,12,0"/>
+            <local:AppIcon Icon="Success"
+                           Size="19"
+                           Foreground="#FF14804A"
+                           VerticalAlignment="Top"
+                           Margin="0,2,12,0"/>
             <TextBlock x:Name="MessageTextBlock"
                        Grid.Column="1"
                        Foreground="#FF172B22"

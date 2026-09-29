@@ -88,7 +88,7 @@
                     </Grid.ColumnDefinitions>
                     <Button x:Name="MenuButton" Style="{StaticResource PrimaryActionButton}" Height="40" Padding="15,0" Click="MenuButton_Click">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE700;" FontFamily="Segoe Fluent Icons" Foreground="White" FontSize="16" VerticalAlignment="Center"/>
+                            <local:AppIcon Icon="Menu" Size="18" Foreground="White" VerticalAlignment="Center"/>
                             <TextBlock Text="Menyu" Foreground="White" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0"/>
                         </StackPanel>
                     </Button>
@@ -105,19 +105,19 @@
                                 Margin="0,0,10,0"/>
                         <Button x:Name="ExportButton" Click="ExportButton_Click" Style="{StaticResource PrimaryActionButton}" Margin="0,0,10,0">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock FontFamily="Segoe Fluent Icons" Text="&#xE74E;" VerticalAlignment="Center" Margin="0,0,8,0" FontSize="12"/>
+                                <local:AppIcon Icon="ExportExcel" Size="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                 <TextBlock Text="Excel-ə Export"/>
                             </StackPanel>
                         </Button>
                         <Button x:Name="ImportButton" Click="ImportButton_Click" Style="{StaticResource PrimaryActionButton}" Margin="0,0,10,0">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock FontFamily="Segoe Fluent Icons" Text="&#xE8B0;" VerticalAlignment="Center" Margin="0,0,8,0" FontSize="12"/>
+                                <local:AppIcon Icon="Import" Size="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                 <TextBlock Text="Excel-dən Import"/>
                             </StackPanel>
                         </Button>
                         <Button x:Name="AddAssetButton" Click="AddAssetButton_Click" Style="{StaticResource PrimaryActionButton}">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock FontFamily="Segoe Fluent Icons" VerticalAlignment="Center" Margin="0,0,8,0" FontSize="12" Text="&#xE710;"/>
+                                <local:AppIcon Icon="Add" Size="16" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                 <TextBlock Text="Yeni Vəsait Əlavə et"/>
                             </StackPanel>
                         </Button>
@@ -214,7 +214,7 @@
                             <Button x:Name="BulkAssignButton" Content="Seçilmişləri Təhkim et..." Click="BulkAssignButton_Click" Background="{StaticResource SuccessBrush}" Foreground="{StaticResource PrimaryForegroundBrush}" Padding="8,4" Margin="0,0,10,0"/>
                             <Button x:Name="GenerateBarcodesButton" Click="GenerateBarcodesButton_Click" Style="{StaticResource PrimaryActionButton}" Padding="8,4">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE72D;" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <local:AppIcon Icon="Assign" Size="17" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                     <TextBlock Text="Barkod Çap Et"/>
                                 </StackPanel>
                             </Button>

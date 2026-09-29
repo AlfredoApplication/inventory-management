@@ -71,7 +71,7 @@
                     </Grid.ColumnDefinitions>
                     <Button x:Name="MenuButton" Style="{StaticResource PrimaryActionButton}" Height="40" Padding="15,0" Click="MenuButton_Click">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE700;" FontFamily="Segoe Fluent Icons" Foreground="White" FontSize="16" VerticalAlignment="Center"/>
+                            <local:AppIcon Icon="Menu" Size="18" Foreground="White" VerticalAlignment="Center"/>
                             <TextBlock Text="Menyu" Foreground="White" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0"/>
                         </StackPanel>
                     </Button>

@@ -62,7 +62,7 @@
                     </Grid.ColumnDefinitions>
                     <Button x:Name="MenuButton" Style="{StaticResource PrimaryActionButton}" Height="40" Padding="15,0" Click="MenuButton_Click">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE700;" FontFamily="Segoe Fluent Icons" Foreground="White" FontSize="16" VerticalAlignment="Center"/>
+                            <local:AppIcon Icon="Menu" Size="18" Foreground="White" VerticalAlignment="Center"/>
                             <TextBlock Text="Menyu" Foreground="White" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0"/>
                         </StackPanel>
                     </Button>
@@ -87,7 +87,7 @@
                                         Margin="10,0,0,0" Padding="12,6" VerticalAlignment="Center"
                                         ToolTip="Cari siyahını Excel faylı kimi ixrac edin">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="&#xE9F9;" FontFamily="Segoe Fluent Icons" FontSize="15" VerticalAlignment="Center" Margin="0,0,7,0"/>
+                                        <local:AppIcon Icon="ExportExcel" Size="17" VerticalAlignment="Center" Margin="0,0,7,0"/>
                                         <TextBlock Text="Excel-ə İxrac" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
@@ -162,36 +162,44 @@
             </Grid.RowDefinitions>
             <Grid Grid.Row="0" Height="60">
                 <TextBlock Text="Əsas Menyu" Foreground="White" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="20,0"/>
-                <Button x:Name="CloseMenuButton" Content="&#xE8BB;" FontFamily="Segoe Fluent Icons" Foreground="#AAAAAA" FontSize="14" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="20" Click="CloseMenuButton_Click" Style="{StaticResource ModernNavButtonStyle}"/>
+                <Button x:Name="CloseMenuButton"
+        Foreground="#AAAAAA"
+        HorizontalAlignment="Right"
+        VerticalAlignment="Center"
+        Padding="20"
+        Click="CloseMenuButton_Click"
+        Style="{StaticResource ModernNavButtonStyle}">
+    <local:AppIcon Icon="Close" Size="17"/>
+</Button>
             </Grid>
             <StackPanel Grid.Row="1" Margin="5,0">
                 <Button x:Name="DashboardButton" Click="DashboardButton_Click" Style="{StaticResource ModernNavButtonStyle}">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="&#xE80F;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center"/>
+                        <local:AppIcon Icon="Dashboard" Size="18" VerticalAlignment="Center"/>
                         <TextBlock Text="İdarə Paneli" Margin="15,0,0,0"/>
                     </StackPanel>
                 </Button>
                 <Button x:Name="UsersButton" Click="UsersButton_Click" Style="{StaticResource ModernNavButtonStyle}">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="&#xE716;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center"/>
+                        <local:AppIcon Icon="Workers" Size="18" VerticalAlignment="Center"/>
                         <TextBlock Text="İşçilər" Margin="15,0,0,0"/>
                     </StackPanel>
                 </Button>
                 <Button x:Name="AssetsButton" Click="AssetsButton_Click" Style="{StaticResource ModernNavButtonStyle}">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="&#xE771;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center"/>
+                        <local:AppIcon Icon="Assets" Size="18" VerticalAlignment="Center"/>
                         <TextBlock Text="Vəsaitlər" Margin="15,0,0,0"/>
                     </StackPanel>
                 </Button>
                 <Button x:Name="HistoryLogButton" Click="HistoryLogButton_Click" Style="{StaticResource ModernNavButtonStyle}">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="&#xE81C;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center"/>
+                        <local:AppIcon Icon="History" Size="18" VerticalAlignment="Center"/>
                         <TextBlock Text="Tarixçə" Margin="15,0,0,0"/>
                     </StackPanel>
                 </Button>
                 <Button x:Name="LifecycleReportButton" Style="{StaticResource ModernNavButtonStyle}" Background="#34495E" Click="LifecycleReportButton_Click">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="&#xE78B;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center"/>
+                        <local:AppIcon Icon="Chart" Size="18" VerticalAlignment="Center"/>
                         <TextBlock Text="Həyat Dövrü Hesabatı" Margin="15,0,0,0"/>
                     </StackPanel>
                 </Button>
@@ -200,7 +208,7 @@
                 <Separator Background="#34495E" Margin="0,10"/>
                 <Button x:Name="UserProfileButton" Style="{StaticResource ModernNavButtonStyle}" Click="UserProfileButton_Click">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock x:Name="UserProfileIcon" Text="&#xE77B;" FontFamily="Segoe MDL2 Assets" FontSize="28" VerticalAlignment="Center"/>
+                        <local:AppIcon x:Name="UserProfileIcon" Icon="User" Size="28" VerticalAlignment="Center"/>
                         <StackPanel Margin="10,0,0,0">
                             <TextBlock x:Name="UserProfileName" Text="Admin User" Foreground="White" FontWeight="SemiBold"/>
                             <TextBlock Text="Onlayn" Foreground="LightGreen"/>
@@ -214,14 +222,14 @@
                 <StackPanel>
                     <Button x:Name="SwitchUserButton" Click="SwitchUserButton_Click" Style="{StaticResource ModernNavButtonStyle}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE8D4;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center"/>
+                            <local:AppIcon Icon="SwitchUser" Size="18" VerticalAlignment="Center"/>
                             <TextBlock Text="İstifadəçini Dəyiş" Margin="15,0,0,0"/>
                         </StackPanel>
                     </Button>
                     <Separator Background="#4A6582" Margin="5,0"/>
                     <Button x:Name="LogoutButton" Click="LogoutButton_Click" Style="{StaticResource ModernNavButtonStyle}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE7E8;" FontFamily="Segoe Fluent Icons" FontSize="16" VerticalAlignment="Center"/>
+                            <local:AppIcon Icon="Logout" Size="18" VerticalAlignment="Center"/>
                             <TextBlock Text="Çıxış" Margin="15,0,0,0"/>
                         </StackPanel>
                     </Button>

@@ -20,7 +20,7 @@
 
             <DockPanel Grid.Row="0">
                 <Button x:Name="CloseDetailPanelButton" DockPanel.Dock="Top" HorizontalAlignment="Right"
-                        Content="&#xE8BB;" FontFamily="Segoe Fluent Icons"
+                        Content="{x:Null}"
                         Click="CloseDetailPanelButton_Click"
                         ToolTip="Detallı Görünüşü Bağla"
                         Background="Transparent" BorderThickness="0" Foreground="{StaticResource BodyTextBrush}" 
@@ -32,7 +32,7 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="&#xE716;" FontFamily="Segoe Fluent Icons" FontSize="48" VerticalAlignment="Center" Margin="0,0,20,0"/>
+                        <local:AppIcon Grid.Column="0" Icon="User" Size="48" VerticalAlignment="Center" Margin="0,0,20,0"/>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                             <TextBlock Text="{Binding Name, Mode=OneWay, TargetNullValue='İşçi seçin'}" FontSize="22" FontWeight="Bold" Foreground="{StaticResource PrimaryTextBrush}" TextTrimming="CharacterEllipsis"/>
                             <TextBlock Text="{Binding Position, Mode=OneWay}" FontSize="16" Foreground="{StaticResource BodyTextBrush}" TextTrimming="CharacterEllipsis"/>

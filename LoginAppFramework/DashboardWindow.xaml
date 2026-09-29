@@ -107,7 +107,7 @@
                     </Grid.ColumnDefinitions>
                     <Button x:Name="MenuButton" Style="{StaticResource PrimaryActionButton}" Height="40" Padding="15,0" Click="MenuButton_Click">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE700;" FontFamily="Segoe Fluent Icons" Foreground="White" FontSize="16" VerticalAlignment="Center"/>
+                            <local:AppIcon Icon="Menu" Size="18" Foreground="White" VerticalAlignment="Center"/>
                             <TextBlock Text="Menyu" Foreground="White" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0"/>
                         </StackPanel>
                     </Button>
@@ -273,7 +273,7 @@
 
                     <Border Grid.Row="0" Style="{StaticResource KpiPanelStyle}" Margin="0,0,0,7.5">
                         <Grid>
-                            <TextBlock Text="&#xE771;" FontFamily="Segoe MDL2 Assets" FontSize="48" Foreground="White" Opacity="0.5"
+                            <local:AppIcon Icon="Assets" Size="48" Foreground="White" Opacity="0.5"
                                        HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,15,0" IsHitTestVisible="False"/>
                             <StackPanel VerticalAlignment="Center" Margin="0,0,60,0">
                                 <TextBlock Text="{Binding TotalAssets, StringFormat={}{0:N0}, Mode=OneWay}" FontSize="32" FontWeight="Bold" Foreground="White"/>
@@ -325,7 +325,7 @@
 
                     <Border Grid.Row="2" Style="{StaticResource KpiPanelStyle}" Margin="0,7.5,0,7.5">
                         <Grid>
-                            <TextBlock Text="&#xE8EC;" FontFamily="Segoe MDL2 Assets" FontSize="48" Foreground="White" Opacity="0.5"
+                            <local:AppIcon Icon="Money" Size="48" Foreground="White" Opacity="0.5"
                                        HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,15,0" IsHitTestVisible="False"/>
                             <StackPanel VerticalAlignment="Center" Margin="0,0,60,0">
                                 <TextBlock Text="{Binding CurrentValue, Mode=OneWay}" FontSize="32" FontWeight="Bold" Foreground="White"/>
@@ -336,7 +336,7 @@
 
                     <Border Grid.Row="3" Style="{StaticResource KpiPanelStyle}" Margin="0,7.5,0,0">
                         <Grid>
-                            <TextBlock Text="&#xE8EF;" FontFamily="Segoe MDL2 Assets" FontSize="48" Foreground="White" Opacity="0.5"
+                            <local:AppIcon Icon="Depreciation" Size="48" Foreground="White" Opacity="0.5"
                                        HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,15,0" IsHitTestVisible="False"/>
                             <StackPanel VerticalAlignment="Center" Margin="0,0,60,0">
                                 <TextBlock Text="{Binding AnnualDepreciation, Mode=OneWay}" FontSize="32" FontWeight="Bold" Foreground="White"/>
