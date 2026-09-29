@@ -80,23 +80,25 @@ namespace LoginAppFramework
 
             string username = UsernameBox.Text;
             string password = PasswordBox.Password;
-            bool loginSuccess = false;
+            LoginResult loginResult = null;
 
-            await Task.Run(() => { loginSuccess = SessionManager.Login(username, password); });
+            await Task.Run(() =>
+            {
+                loginResult = SessionManager.Login(username, password);
+            });
 
-            if (loginSuccess)
+            if (loginResult.Success)
             {
                 await Task.Run(() => AppData.LoadAllData());
                 await NavigationManager.GoToDashboard(this);
+                return;
             }
-            else
-            {
-                ErrorMessage.Text = "İstifadəçi adı və ya şifrə yanlışdır.";
-                ErrorMessage.Foreground = Brushes.Red;
-                ErrorMessage.Visibility = Visibility.Visible;
-                LoginButton.IsEnabled = true;
-                LoginButton.Content = "Daxil Ol";
-            }
+
+            ErrorMessage.Text = loginResult.Message;
+            ErrorMessage.Foreground = Brushes.Red;
+            ErrorMessage.Visibility = Visibility.Visible;
+            LoginButton.IsEnabled = true;
+            LoginButton.Content = "Daxil Ol";
         }
 
         private void ChangeServerSettings_Click(object sender, RoutedEventArgs e)
@@ -104,7 +106,7 @@ namespace LoginAppFramework
             var result = MessageBox.Show("Verilənlər bazası qoşulma ayarlarını dəyişmək istədiyinizə əminsinizmi?", "Dəyişikliyi Təsdiq Et", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (result == MessageBoxResult.Yes)
             {
-                ConnectionManager.IsConfigured = false;
+                ConnectionManager.BeginReconfiguration();
                 UpdateUiState();
             }
         }
