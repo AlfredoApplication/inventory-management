@@ -56,13 +56,11 @@ namespace LoginAppFramework
             ApplyRoleBasedPermissions();
         }
 
-        private void Manager_AssetDoubleClicked(object sender, Asset asset)
+        private async void Manager_AssetDoubleClicked(object sender, Asset asset)
         {
             if (asset == null) return;
 
-            var assetWindow = new AssetWindow(asset.Id);
-            assetWindow.Show();
-            Close();
+            await NavigationManager.GoToAssetWindow(this, asset.Id);
         }
 
         private void DetailControl_PanelClosed(object sender, EventArgs e)

@@ -140,3 +140,27 @@ public class ColumnFilterSnapshotTests
         Assert.NotNull(snapshot);
     }
 }
+
+
+public class BulkEditTextChangeTests
+{
+    [Fact]
+    public void EmptyTextWithoutClear_MeansNoChange()
+    {
+        Assert.Null(BulkAssetChanges.ResolveTextChange("   ", false));
+    }
+
+    [Fact]
+    public void ClearRequested_ReturnsExplicitEmptyValue()
+    {
+        Assert.Equal(string.Empty, BulkAssetChanges.ResolveTextChange("old", true));
+    }
+
+    [Fact]
+    public void TextValue_IsTrimmedAndApplied()
+    {
+        Assert.Equal(
+            "Yeni Təchizatçı",
+            BulkAssetChanges.ResolveTextChange("  Yeni Təchizatçı  ", false));
+    }
+}

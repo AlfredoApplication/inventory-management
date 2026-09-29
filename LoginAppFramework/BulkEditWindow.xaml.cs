@@ -18,7 +18,7 @@ namespace LoginAppFramework
 
             InstructionText.Text =
                 $"Seçilmiş {assetCount} element üçün dəyişdirmək istədiyiniz sahələrə YENİ dəyər daxil edin. " +
-                "Sahələri boş buraxmaq onların orijinal dəyərlərini saxlayacaq.";
+                "Sahələri boş buraxmaq onların orijinal dəyərlərini saxlayacaq. Optional mətn sahəsini silmək üçün 'Təmizlə' seçin.";
 
             PopulateComboBoxes();
             Loaded += Window_Loaded;

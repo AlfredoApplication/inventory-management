@@ -18,8 +18,9 @@ namespace LoginAppFramework
     {
         private readonly AssetListWindowViewModel _viewModel;
         private AssetCheckableViewModel _selectedAssetVM;
-        private readonly int? _assetIdToSelectOnLoad;
+        private int? _assetIdToSelectOnLoad;
         private readonly DispatcherTimer _selectionTimer;
+        private bool _suppressSelectionChange;
 
         public AssetWindow()
         {
@@ -425,7 +426,9 @@ namespace LoginAppFramework
 
         private void AssetsDataGrid_SelectionChanged(object _, SelectionChangedEventArgs e)
         {
-            // Detal panelinin açılması üçün sətir seçimi hələ də işləyir
+            if (_suppressSelectionChange)
+                return;
+
             _selectionTimer.Stop();
             _selectionTimer.Start();
         }
@@ -459,21 +462,70 @@ namespace LoginAppFramework
 
         private void UpdateDetailView() => AssetDetailControl.DisplayAsset(_selectedAssetVM?.Asset, _viewModel.Workers.ToList());
 
+        public void NavigateToAsset(int assetId)
+        {
+            if (assetId <= 0) return;
+
+            _assetIdToSelectOnLoad = assetId;
+
+            if (!IsLoaded)
+                return;
+
+            SelectAssetById(assetId);
+        }
+
         public void SelectAssetById(int assetId)
         {
-            var assetToSelect = (AssetsDataGrid.ItemsSource as IEnumerable<AssetCheckableViewModel>)?.FirstOrDefault(vm => vm.Asset.Id == assetId);
-            if (assetToSelect != null)
+            var visibleAsset = _viewModel.VisibleAssets
+                .FirstOrDefault(vm => vm.Asset.Id == assetId);
+
+            if (visibleAsset != null)
             {
-                AssetsDataGrid.SelectedItem = assetToSelect;
-                AssetsDataGrid.ScrollIntoView(assetToSelect);
-                _selectedAssetVM = assetToSelect;
+                AssetsDataGrid.SelectedItem = visibleAsset;
+                AssetsDataGrid.ScrollIntoView(visibleAsset);
+
+                _selectedAssetVM = visibleAsset;
                 UpdateDetailView();
-                if (!isDetailPanelOpen) OpenDetailPanel();
+
+                if (!isDetailPanelOpen)
+                    OpenDetailPanel();
+
+                return;
             }
-            else
+
+            var targetAsset = _viewModel.AllAssets
+                .FirstOrDefault(vm => vm.Asset.Id == assetId);
+
+            if (targetAsset == null)
             {
-                if (isDetailPanelOpen) CloseDetailPanel();
+                var cachedAsset = AppData.GetAssets()
+                    .FirstOrDefault(asset => asset.Id == assetId);
+
+                if (cachedAsset != null)
+                    targetAsset = new AssetCheckableViewModel(cachedAsset);
             }
+
+            if (targetAsset == null)
+                return;
+
+            // Asset cari filter nəticəsində görünmürsə filter state-ni pozmuruq.
+            // Sadəcə detail paneldə həmin asset-i göstəririk.
+            _selectionTimer.Stop();
+            _suppressSelectionChange = true;
+            try
+            {
+                AssetsDataGrid.SelectedItem = null;
+            }
+            finally
+            {
+                _suppressSelectionChange = false;
+            }
+
+            _selectedAssetVM = targetAsset;
+            UpdateDetailView();
+
+            if (!isDetailPanelOpen)
+                OpenDetailPanel();
         }
 
         #endregion

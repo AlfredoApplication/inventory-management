@@ -63,13 +63,19 @@ namespace LoginAppFramework
 
         private void AssetsListView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (AssetsListView.SelectedItem is Asset selectedAsset)
-            {
-                var assetWindow = new AssetWindow(selectedAsset.Id);
-                assetWindow.Show();
-                this.Owner?.Close();
-                this.Close();
-            }
+            if (AssetsListView.SelectedItem is not Asset selectedAsset)
+                return;
+
+            var ownerWindow = Owner;
+            int assetId = selectedAsset.Id;
+
+            Close();
+
+            Dispatcher.BeginInvoke(
+                new Action(async () =>
+                    await NavigationManager.GoToAssetWindow(
+                        ownerWindow,
+                        assetId)));
         }
 
         private void GridViewColumnHeader_Click(object sender, RoutedEventArgs e)
