@@ -9,6 +9,7 @@ namespace LoginAppFramework
 {
     public partial class MainNavigationMenu : UserControl
     {
+        private IInputElement _returnFocus;
         public static readonly DependencyProperty CurrentPageProperty =
             DependencyProperty.Register(
                 nameof(CurrentPage),
@@ -34,16 +35,38 @@ namespace LoginAppFramework
 
         public void Open()
         {
+            _returnFocus = Keyboard.FocusedElement;
+
             UpdateUserDisplay();
             UpdateActiveButton();
             UserPopup.IsOpen = false;
             Visibility = Visibility.Visible;
+
+            Dispatcher.BeginInvoke(
+                new Action(() => GetActiveButton().Focus()));
         }
 
         public void Close()
         {
             UserPopup.IsOpen = false;
             Visibility = Visibility.Collapsed;
+
+            if (_returnFocus is UIElement element)
+                element.Focus();
+
+            _returnFocus = null;
+        }
+
+        private Button GetActiveButton()
+        {
+            return (CurrentPage ?? string.Empty).Trim().ToLowerInvariant() switch
+            {
+                "workers" => WorkersButton,
+                "assets" => AssetsButton,
+                "history" => HistoryButton,
+                "reports" => ReportsButton,
+                _ => DashboardButton
+            };
         }
 
         private Window OwnerWindow => Window.GetWindow(this);
@@ -178,10 +201,41 @@ namespace LoginAppFramework
             => UserPopup.IsOpen = !UserPopup.IsOpen;
 
         private void SwitchUserButton_Click(object sender, RoutedEventArgs e)
-            => NavigationManager.RestartApplication();
+        {
+            Close();
+            NavigationManager.SwitchUser();
+        }
 
         private void LogoutButton_Click(object sender, RoutedEventArgs e)
-            => NavigationManager.RestartApplication();
+        {
+            var confirm = MessageBox.Show(
+                "Proqramdan çıxmaq istəyirsiniz?",
+                "Çıxış",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (confirm == MessageBoxResult.Yes)
+                NavigationManager.ExitApplication();
+        }
+
+        private void MainNavigationMenu_PreviewKeyDown(
+            object sender,
+            KeyEventArgs e)
+        {
+            if (e.Key != Key.Escape)
+                return;
+
+            if (UserPopup.IsOpen)
+            {
+                UserPopup.IsOpen = false;
+            }
+            else
+            {
+                Close();
+            }
+
+            e.Handled = true;
+        }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
             => Close();

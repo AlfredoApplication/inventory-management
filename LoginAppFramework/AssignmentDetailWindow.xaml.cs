@@ -21,8 +21,8 @@ namespace LoginAppFramework
             else if (historyEntry.Action == AssignmentAction.Unassigned) EventTitleTextBlock.Foreground = Brushes.IndianRed;
             else EventTitleTextBlock.Foreground = Brushes.RoyalBlue;
             if (asset != null) { AssetNameTextBlock.Text = asset.Name; AssetCategoryTextBlock.Text = asset.Category; AssetSerialTextBlock.Text = $"SN: {asset.SerialNumber}"; }
-            if (worker != null) { UserNameTextBlock.Text = worker.per_adiper_soyadi; UserPositionTextBlock.Text = worker.pgk_gorev_adi; UserDepartmentTextBlock.Text = $"Dept: {worker.pdp_adi}"; }
-            else { UserNameTextBlock.Text = relevantWorkerName; UserPositionTextBlock.Text = "(User not found)"; UserDepartmentTextBlock.Text = string.Empty; }
+            if (worker != null) { UserNameTextBlock.Text = worker.per_adiper_soyadi; UserPositionTextBlock.Text = worker.pgk_gorev_adi; UserDepartmentTextBlock.Text = $"Departament: {worker.pdp_adi}"; }
+            else { UserNameTextBlock.Text = relevantWorkerName; UserPositionTextBlock.Text = "(İstifadəçi tapılmadı)"; UserDepartmentTextBlock.Text = string.Empty; }
         }
     }
 }

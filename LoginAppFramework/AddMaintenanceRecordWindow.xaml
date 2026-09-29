@@ -12,6 +12,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
@@ -32,8 +33,15 @@
         <Label Grid.Row="4" Content="Təsvir:" VerticalAlignment="Top" Margin="0,0,10,10"/>
         <TextBox x:Name="DescriptionTextBox" Grid.Row="4" Grid.Column="1" Margin="0,0,0,10" Padding="5" TextWrapping="Wrap" Height="80" VerticalScrollBarVisibility="Auto"/>
 
-        <!-- UPDATED BUTTONS SECTION -->
-        <Grid Grid.Row="5" Grid.ColumnSpan="2" Margin="0,15,0,0">
+        <TextBlock x:Name="ValidationTextBlock"
+                   Grid.Row="5"
+                   Grid.ColumnSpan="2"
+                   Visibility="Collapsed"
+                   Foreground="{StaticResource DangerBrush}"
+                   TextWrapping="Wrap"
+                   Margin="0,2,0,8"/>
+
+        <Grid Grid.Row="6" Grid.ColumnSpan="2" Margin="0,12,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>

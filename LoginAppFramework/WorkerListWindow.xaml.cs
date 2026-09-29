@@ -112,15 +112,15 @@ namespace LoginAppFramework
             }
 
             var confirmResult = MessageBox.Show(
-                "This will synchronize with the remote HR database.\n\nContinue?",
-                "Confirm Sync",
+                "İşçi siyahısı uzaq HR məlumat bazası ilə sinxronizasiya ediləcək.\n\nDavam etmək istəyirsiniz?",
+                "Sinxronizasiyanı Təsdiq Et",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question);
 
             if (confirmResult != MessageBoxResult.Yes) return;
 
             SyncWorkersButton.IsEnabled = false;
-            LoadingMessage.Text = "Synchronizing...";
+            LoadingMessage.Text = "Sinxronizasiya edilir...";
             LoadingOverlay.Visibility = Visibility.Visible;
 
             try
@@ -128,17 +128,15 @@ namespace LoginAppFramework
                 int affectedRows = await _viewModel.SynchronizeAsync();
                 RefreshViewModelPreservingSelection();
 
-                MessageBox.Show(
-                    $"Sync complete. {affectedRows} records affected.",
-                    "Success",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
+                NotificationService.Success(
+                    this,
+                    $"Sinxronizasiya tamamlandı. {affectedRows} qeyd yeniləndi.");
             }
             catch (Exception ex)
             {
                 MessageBox.Show(
-                    $"Sync Failed:\n{ex.Message}",
-                    "Error",
+                    $"Sinxronizasiya zamanı xəta baş verdi:\n{ex.Message}",
+                    "Xəta",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
             }
@@ -232,8 +230,8 @@ namespace LoginAppFramework
             if (selected.Count == 0) return;
 
             var result = MessageBox.Show(
-                $"Are you sure you want to DEACTIVATE {selected.Count} workers?",
-                "Confirm",
+                $"Seçilmiş {selected.Count} işçini qeyri-aktiv etmək istəyirsiniz?",
+                "Deaktivləşdirməni Təsdiq Et",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning);
 
@@ -244,7 +242,7 @@ namespace LoginAppFramework
                 false);
 
             RefreshViewModelPreservingSelection();
-            MessageBox.Show($"{count} workers deactivated.", "Complete");
+            NotificationService.Success(this, $"{count} işçi qeyri-aktiv edildi.");
         }
 
         private void BulkActivateButton_Click(object sender, RoutedEventArgs e)
@@ -266,8 +264,8 @@ namespace LoginAppFramework
             if (selected.Count == 0) return;
 
             var result = MessageBox.Show(
-                $"Are you sure you want to ACTIVATE {selected.Count} workers?",
-                "Confirm",
+                $"Seçilmiş {selected.Count} işçini aktiv etmək istəyirsiniz?",
+                "Aktivləşdirməni Təsdiq Et",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question);
 
@@ -278,7 +276,7 @@ namespace LoginAppFramework
                 true);
 
             RefreshViewModelPreservingSelection();
-            MessageBox.Show($"{count} workers activated.", "Complete");
+            NotificationService.Success(this, $"{count} işçi aktiv edildi.");
         }
 
         private void UpdateDetailView()
@@ -321,8 +319,8 @@ namespace LoginAppFramework
             if (worker == null) return;
 
             var result = MessageBox.Show(
-                $"Are you sure you want to permanently delete '{worker.per_adiper_soyadi}'?",
-                "Confirm",
+                $"'{worker.per_adiper_soyadi}' adlı işçini həmişəlik silmək istəyirsiniz?",
+                "Silməni Təsdiq Et",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning);
 
@@ -353,6 +351,20 @@ namespace LoginAppFramework
         private void ClearFiltersButton_Click(object _, RoutedEventArgs e)
         {
             _viewModel.ClearFilters();
+        }
+
+        private void ToggleFilterPanelButton_Click(object sender, RoutedEventArgs e)
+        {
+            bool isVisible = FilterSidebar.Visibility == Visibility.Visible;
+
+            FilterSidebar.Visibility =
+                isVisible ? Visibility.Collapsed : Visibility.Visible;
+
+            FilterColumn.Width =
+                isVisible ? new GridLength(0) : new GridLength(240);
+
+            FilterPanelToggleButton.Content =
+                isVisible ? "Filtrləri Göstər" : "Filtrləri Gizlət";
         }
 
         private void MenuButton_Click(object _, RoutedEventArgs e)

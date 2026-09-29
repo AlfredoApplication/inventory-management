@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace LoginAppFramework
 {
@@ -212,13 +213,13 @@ namespace LoginAppFramework
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
+            ClearValidation();
+
             if (string.IsNullOrWhiteSpace(Asset.VesaitinAdi))
             {
-                MessageBox.Show(
-                    "Vəsaitin Adı tələb olunur.",
-                    "Xəta",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
+                ShowValidation(
+                    "Vəsaitin adı tələb olunur.",
+                    AssetNameTextBox);
                 return;
             }
 
@@ -226,13 +227,9 @@ namespace LoginAppFramework
 
             if (!workerResolution.IsValid)
             {
-                MessageBox.Show(
+                ShowValidation(
                     workerResolution.ErrorMessage,
-                    "Əməkdaş Seçimi",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
-
-                UserComboBox.Focus();
+                    UserComboBox);
                 return;
             }
 
@@ -270,6 +267,35 @@ namespace LoginAppFramework
             AppServices.Assets.Save(Asset);
             DialogResult = true;
             Close();
+        }
+
+        private void ClearValidation()
+        {
+            ValidationTextBlock.Text = string.Empty;
+            ValidationTextBlock.Visibility = Visibility.Collapsed;
+
+            foreach (Control control in new Control[]
+            {
+                AssetNameTextBox,
+                UserComboBox
+            })
+            {
+                control.ClearValue(Control.BorderBrushProperty);
+                control.ClearValue(Control.BorderThicknessProperty);
+            }
+        }
+
+        private void ShowValidation(
+            string message,
+            Control control)
+        {
+            ValidationTextBlock.Text = message;
+            ValidationTextBlock.Visibility = Visibility.Visible;
+
+            control.BorderBrush =
+                (Brush)FindResource("DangerBrush");
+            control.BorderThickness = new Thickness(2);
+            control.Focus();
         }
 
         private void CategoryComboBox_SelectionChanged(

@@ -93,7 +93,7 @@ namespace LoginAppFramework
 
             if (!checkedAssets.Any())
             {
-                MessageBox.Show("QR kod yaratmaq üçün ən azı bir vəsait işarələyin (vəsaitin kodu boş olmamalıdır).", "Vəsait İşarələnməyib", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Barkod yaratmaq üçün ən azı bir vəsait işarələyin (vəsaitin kodu boş olmamalıdır).", "Vəsait İşarələnməyib", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -125,7 +125,7 @@ namespace LoginAppFramework
             try
             {
                 _viewModel.Export(saveFileDialog.FileName);
-                MessageBox.Show("Məlumatlar uğurla Excel faylına export edildi.", "Export Tamamlandı", MessageBoxButton.OK, MessageBoxImage.Information);
+                NotificationService.Success(this, "Məlumatlar Excel faylına export edildi.");
             }
             catch (Exception ex)
             {
@@ -193,10 +193,7 @@ namespace LoginAppFramework
             {
                 var mappingWindow = new ImportMappingWindow(unmappedNames, dbWorkers) { Owner = this };
                 if (mappingWindow.ShowDialog() != true)
-                {
-                    MessageBox.Show("Import ləğv edildi.");
                     return;
-                }
 
                 foreach (var mapping in mappingWindow.ConfirmedMappings)
                 {
@@ -229,7 +226,7 @@ namespace LoginAppFramework
             try
             {
                 _viewModel.ImportAssets(batch.Assets);
-                MessageBox.Show($"{batch.Assets.Count} vəsait uğurla import edildi.", "Import Tamamlandı", MessageBoxButton.OK, MessageBoxImage.Information);
+                NotificationService.Success(this, $"{batch.Assets.Count} vəsait import edildi.");
             }
             catch (Exception ex)
             {
@@ -295,11 +292,9 @@ namespace LoginAppFramework
 
                 if (result.UpdatedCount > 0)
                 {
-                    MessageBox.Show(
-                        $"{result.UpdatedCount} vəsait uğurla dəyişdirildi.",
-                        "Tamamlandı",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information);
+                    NotificationService.Success(
+                        this,
+                        $"{result.UpdatedCount} vəsait dəyişdirildi.");
                 }
 
                 if (result.SkippedStatusAssets.Count > 0)
@@ -318,11 +313,9 @@ namespace LoginAppFramework
                 if (result.UpdatedCount == 0 &&
                     result.SkippedStatusAssets.Count == 0)
                 {
-                    MessageBox.Show(
-                        "Heç bir dəyişiklik edilmədi.",
-                        "Məlumat",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information);
+                    NotificationService.Success(
+                        this,
+                        "Dəyişiklik üçün yeni dəyər seçilməyib.");
                 }
             }
             catch (Exception ex)
@@ -360,8 +353,9 @@ namespace LoginAppFramework
                     _viewModel.AssignCheckedAssets(newWorker);
                     RefreshDataAndSelection();
 
-                    MessageBox.Show($"{checkedAssets.Count} vəsait {newWorker.per_adiper_soyadi} adlı işçiyə uğurla təhkim edildi.",
-                                    "Təhkim Tamamlandı", MessageBoxButton.OK, MessageBoxImage.Information);
+                    NotificationService.Success(
+                        this,
+                        $"{checkedAssets.Count} vəsait {newWorker.per_adiper_soyadi} adlı işçiyə təhkim edildi.");
                 }
                 catch (Exception ex)
                 {
@@ -457,7 +451,22 @@ namespace LoginAppFramework
             }
         }
 
-        private void ClearFiltersButton_Click(object _, RoutedEventArgs e) => _viewModel.ClearFilters();
+        private void ClearFiltersButton_Click(object _, RoutedEventArgs e)
+            => _viewModel.ClearFilters();
+
+        private void ToggleFilterPanelButton_Click(object sender, RoutedEventArgs e)
+        {
+            bool isVisible = FilterSidebar.Visibility == Visibility.Visible;
+
+            FilterSidebar.Visibility =
+                isVisible ? Visibility.Collapsed : Visibility.Visible;
+
+            FilterColumn.Width =
+                isVisible ? new GridLength(0) : new GridLength(280);
+
+            FilterPanelToggleButton.Content =
+                isVisible ? "Filtrləri Göstər" : "Filtrləri Gizlət";
+        }
 
 
         private void UpdateDetailView() => AssetDetailControl.DisplayAsset(_selectedAssetVM?.Asset, _viewModel.Workers.ToList());

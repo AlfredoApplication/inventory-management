@@ -77,6 +77,10 @@
                     </Button>
                     <TextBlock Grid.Column="1" Text="İşçi İdarəetməsi" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/>
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <Button x:Name="FilterPanelToggleButton"
+                                Content="Filtrləri Gizlət"
+                                Click="ToggleFilterPanelButton_Click"
+                                Margin="0,0,10,0"/>
                         <Button x:Name="SyncWorkersButton" Content="HR ilə Sinxronizasiya" Style="{StaticResource PrimaryActionButton}" Click="SyncWorkersButton_Click" Margin="0,0,10,0" ToolTip="İşçi siyahısını uzaq HR məlumat bazası ilə sinxronizasiya edin."/>
                         <Button x:Name="AddWorkerButton" Content="Yeni İşçi Əlavə et" Style="{StaticResource PrimaryActionButton}" Click="AddWorkerButton_Click"/>
                     </StackPanel>
@@ -84,10 +88,10 @@
             </Border>
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" MinWidth="240"/>
+                    <ColumnDefinition x:Name="FilterColumn" Width="240"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Border Grid.Column="0" Background="{StaticResource PanelBackgroundBrush}" Padding="15" BorderThickness="0,0,1,0" BorderBrush="{StaticResource ControlBorderBrush}">
+                <Border x:Name="FilterSidebar" Grid.Column="0" Background="{StaticResource PanelBackgroundBrush}" Padding="15" BorderThickness="0,0,1,0" BorderBrush="{StaticResource ControlBorderBrush}">
                     <DockPanel>
                         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Right">
                             <TextBlock Text="FILTRLƏR" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryTextBrush}" VerticalAlignment="Center"/>
