@@ -174,7 +174,11 @@
                                                       Visibility="{Binding CanRestore, Converter={StaticResource BoolToVis}}"
                                                       VerticalAlignment="Center"/>
 
-                                            <TextBlock Grid.Column="1" Text="{Binding Icon}" FontSize="24" VerticalAlignment="Center" Margin="5,0,20,0"/>
+                                            <local:AppIcon Grid.Column="1"
+                                                           Icon="{Binding Icon}"
+                                                           Size="24"
+                                                           VerticalAlignment="Center"
+                                                           Margin="5,0,20,0"/>
                                             <StackPanel Grid.Column="2" VerticalAlignment="Center">
                                                 <TextBlock FontWeight="SemiBold" Text="{Binding Description}" TextWrapping="Wrap" Foreground="{StaticResource BodyTextBrush}" FontSize="14"/>
                                             </StackPanel>

@@ -33,7 +33,9 @@ namespace LoginAppFramework
         Success,
         Error,
         Warning,
-        Info
+        Info,
+        Edit,
+        Delete
     }
 
     public sealed class AppIcon : PackIconMaterial
@@ -127,6 +129,8 @@ namespace LoginAppFramework
                 AppIconKind.Error => PackIconMaterialKind.AlertCircle,
                 AppIconKind.Warning => PackIconMaterialKind.Alert,
                 AppIconKind.Info => PackIconMaterialKind.Information,
+                AppIconKind.Edit => PackIconMaterialKind.Pencil,
+                AppIconKind.Delete => PackIconMaterialKind.Delete,
                 _ => PackIconMaterialKind.CircleOutline
             };
         }

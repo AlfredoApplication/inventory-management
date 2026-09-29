@@ -16,7 +16,7 @@ namespace LoginAppFramework
         public string Description { get; private set; }
         public string ChangedBy { get; set; }
         public DateTime Timestamp { get; private set; }
-        public string Icon { get; private set; }
+        public AppIconKind Icon { get; private set; }
         public string Status { get; private set; }
 
         public bool IsDeleted => Log?.status == "Silinən";
@@ -56,17 +56,17 @@ namespace LoginAppFramework
                 AssignmentAction.Reassigned => $"{assetName} yenidən təhkim olundu: {assignment.FromWorkerName} -> {assignment.ToWorkerName}",
                 _ => "Naməlum təhkimat əməliyyatı"
             };
-            Icon = "🔄";
+            Icon = AppIconKind.History;
         }
 
         private void GenerateAssetLogSummary()
         {
             Icon = Log.status switch
             {
-                "Yaradılan" => "✅",
-                "Dəyişdirilən" => "✏️",
-                "Silinən" => "❌",
-                _ => "ℹ️"
+                "Yaradılan" => AppIconKind.Add,
+                "Dəyişdirilən" => AppIconKind.Edit,
+                "Silinən" => AppIconKind.Delete,
+                _ => AppIconKind.Info
             };
 
             // --- THIS IS THE CORRECTED LOGIC ---

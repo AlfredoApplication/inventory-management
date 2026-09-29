@@ -110,9 +110,7 @@
                             Padding="0"
                             ToolTip="Tarix seç"
                             Click="SelectToDateButton_Click">
-                        <TextBlock Text="&#xE787;"
-                                   FontFamily="Segoe MDL2 Assets"
-                                   FontSize="17"/>
+                        <local:AppIcon Icon="Calendar" Size="18"/>
                     </Button>
                 </Grid>
 
