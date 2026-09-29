@@ -30,7 +30,10 @@ namespace LoginAppFramework
         Money,
         Depreciation,
         Chart,
-        Success
+        Success,
+        Error,
+        Warning,
+        Info
     }
 
     public sealed class AppIcon : PackIconMaterial
@@ -65,8 +68,6 @@ namespace LoginAppFramework
         {
             HorizontalAlignment = HorizontalAlignment.Center;
             VerticalAlignment = VerticalAlignment.Center;
-            Stretch = System.Windows.Media.Stretch.Uniform;
-
             ApplySize(Size);
             ApplyIcon(Icon);
         }
@@ -123,6 +124,9 @@ namespace LoginAppFramework
                 AppIconKind.Depreciation => PackIconMaterialKind.TrendingDown,
                 AppIconKind.Chart => PackIconMaterialKind.ChartLine,
                 AppIconKind.Success => PackIconMaterialKind.CheckCircle,
+                AppIconKind.Error => PackIconMaterialKind.AlertCircle,
+                AppIconKind.Warning => PackIconMaterialKind.Alert,
+                AppIconKind.Info => PackIconMaterialKind.Information,
                 _ => PackIconMaterialKind.CircleOutline
             };
         }

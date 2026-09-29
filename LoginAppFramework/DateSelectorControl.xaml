@@ -26,9 +26,7 @@
                 Padding="0"
                 ToolTip="Tarix seç"
                 Click="CalendarButton_Click">
-            <TextBlock Text="&#xE787;"
-                       FontFamily="Segoe MDL2 Assets"
-                       FontSize="16"/>
+            <local:AppIcon Icon="Calendar" Size="17"/>
         </Button>
 
         <Button x:Name="ClearButton"

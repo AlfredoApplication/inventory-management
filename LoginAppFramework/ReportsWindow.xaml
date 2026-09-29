@@ -1,6 +1,7 @@
 <Window x:Class="LoginAppFramework.ReportsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:LoginAppFramework"
         Title="Alış Tarixinə Görə Excel Hesabatı"
         Height="330"
         Width="700"
@@ -83,9 +84,7 @@
                             Padding="0"
                             ToolTip="Tarix seç"
                             Click="SelectFromDateButton_Click">
-                        <TextBlock Text="&#xE787;"
-                                   FontFamily="Segoe MDL2 Assets"
-                                   FontSize="17"/>
+                        <local:AppIcon Icon="Calendar" Size="18"/>
                     </Button>
                 </Grid>
 
