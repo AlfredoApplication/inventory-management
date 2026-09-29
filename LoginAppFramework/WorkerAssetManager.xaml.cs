@@ -9,8 +9,6 @@ namespace LoginAppFramework
 {
     public partial class WorkerAssetManager : UserControl
     {
-        public event EventHandler<Worker> OnEditWorker;
-        public event EventHandler<Worker> OnDeleteWorker;
         public event EventHandler AssetAssignmentChanged;
         public event EventHandler OnDetailPanelClosed;
         public event EventHandler<Asset> OnAssetDoubleClicked;

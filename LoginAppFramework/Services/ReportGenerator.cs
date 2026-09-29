@@ -83,14 +83,12 @@ namespace LoginAppFramework
                 .Take(5)
                 .ToList();
 
-            // Səhifəni iki sütuna bölürük
-            container.Grid(grid =>
+            // Səhifəni iki sütuna bölürük.
+            container.Row(row =>
             {
-                grid.Spacing(25);
-                grid.Columns(6); // 12 sütunlu sistem kimi düşünək (6+6)
+                row.Spacing(25);
 
-                // SOL SÜTUN
-                grid.Item(6).Column(column =>
+                row.RelativeItem().Column(column =>
                 {
                     column.Spacing(15);
 
@@ -101,28 +99,30 @@ namespace LoginAppFramework
 
                     column.Item().PaddingTop(15).Text("Vəsait Statusu Xülasəsi").Bold().FontSize(14);
 
-                    // Statuslar üçün 2 sütunlu grid
-                    column.Item().Grid(statusGrid =>
+                    column.Item().Column(statusColumn =>
                     {
-                        statusGrid.Spacing(15);
-                        statusGrid.Columns(2);
+                        statusColumn.Spacing(15);
 
-                        ComposeKpi(statusGrid.Item(), "Ümumi Say", $"{totalCount:N0}", "📦", Colors.Black);
-                        ComposeKpi(statusGrid.Item(), "Təhkim Edilən", $"{assignedCount:N0}", "👨‍💼", Colors.Orange.Darken2);
-                        ComposeKpi(statusGrid.Item(), "Anbarda", $"{inStockCount:N0}", "🏢", Colors.Grey.Darken2);
-                        ComposeKpi(statusGrid.Item(), "İst. Müddəti Bitmiş", $"{endOfLifeCount:N0}", "⚠️", Colors.Red.Darken4);
+                        statusColumn.Item().Row(statusRow =>
+                        {
+                            statusRow.Spacing(15);
+                            ComposeKpi(statusRow.RelativeItem(), "Ümumi Say", $"{totalCount:N0}", "📦", Colors.Black);
+                            ComposeKpi(statusRow.RelativeItem(), "Təhkim Edilən", $"{assignedCount:N0}", "👨‍💼", Colors.Orange.Darken2);
+                        });
+
+                        statusColumn.Item().Row(statusRow =>
+                        {
+                            statusRow.Spacing(15);
+                            ComposeKpi(statusRow.RelativeItem(), "Anbarda", $"{inStockCount:N0}", "🏢", Colors.Grey.Darken2);
+                            ComposeKpi(statusRow.RelativeItem(), "İst. Müddəti Bitmiş", $"{endOfLifeCount:N0}", "⚠️", Colors.Red.Darken4);
+                        });
                     });
                 });
 
-                // SAĞ SÜTUN
-                grid.Item(6).Column(column =>
+                row.RelativeItem().Column(column =>
                 {
                     column.Spacing(25);
-
-                    // Kateqoriya qrafiki
                     ComposeBarChart(column.Item(), "Kateqoriya Üzrə Ən Çox Vəsait (Top 5)", assetsByCategory);
-
-                    // Departament qrafiki
                     ComposeBarChart(column.Item(), "Departament Üzrə Ən Çox Dəyər (Top 5)", valueByDepartment);
                 });
             });
