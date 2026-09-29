@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -8,31 +9,39 @@ namespace LoginAppFramework
     public class ColumnFilterItem : INotifyPropertyChanged
     {
         private bool _isChecked;
+
         public string Value { get; set; }
+
         public bool IsChecked
         {
             get => _isChecked;
             set
             {
-                if (_isChecked != value)
-                {
-                    _isChecked = value;
-                    OnPropertyChanged();
-                }
+                if (_isChecked == value) return;
+                _isChecked = value;
+                OnPropertyChanged();
             }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string name = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
+
+        protected void OnPropertyChanged(
+            [CallerMemberName] string name = null)
+            => PropertyChanged?.Invoke(
+                this,
+                new PropertyChangedEventArgs(name));
+    }
+
+    public sealed class ColumnFilterSnapshot
+    {
+        public string SearchText { get; init; }
+        public IReadOnlyDictionary<string, bool> Selections { get; init; }
     }
 
     public class ColumnFilterViewModel : INotifyPropertyChanged
     {
         private string _searchText;
-        private List<ColumnFilterItem> _allItems;
+        private readonly List<ColumnFilterItem> _allItems;
         private List<ColumnFilterItem> _filteredItems;
 
         public string SearchText
@@ -40,12 +49,10 @@ namespace LoginAppFramework
             get => _searchText;
             set
             {
-                if (_searchText != value)
-                {
-                    _searchText = value;
-                    OnPropertyChanged();
-                    UpdateFilteredItems();
-                }
+                if (_searchText == value) return;
+                _searchText = value;
+                OnPropertyChanged();
+                UpdateFilteredItems();
             }
         }
 
@@ -59,18 +66,62 @@ namespace LoginAppFramework
             }
         }
 
-        public bool HasActiveFilters => _allItems != null && _allItems.Any(item => !item.IsChecked);
+        public bool HasActiveFilters
+            => _allItems.Any(item => !item.IsChecked);
 
         public ColumnFilterViewModel(IEnumerable<string> distinctValues)
         {
             _allItems = distinctValues
-                .Where(v => !string.IsNullOrEmpty(v))
+                .Where(value => !string.IsNullOrEmpty(value))
                 .Distinct()
-                .OrderBy(v => v)
-                .Select(v => new ColumnFilterItem { Value = v, IsChecked = true })
+                .OrderBy(value => value)
+                .Select(value => new ColumnFilterItem
+                {
+                    Value = value,
+                    IsChecked = true
+                })
                 .ToList();
 
+            foreach (var item in _allItems)
+            {
+                item.PropertyChanged += (_, args) =>
+                {
+                    if (args.PropertyName == nameof(ColumnFilterItem.IsChecked))
+                        OnPropertyChanged(nameof(HasActiveFilters));
+                };
+            }
+
             FilteredItems = new List<ColumnFilterItem>(_allItems);
+        }
+
+        public ColumnFilterSnapshot CreateSnapshot()
+            => new()
+            {
+                SearchText = SearchText,
+                Selections = _allItems.ToDictionary(
+                    item => item.Value,
+                    item => item.IsChecked,
+                    StringComparer.Ordinal)
+            };
+
+        public void RestoreSnapshot(ColumnFilterSnapshot snapshot)
+        {
+            if (snapshot == null) return;
+
+            foreach (var item in _allItems)
+            {
+                if (snapshot.Selections.TryGetValue(
+                    item.Value,
+                    out bool isChecked))
+                {
+                    item.IsChecked = isChecked;
+                }
+            }
+
+            _searchText = snapshot.SearchText;
+            OnPropertyChanged(nameof(SearchText));
+            UpdateFilteredItems();
+            OnPropertyChanged(nameof(HasActiveFilters));
         }
 
         private void UpdateFilteredItems()
@@ -78,42 +129,45 @@ namespace LoginAppFramework
             if (string.IsNullOrWhiteSpace(SearchText))
             {
                 FilteredItems = new List<ColumnFilterItem>(_allItems);
+                return;
             }
-            else
-            {
-                FilteredItems = _allItems
-                    .Where(item => item.Value.ToLower().Contains(SearchText.ToLower()))
-                    .ToList();
-            }
+
+            FilteredItems = _allItems
+                .Where(item =>
+                    item.Value.Contains(
+                        SearchText,
+                        StringComparison.OrdinalIgnoreCase))
+                .ToList();
         }
 
         public void SelectAll()
         {
             foreach (var item in _allItems)
-            {
                 item.IsChecked = true;
-            }
+
             OnPropertyChanged(nameof(HasActiveFilters));
         }
 
         public void ClearAll()
         {
             foreach (var item in _allItems)
-            {
                 item.IsChecked = false;
-            }
+
             OnPropertyChanged(nameof(HasActiveFilters));
         }
 
         public List<string> GetSelectedValues()
-        {
-            return _allItems.Where(item => item.IsChecked).Select(item => item.Value).ToList();
-        }
+            => _allItems
+                .Where(item => item.IsChecked)
+                .Select(item => item.Value)
+                .ToList();
 
         public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string name = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
+
+        protected void OnPropertyChanged(
+            [CallerMemberName] string name = null)
+            => PropertyChanged?.Invoke(
+                this,
+                new PropertyChangedEventArgs(name));
     }
 }
