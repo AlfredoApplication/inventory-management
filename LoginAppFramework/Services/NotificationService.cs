@@ -72,13 +72,14 @@ namespace LoginAppFramework
                     if (!States.TryGetValue(resolvedOwner, out var ownerState))
                         return;
 
+                    States.Remove(resolvedOwner);
+                    ownerState.Pending.Clear();
+
                     foreach (var toast in ownerState.Visible.ToList())
                     {
                         if (toast.IsVisible)
                             toast.Close();
                     }
-
-                    States.Remove(resolvedOwner);
                 };
             }
 
