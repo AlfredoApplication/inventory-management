@@ -840,15 +840,27 @@ namespace LoginAppFramework
                 return;
             }
 
+            var snapshot = assetVm.Asset.Clone();
+            int assetId = assetVm.Asset.Id;
+
             AppServices.Assets.Assign(
                 assetVm.Asset,
                 selectWindow.SelectedWorker,
                 "Vəsait siyahısı");
 
-            RefreshDataAndSelection(assetVm.Asset.Id);
-            NotificationService.Success(
+            RefreshDataAndSelection(assetId);
+
+            NotificationService.Undo(
                 this,
-                $"Vəsait {selectWindow.SelectedWorker.per_adiper_soyadi} adlı işçiyə təhkim edildi.");
+                $"Vəsait {selectWindow.SelectedWorker.per_adiper_soyadi} adlı işçiyə təhkim edildi.",
+                () =>
+                {
+                    AppServices.Assets.Save(snapshot);
+                    RefreshDataAndSelection(assetId);
+                    NotificationService.Success(
+                        this,
+                        "Təhkimat geri qaytarıldı.");
+                });
         }
 
         private void PrintAssetBarcodeContext_Click(object sender, RoutedEventArgs e)
