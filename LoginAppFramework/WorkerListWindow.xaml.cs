@@ -171,12 +171,21 @@ namespace LoginAppFramework
             if (!confirmResult) return;
 
             SyncWorkersButton.IsEnabled = false;
-            LoadingMessage.Text = "Sinxronizasiya edilir...";
-            LoadingOverlay.Visibility = Visibility.Visible;
+            OperationProgressOverlay.Show(
+                "HR ilə sinxronizasiya edilir...",
+                "İşçi məlumatları uzaq HR bazasından yenilənir.");
 
             try
             {
                 int affectedRows = await _viewModel.SynchronizeAsync();
+
+                OperationProgressOverlay.Report(
+                    new OperationProgressInfo(
+                        "Sinxronizasiya tamamlandı",
+                        affectedRows,
+                        affectedRows,
+                        $"{affectedRows} qeyd yeniləndi."));
+
                 RefreshViewModelPreservingSelection();
 
                 NotificationService.Success(
@@ -191,8 +200,8 @@ namespace LoginAppFramework
             }
             finally
             {
+                OperationProgressOverlay.Hide();
                 SyncWorkersButton.IsEnabled = true;
-                LoadingOverlay.Visibility = Visibility.Collapsed;
             }
         }
 
