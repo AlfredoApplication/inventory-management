@@ -206,19 +206,18 @@ namespace LoginAppFramework
 
             if (!string.IsNullOrWhiteSpace(PurchaseCostTextBox.Text))
             {
-                if (decimal.TryParse(
-                    PurchaseCostTextBox.Text,
-                    out decimal cost))
-                {
-                    Changes.PurchaseCost = cost;
-                }
-                else
+                if (!AssetFormValidator.TryParsePurchaseCost(
+                        PurchaseCostTextBox.Text,
+                        out decimal cost,
+                        out string costError))
                 {
                     ShowValidation(
-                        "Alış qiyməti düzgün rəqəm formatında deyil.",
+                        costError,
                         PurchaseCostTextBox);
                     return;
                 }
+
+                Changes.PurchaseCost = cost;
             }
 
             if (PurchaseDateSelector.SelectedDate.HasValue)
@@ -227,27 +226,18 @@ namespace LoginAppFramework
 
             if (!string.IsNullOrWhiteSpace(UsefulLifeTextBox.Text))
             {
-                if (int.TryParse(
-                    UsefulLifeTextBox.Text,
-                    out int life))
-                {
-                    if (life < 0)
-                    {
-                        ShowValidation(
-                            "İstifadə müddəti mənfi ola bilməz. 0 dəyəri 'təyin edilməyib' kimi qəbul olunur.",
-                            UsefulLifeTextBox);
-                        return;
-                    }
-
-                    Changes.UsefulLifeInYears = life;
-                }
-                else
+                if (!AssetFormValidator.TryParseUsefulLife(
+                        UsefulLifeTextBox.Text,
+                        out int life,
+                        out string lifeError))
                 {
                     ShowValidation(
-                        "İstifadə müddəti düzgün rəqəm formatında deyil.",
+                        lifeError,
                         UsefulLifeTextBox);
                     return;
                 }
+
+                Changes.UsefulLifeInYears = life;
             }
 
             Changes.Supplier = BulkAssetChanges.ResolveTextChange(
@@ -257,6 +247,19 @@ namespace LoginAppFramework
             if (WarrantyDateSelector.SelectedDate.HasValue)
                 Changes.WarrantyExpirationDate =
                     WarrantyDateSelector.SelectedDate.Value;
+
+            if (PurchaseDateSelector.SelectedDate.HasValue &&
+                WarrantyDateSelector.SelectedDate.HasValue &&
+                !AssetFormValidator.ValidateDates(
+                    PurchaseDateSelector.SelectedDate,
+                    WarrantyDateSelector.SelectedDate,
+                    out string dateError))
+            {
+                ShowValidation(
+                    dateError,
+                    WarrantyDateSelector);
+                return;
+            }
 
             DialogResult = true;
             Close();
