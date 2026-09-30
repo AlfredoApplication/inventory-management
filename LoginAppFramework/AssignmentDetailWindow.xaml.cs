@@ -1,6 +1,5 @@
 ﻿using System.Linq;
 using System.Windows;
-using System.Windows.Media;
 
 namespace LoginAppFramework
 {
@@ -15,12 +14,20 @@ namespace LoginAppFramework
             var asset = AppData.GetAssets().FirstOrDefault(a => a.Name == historyEntry.AssetName);
             var worker = AppData.GetWorkers().FirstOrDefault(w => w.per_adiper_soyadi == relevantWorkerName);
 
-            EventTitleTextBlock.Text = $"Asset {historyEntry.Action}";
-            EventSubtitleTextBlock.Text = $"by {historyEntry.ChangedBy} on {historyEntry.ChangeDate:g}";
-            if (historyEntry.Action == AssignmentAction.Assigned) EventTitleTextBlock.Foreground = Brushes.Green;
-            else if (historyEntry.Action == AssignmentAction.Unassigned) EventTitleTextBlock.Foreground = Brushes.IndianRed;
-            else EventTitleTextBlock.Foreground = Brushes.RoyalBlue;
-            if (asset != null) { AssetNameTextBlock.Text = asset.Name; AssetCategoryTextBlock.Text = asset.Category; AssetSerialTextBlock.Text = $"SN: {asset.SerialNumber}"; }
+            EventTitleTextBlock.Text = historyEntry.Action switch
+            {
+                AssignmentAction.Assigned => "Vəsait təhkim edildi",
+                AssignmentAction.Unassigned => "Təhkim ləğv edildi",
+                _ => "Təhkim dəyişdirildi"
+            };
+            EventSubtitleTextBlock.Text = $"{historyEntry.ChangedBy} tərəfindən • {historyEntry.ChangeDate:g}";
+            EventTitleTextBlock.Foreground = historyEntry.Action switch
+            {
+                AssignmentAction.Assigned => (System.Windows.Media.Brush)FindResource("SuccessBrush"),
+                AssignmentAction.Unassigned => (System.Windows.Media.Brush)FindResource("DangerBrush"),
+                _ => (System.Windows.Media.Brush)FindResource("PrimaryBrush")
+            };
+            if (asset != null) { AssetNameTextBlock.Text = asset.Name; AssetCategoryTextBlock.Text = asset.Category; AssetSerialTextBlock.Text = $"Seriya: {asset.SerialNumber}"; }
             if (worker != null) { UserNameTextBlock.Text = worker.per_adiper_soyadi; UserPositionTextBlock.Text = worker.pgk_gorev_adi; UserDepartmentTextBlock.Text = $"Departament: {worker.pdp_adi}"; }
             else { UserNameTextBlock.Text = relevantWorkerName; UserPositionTextBlock.Text = "(İstifadəçi tapılmadı)"; UserDepartmentTextBlock.Text = string.Empty; }
         }
