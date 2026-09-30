@@ -25,10 +25,26 @@ namespace LoginAppFramework
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            LoadingOverlay.Visibility = Visibility.Visible;
             await Task.Delay(20);
-            await _viewModel.LoadAsync();
 
-            GeneratePageButtons();
+            try
+            {
+                await _viewModel.LoadAsync();
+                GeneratePageButtons();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Tarixçə yüklənərkən xəta baş verdi:\n\n{ex.Message}",
+                    "Yükləmə Xətası",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+            finally
+            {
+                LoadingOverlay.Visibility = Visibility.Collapsed;
+            }
         }
 
         private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -157,7 +173,7 @@ namespace LoginAppFramework
 
             if (confirm != MessageBoxResult.Yes) return;
 
-            RestoreSelectedButton.IsEnabled = false;
+            RestoreSelectedButton.SetCurrentValue(UIElement.IsEnabledProperty, false);
 
             try
             {
@@ -182,6 +198,19 @@ namespace LoginAppFramework
             finally
             {
                 SelectAllDeletedCheckBox.IsChecked = false;
+                RestoreSelectedButton.SetCurrentValue(
+                    UIElement.IsEnabledProperty,
+                    _viewModel.CanRestoreSelected);
+            }
+        }
+
+        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.F)
+            {
+                SearchBox.Focus();
+                SearchBox.SelectAll();
+                e.Handled = true;
             }
         }
 

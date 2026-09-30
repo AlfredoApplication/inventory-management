@@ -7,6 +7,7 @@
         mc:Ignorable="d"
         Title="İşçi İdarəetməsi"
         Loaded="Window_Loaded"
+        PreviewKeyDown="Window_PreviewKeyDown"
         WindowStartupLocation="CenterScreen"
         Style="{StaticResource MainScreenWindowStyle}">
 
@@ -107,7 +108,7 @@
                                 <RadioButton x:Name="AllFilterButton" Content="Bütün İşçilər" GroupName="StatusFilter" Margin="0,5,0,0"
                                              IsChecked="{Binding DataContext.IsAllFilterSelected, RelativeSource={RelativeSource AncestorType=Window}, Mode=TwoWay}"/>
                                 <TextBlock Text="Ada görə Axtarış" Style="{StaticResource FilterHeader}"/>
-                                <TextBox Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Tag="Axtarış..."/>
+                                <TextBox x:Name="SearchBox" Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Tag="Axtarış..."/>
                                 <Expander Header="Departament" IsExpanded="True" Margin="0,15,0,0">
                                     <ItemsControl ItemsSource="{Binding DepartmentOptions}" Margin="10,5,0,0">
                                         <ItemsControl.ItemTemplate>
@@ -173,8 +174,8 @@
                             Visibility="{Binding HasBulkSelection, Converter={StaticResource BoolToVis}}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock x:Name="SelectionCountText" Text="{Binding SelectionCountText}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="5,0,20,0" Foreground="{StaticResource BodyTextBrush}"/>
-                            <Button x:Name="BulkDeactivateButton" Content="Seçilmişləri Deaktiv et" Click="BulkDeactivateButton_Click" Background="{StaticResource WarningBrush}" Foreground="{StaticResource PrimaryForegroundBrush}" Padding="8,4" Margin="0,0,10,0" ToolTip="Seçilmiş aktiv işçiləri qeyri-aktiv olaraq işarələyin."/>
-                            <Button x:Name="BulkActivateButton" Content="Seçilmişləri Aktiv et" Click="BulkActivateButton_Click" Background="{StaticResource SuccessBrush}" Foreground="{StaticResource PrimaryForegroundBrush}" Padding="8,4" ToolTip="Seçilmiş qeyri-aktiv işçiləri aktiv olaraq işarələyin."/>
+                            <Button x:Name="BulkDeactivateButton" Content="Seçilmişləri Deaktiv et" Click="BulkDeactivateButton_Click" Style="{StaticResource WarningActionButton}" Padding="8,4" Margin="0,0,10,0" ToolTip="Seçilmiş aktiv işçiləri qeyri-aktiv olaraq işarələyin."/>
+                            <Button x:Name="BulkActivateButton" Content="Seçilmişləri Aktiv et" Click="BulkActivateButton_Click" Style="{StaticResource SuccessActionButton}" Padding="8,4" ToolTip="Seçilmiş qeyri-aktiv işçiləri aktiv olaraq işarələyin."/>
                         </StackPanel>
                     </Border>
                     <DataGrid Grid.Row="3" x:Name="WorkersDataGrid" ItemsSource="{Binding VisibleWorkers}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Extended" AlternationCount="2" SelectionChanged="WorkersDataGrid_SelectionChanged" MouseDoubleClick="WorkersDataGrid_MouseDoubleClick">
@@ -223,9 +224,17 @@
                              <DataGridTextColumn Header="Vəsaitlər" Binding="{Binding AssignedAssetsCount}" Width="*"/>
                          </DataGrid.Columns>
                     </DataGrid>
-                    <TextBlock Grid.Row="3" x:Name="NoResultsTextBlock" Text="Hazırkı filtrlərə uyğun işçi tapılmadı." HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
+                    <Border Grid.Row="3"
+                            x:Name="NoResultsPanel"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Background="{StaticResource PanelBackgroundBrush}"
+                            BorderBrush="{StaticResource ControlBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="28,22">
+                        <Border.Style>
+                            <Style TargetType="Border">
                                 <Setter Property="Visibility" Value="Visible"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding HasResults}" Value="True">
@@ -233,8 +242,27 @@
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
+                        </Border.Style>
+                        <StackPanel HorizontalAlignment="Center">
+                            <local:AppIcon Icon="Workers"
+                                           Size="34"
+                                           Foreground="{StaticResource SubtleTextBrush}"
+                                           HorizontalAlignment="Center"
+                                           Margin="0,0,0,10"/>
+                            <TextBlock Text="İşçi tapılmadı"
+                                       FontSize="17"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource PrimaryTextBrush}"
+                                       HorizontalAlignment="Center"/>
+                            <TextBlock Text="Axtarış və ya filtrləri dəyişərək yenidən yoxlayın."
+                                       Foreground="{StaticResource SubtleTextBrush}"
+                                       Margin="0,5,0,14"
+                                       HorizontalAlignment="Center"/>
+                            <Button Content="Filtrləri təmizlə"
+                                    HorizontalAlignment="Center"
+                                    Click="ClearFiltersButton_Click"/>
+                        </StackPanel>
+                    </Border>
                     <Border Grid.RowSpan="4" x:Name="DetailPanelContainer" HorizontalAlignment="Right" Width="0" Background="{StaticResource PanelBackgroundBrush}" BorderThickness="1,0,0,0" BorderBrush="{StaticResource ControlBorderBrush}">
                         <Border.Effect>
                             <DropShadowEffect ShadowDepth="0" BlurRadius="20" Opacity="0.1" Direction="-90"/>
@@ -247,8 +275,9 @@
         <local:MainNavigationMenu x:Name="SharedNavigationMenu" CurrentPage="Workers"/>
         <Border x:Name="LoadingOverlay" Background="#AAFFFFFF" Visibility="Collapsed">
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                <TextBlock x:Name="LoadingMessage" Text="İşçilər Yüklənir..." FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource BodyTextBrush}"/>
-                <TextBlock Text="Zəhmət olmasa, məlumatlar hazırlanarkən gözləyin." Foreground="{StaticResource SubtleTextBrush}" HorizontalAlignment="Center"/>
+                <TextBlock x:Name="LoadingMessage" Text="İşçilər yüklənir..." FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}" HorizontalAlignment="Center"/>
+                <TextBlock Text="Məlumatlar hazırlanır." Foreground="{StaticResource SubtleTextBrush}" HorizontalAlignment="Center" Margin="0,4,0,12"/>
+                <ProgressBar Width="220" Height="4" IsIndeterminate="True"/>
             </StackPanel>
         </Border>
     </Grid>

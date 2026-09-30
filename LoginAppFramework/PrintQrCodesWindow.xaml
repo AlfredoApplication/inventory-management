@@ -13,7 +13,7 @@
             <StackPanel DockPanel.Dock="Top" Margin="0,0,0,10">
 
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                    <Button x:Name="PrintButton" Content="Çap Et" Padding="15,5" Click="PrintButton_Click" Background="{StaticResource SuccessBrush}" Foreground="{StaticResource PrimaryForegroundBrush}" FontWeight="SemiBold"/>
+                    <Button x:Name="PrintButton" Content="Çap Et" Padding="15,5" Click="PrintButton_Click" Style="{StaticResource SuccessActionButton}" FontWeight="SemiBold"/>
                     <TextBlock x:Name="CountTextBlock" VerticalAlignment="Center" Margin="20,0,0,0" FontWeight="SemiBold"/>
                 </StackPanel>
 

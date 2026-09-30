@@ -37,7 +37,7 @@
         <!-- UPDATED BUTTONS SECTION -->
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
             <Button x:Name="DeleteButton" Content="Tarixçəni Sil" 
-                    Background="{StaticResource DangerBrush}" Foreground="{StaticResource PrimaryForegroundBrush}" 
+                    Style="{StaticResource DangerActionButton}" 
                     Click="DeleteButton_Click" Margin="0,0,10,0"
                     ToolTip="Bu tarixçə qeydini həmişəlik silin."/>
             <Button Content="Bağla" IsCancel="True" IsDefault="True" MinWidth="100"/>

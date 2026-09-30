@@ -20,7 +20,7 @@
                 <TextBlock Text="SQL İstifadəçi Adı" FontWeight="SemiBold" Foreground="{StaticResource BodyTextBrush}" Margin="0,15,0,5"/>
                 <TextBox x:Name="SqlUsernameBox"/>
                 <TextBlock Text="SQL Şifrəsi" FontWeight="SemiBold" Foreground="{StaticResource BodyTextBrush}" Margin="0,15,0,5"/>
-                <PasswordBox x:Name="SqlPasswordBox"/>
+                <PasswordBox x:Name="SqlPasswordBox" KeyDown="SqlPasswordBox_KeyDown"/>
                 <Button x:Name="TestAndSaveButton" Content="Yoxla və Yadda Saxla" Style="{StaticResource PrimaryActionButton}" Margin="0,30,0,0" Click="TestAndSave_Click"/>
             </StackPanel>
             <StackPanel x:Name="LoginView">

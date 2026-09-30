@@ -92,8 +92,7 @@
                                 <DataTemplate>
                                     <Button Content="Ləğv et"
                                             FontSize="10" Padding="5,2"
-                                            Background="{StaticResource WarningBrush}"
-                                            Foreground="{StaticResource PrimaryForegroundBrush}"
+                                            Style="{StaticResource WarningActionButton}"
                                             Click="UnassignButton_Click"
                                             IsEnabled="{Binding DataContext.CanEditAssets, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
                                 </DataTemplate>
@@ -113,8 +112,7 @@
                 <Button x:Name="DeleteWorkerButton"
                         Content="İşçini Sil"
                         Click="DeleteWorkerButton_Click"
-                        Background="{StaticResource DangerBrush}"
-                        Foreground="{StaticResource PrimaryForegroundBrush}"
+                        Style="{StaticResource DangerActionButton}"
                         Margin="0,0,10,0"/>
                 <Button x:Name="AssignNewAssetButton"
                         Content="Bu İşçiyə Yeni Vəsait Təhkim et..."

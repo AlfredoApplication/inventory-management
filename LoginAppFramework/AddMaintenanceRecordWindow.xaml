@@ -50,7 +50,7 @@
 
             <!-- Delete Button (Left) -->
             <Button x:Name="DeleteButton" Content="Sil" Width="80" 
-                    Background="{StaticResource DangerBrush}" Foreground="{StaticResource PrimaryForegroundBrush}"
+                    Style="{StaticResource DangerActionButton}"
                     Click="DeleteButton_Click" Visibility="Collapsed" ToolTip="Bu qeydi həmişəlik silin."/>
 
             <!-- Save and Cancel Buttons (Right) -->
