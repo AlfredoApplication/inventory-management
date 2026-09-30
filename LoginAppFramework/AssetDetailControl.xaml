@@ -186,7 +186,7 @@
                             </ListView>
                             <local:EmptyStateControl x:Name="MaintenanceEmptyState"
                                                      Visibility="Collapsed"
-                                                     Icon="Maintenance"
+                                                     Icon="History"
                                                      Title="Texniki xidmət qeydi yoxdur"
                                                      Message="Bu vəsait üçün hələ texniki xidmət qeydi əlavə edilməyib."
                                                      ActionText="Qeyd əlavə et"
