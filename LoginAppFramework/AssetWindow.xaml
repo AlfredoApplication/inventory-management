@@ -76,9 +76,9 @@
 
     <Grid>
         <DockPanel>
-            <Border DockPanel.Dock="Top" Background="{StaticResource GlassBackgroundBrush}" BorderBrush="{StaticResource GlassBorderBrush}" BorderThickness="0,0,0,1" Padding="15">
+            <Border DockPanel.Dock="Top" Background="{StaticResource PanelBackgroundBrush}" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="0,0,0,1" Padding="16,14">
                 <Border.Effect>
-                    <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.05" Direction="270"/>
+                    <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.04" Direction="270"/>
                 </Border.Effect>
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -126,13 +126,13 @@
             </Border>
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition x:Name="FilterColumn" Width="280" />
+                    <ColumnDefinition x:Name="FilterColumn" Width="260" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Border x:Name="FilterSidebar" Grid.Column="0" Background="{StaticResource GlassBackgroundBrush}" Padding="15" BorderThickness="0,0,1,0" BorderBrush="{StaticResource GlassBorderBrush}">
+                <Border x:Name="FilterSidebar" Grid.Column="0" Background="{StaticResource PanelBackgroundBrush}" Padding="18,16" BorderThickness="0,0,1,0" BorderBrush="{StaticResource ControlBorderBrush}">
                     <DockPanel>
                         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Right">
-                            <TextBlock Text="FILTRLƏR" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryTextBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Filtrlər" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}" VerticalAlignment="Center"/>
                             <Button x:Name="ClearFiltersButton" Content="Hamısını Təmizlə" Click="ClearFiltersButton_Click" Margin="10,0,0,0"/>
                         </StackPanel>
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,10,0,0">
@@ -189,7 +189,7 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <Border Grid.Row="0" Background="#EAECEE" Padding="5" MinHeight="30">
+                    <Border Grid.Row="0" Background="{StaticResource SurfaceMutedBrush}" Padding="8,6" MinHeight="36">
                         <ItemsControl x:Name="ActiveFiltersPanel" ItemsSource="{Binding ActiveFilterTags}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
@@ -198,14 +198,14 @@
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Background="LightGray" CornerRadius="10" Margin="2" Padding="8,3">
-                                        <TextBlock Text="{Binding}" Foreground="Black"/>
+                                    <Border Background="{StaticResource RowSelectedBrush}" CornerRadius="12" Margin="3" Padding="10,4">
+                                        <TextBlock Text="{Binding}" Foreground="{StaticResource PrimaryTextBrush}"/>
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </Border>
-                    <Border Grid.Row="1" x:Name="BulkActionPanel" Background="#EDF2F7" Padding="8" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="0,0,0,1"
+                    <Border Grid.Row="1" x:Name="BulkActionPanel" Background="{StaticResource SurfaceMutedBrush}" Padding="10,8" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="0,0,0,1"
                             Visibility="{Binding HasCheckedAssets, Converter={StaticResource BoolToVis}}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock x:Name="SelectionCountText" Text="{Binding CheckedCountText}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="5,0,20,0"/>

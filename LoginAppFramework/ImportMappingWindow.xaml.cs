@@ -24,8 +24,8 @@ namespace LoginAppFramework
 
             if (viewModels.Any(vm => vm.IsUnmapped))
             {
-                if (MessageBox.Show("There are still unmapped users. Assets assigned to these users will be imported as unassigned. Continue?",
-                    "Incomplete Mapping", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No)
+                if (MessageBox.Show("Hələ uyğunlaşdırılmamış işçilər var. Bu işçilərə təhkim edilmiş vəsaitlər təhkimsiz import olunacaq. Davam edilsin?",
+                    "Natamam uyğunlaşdırma", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No)
                 {
                     return;
                 }

@@ -39,7 +39,7 @@
     </Window.Resources>
 
     <Grid>
-        <Border Margin="20" Background="{StaticResource PanelBackgroundBrush}" CornerRadius="8">
+        <Border Margin="20" Style="{StaticResource SurfaceCardStyle}" Padding="0">
             <DockPanel Margin="20">
                 <Grid DockPanel.Dock="Top" Margin="0,0,0,15">
                     <Grid.ColumnDefinitions>
@@ -47,10 +47,10 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0" VerticalAlignment="Bottom">
-                        <TextBlock x:Name="TitleTextBlock" Text="Vəsaitlər" FontSize="24" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/>
+                        <TextBlock x:Name="TitleTextBlock" Text="Vəsaitlər" Style="{StaticResource PageTitleTextStyle}" Foreground="{StaticResource PrimaryTextBrush}"/>
                         <TextBlock x:Name="CountTextBlock" Text="0 element tapıldı" FontSize="14" Foreground="{StaticResource BodyTextBrush}" Margin="0,2,0,0"/>
                     </StackPanel>
-                    <TextBox x:Name="SearchBox" Grid.Column="1" Width="250" TextChanged="SearchBox_TextChanged" VerticalAlignment="Bottom" ToolTip="Ad, Kateqoriya, İstifadəçi və ya Seriya üzrə axtarış..."/>
+                    <TextBox x:Name="SearchBox" Grid.Column="1" Width="250" TextChanged="SearchBox_TextChanged" VerticalAlignment="Bottom" Tag="Axtarış..." ToolTip="Ad, kateqoriya, istifadəçi və ya seriya üzrə axtarış..."/>
                 </Grid>
                 <ListView x:Name="AssetsListView" BorderThickness="0" MouseDoubleClick="AssetsListView_MouseDoubleClick">
                     <ListView.View>

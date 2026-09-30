@@ -3,8 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:LoginAppFramework"
         Title="Vəsait Məlumatları"
-        Width="620"
-        Height="720"
+        Width="660"
+        Height="760"
         MinWidth="520"
         MinHeight="480"
         WindowStartupLocation="CenterOwner"
@@ -12,7 +12,8 @@
         Background="{StaticResource AppBackgroundBrush}"
         FontFamily="Segoe UI"
         Loaded="Window_Loaded">
-    <Grid Margin="20">
+    <Border Style="{StaticResource SurfaceCardStyle}" Margin="24" Padding="24">
+        <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
@@ -40,7 +41,7 @@
                     </Grid.RowDefinitions>
 
                     <Label Grid.Row="0" Content="Vəsaitin Kodu:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
-                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding VesaitinKodu, Mode=TwoWay}" Margin="0,0,0,10" Padding="5"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding VesaitinKodu, Mode=TwoWay}" Margin="0,0,0,10" Padding="10,7"/>
 
                     <Label Grid.Row="1" Content="Vəsaitin Adı:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
                     <TextBox x:Name="AssetNameTextBox"
@@ -48,10 +49,10 @@
                              Grid.Column="1"
                              Text="{Binding VesaitinAdi, Mode=TwoWay}"
                              Margin="0,0,0,10"
-                             Padding="5"/>
+                             Padding="10,7"/>
 
                     <Label Grid.Row="2" Content="Seriya Nömrəsi:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
-                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding ITAvadanliqlarininSeriyaNomresi, Mode=TwoWay}" Margin="0,0,0,10" Padding="5"/>
+                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding ITAvadanliqlarininSeriyaNomresi, Mode=TwoWay}" Margin="0,0,0,10" Padding="10,7"/>
 
                     <Label Grid.Row="3" Content="Kateqoriya:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
                     <ComboBox x:Name="CategoryComboBox"
@@ -59,7 +60,7 @@
                               Grid.Column="1"
                               SelectedItem="{Binding Kateqoriya, Mode=TwoWay}"
                               Margin="0,0,0,10"
-                              Padding="5"
+                              Padding="10,7"
                               SelectionChanged="CategoryComboBox_SelectionChanged"/>
 
                     <Label Grid.Row="4" Content="Təhkim Olunan Əməkdaş:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
@@ -69,7 +70,7 @@
                               DisplayMemberPath="DisplayName"
                               TextSearch.TextPath="DisplayName"
                               Margin="0,0,0,10"
-                              Padding="5"
+                              Padding="10,7"
                               IsEditable="True"
                               IsTextSearchEnabled="True"
                               StaysOpenOnEdit="True"
@@ -83,21 +84,21 @@
                              IsReadOnly="True"
                              IsTabStop="False"
                              Margin="0,0,0,10"
-                             Padding="5"
+                             Padding="10,7"
                              ToolTip="Departament seçilmiş əməkdaşdan avtomatik müəyyən edilir."/>
 
                     <Label Grid.Row="6" Content="Yerləşmə Yeri:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
-                    <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding YerleshmeYeri, Mode=TwoWay}" Margin="0,0,0,10" Padding="5"/>
+                    <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding YerleshmeYeri, Mode=TwoWay}" Margin="0,0,0,10" Padding="10,7"/>
 
                     <Label Grid.Row="7" Content="Ərazi:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
-                    <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding Erazi, Mode=TwoWay}" Margin="0,0,0,10" Padding="5"/>
+                    <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding Erazi, Mode=TwoWay}" Margin="0,0,0,10" Padding="10,7"/>
 
                     <Label Grid.Row="8" Content="Status:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
                     <ComboBox x:Name="StatusComboBox"
                               Grid.Row="8"
                               Grid.Column="1"
                               Margin="0,0,0,10"
-                              Padding="5"
+                              Padding="10,7"
                               SelectionChanged="StatusComboBox_SelectionChanged"/>
                 </Grid>
 
@@ -117,7 +118,7 @@
                     </Grid.RowDefinitions>
 
                     <Label Grid.Row="0" Content="Alış Qiyməti:" VerticalAlignment="Center" Margin="0,0,10,10"/>
-                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding PurchaseCost, Mode=TwoWay}" Margin="0,0,0,10" Padding="5"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding PurchaseCost, Mode=TwoWay}" Margin="0,0,0,10" Padding="10,7"/>
 
                     <Label Grid.Row="1" Content="Alınma Tarixi:" VerticalAlignment="Center" Margin="0,0,10,10"/>
                     <local:DateSelectorControl x:Name="PurchaseDateSelector"
@@ -128,7 +129,7 @@
                                                DialogTitle="Alınma tarixini seçin"/>
 
                     <Label Grid.Row="2" Content="Təchizatçı:" VerticalAlignment="Center" Margin="0,0,10,10"/>
-                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Supplier, Mode=TwoWay}" Margin="0,0,0,10" Padding="5"/>
+                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Supplier, Mode=TwoWay}" Margin="0,0,0,10" Padding="10,7"/>
 
                     <Label Grid.Row="3" Content="Zəmanət Müddəti:" VerticalAlignment="Center" Margin="0,0,10,10"/>
                     <local:DateSelectorControl x:Name="WarrantyDateSelector"
@@ -139,14 +140,14 @@
                                                DialogTitle="Zəmanət bitmə tarixini seçin"/>
 
                     <Label Grid.Row="4" Content="İstifadə müddəti (İl):" VerticalAlignment="Center" Margin="0,0,10,10"/>
-                    <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding UsefulLifeInYears, Mode=TwoWay}" Margin="0,0,0,10" Padding="5"/>
+                    <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding UsefulLifeInYears, Mode=TwoWay}" Margin="0,0,0,10" Padding="10,7"/>
                 </Grid>
 
                 <StackPanel x:Name="CustomFieldsSeparator" Visibility="Collapsed">
                     <Separator Margin="0,10"/>
                     <TextBlock Text="Kateqoriyaya Xas Məlumatlar"
                                FontWeight="SemiBold"
-                               Foreground="#555"
+                               Foreground="{StaticResource PrimaryTextBrush}"
                                Margin="0,0,0,10"/>
                 </StackPanel>
 
@@ -189,5 +190,6 @@
                 </StackPanel>
             </Grid>
         </Border>
-    </Grid>
+        </Grid>
+    </Border>
 </Window>

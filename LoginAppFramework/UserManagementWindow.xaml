@@ -10,7 +10,7 @@
         ResizeMode="CanResizeWithGrip"
         Background="{StaticResource AppBackgroundBrush}"
         FontFamily="Segoe UI">
-    <Grid Margin="22">
+    <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -18,8 +18,7 @@
 
         <StackPanel Grid.Row="0" Margin="0,0,0,16">
             <TextBlock Text="İstifadəçi İdarəetməsi"
-                       FontSize="22"
-                       FontWeight="SemiBold"
+                       Style="{StaticResource PageTitleTextStyle}"
                        Foreground="{StaticResource PrimaryTextBrush}"/>
             <TextBlock Text="Tətbiq istifadəçilərini, rolları və giriş məlumatlarını idarə edin."
                        Margin="0,4,0,0"
@@ -34,11 +33,8 @@
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0"
-                    Background="{StaticResource PanelBackgroundBrush}"
-                    BorderBrush="{StaticResource ControlBorderBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Padding="12">
+                    Style="{StaticResource SurfaceCardStyle}"
+                    Padding="14">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -87,11 +83,8 @@
 
             <Border Grid.Column="2"
                     x:Name="DetailPanel"
-                    Background="{StaticResource PanelBackgroundBrush}"
-                    BorderBrush="{StaticResource ControlBorderBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Padding="18">
+                    Style="{StaticResource SurfaceCardStyle}"
+                    Padding="20">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
@@ -131,7 +124,7 @@
                             <TextBlock Text="Admin: tam giriş  •  Yalnız baxış: dəyişiklik edə bilməz"
                                        FontSize="11"
                                        FontStyle="Italic"
-                                       Foreground="Gray"
+                                       Foreground="{StaticResource SubtleTextBrush}"
                                        Margin="0,0,0,12"/>
 
                             <Label Content="Yeni şifrə:"/>
@@ -139,7 +132,7 @@
                             <TextBlock Text="Mövcud istifadəçidə şifrəni dəyişməmək üçün boş saxlayın."
                                        FontSize="11"
                                        FontStyle="Italic"
-                                       Foreground="Gray"
+                                       Foreground="{StaticResource SubtleTextBrush}"
                                        Margin="0,4,0,0"/>
                         </StackPanel>
                     </ScrollViewer>

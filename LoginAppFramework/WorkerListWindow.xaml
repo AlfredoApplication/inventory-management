@@ -62,7 +62,7 @@
 
     <Grid>
         <DockPanel>
-            <Border DockPanel.Dock="Top" Background="{StaticResource PanelBackgroundBrush}" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="0,0,0,1" Padding="15">
+            <Border DockPanel.Dock="Top" Background="{StaticResource PanelBackgroundBrush}" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="0,0,0,1" Padding="16,14">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -88,13 +88,13 @@
             </Border>
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition x:Name="FilterColumn" Width="240"/>
+                    <ColumnDefinition x:Name="FilterColumn" Width="260"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Border x:Name="FilterSidebar" Grid.Column="0" Background="{StaticResource PanelBackgroundBrush}" Padding="15" BorderThickness="0,0,1,0" BorderBrush="{StaticResource ControlBorderBrush}">
+                <Border x:Name="FilterSidebar" Grid.Column="0" Background="{StaticResource PanelBackgroundBrush}" Padding="18,16" BorderThickness="0,0,1,0" BorderBrush="{StaticResource ControlBorderBrush}">
                     <DockPanel>
                         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Right">
-                            <TextBlock Text="FILTRLƏR" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryTextBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Filtrlər" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}" VerticalAlignment="Center"/>
                             <Button Grid.Column="1" x:Name="ClearFiltersButton" Content="Hamısını Təmizlə" Click="ClearFiltersButton_Click" VerticalAlignment="Center" Margin="10,0,0,0"/>
                         </StackPanel>
                         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,10,0,0">
@@ -107,7 +107,7 @@
                                 <RadioButton x:Name="AllFilterButton" Content="Bütün İşçilər" GroupName="StatusFilter" Margin="0,5,0,0"
                                              IsChecked="{Binding DataContext.IsAllFilterSelected, RelativeSource={RelativeSource AncestorType=Window}, Mode=TwoWay}"/>
                                 <TextBlock Text="Ada görə Axtarış" Style="{StaticResource FilterHeader}"/>
-                                <TextBox Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                <TextBox Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Tag="Axtarış..."/>
                                 <Expander Header="Departament" IsExpanded="True" Margin="0,15,0,0">
                                     <ItemsControl ItemsSource="{Binding DepartmentOptions}" Margin="10,5,0,0">
                                         <ItemsControl.ItemTemplate>
@@ -129,7 +129,7 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <Border Grid.Row="0" Background="#EAECEE" Padding="5" MinHeight="30">
+                    <Border Grid.Row="0" Background="{StaticResource SurfaceMutedBrush}" Padding="8,6" MinHeight="36">
                         <ItemsControl x:Name="ActiveFiltersPanel" ItemsSource="{Binding ActiveFilterTags}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
@@ -138,8 +138,8 @@
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Background="LightGray" CornerRadius="10" Margin="2" Padding="8,3">
-                                        <TextBlock Text="{Binding}" Foreground="Black"/>
+                                    <Border Background="{StaticResource RowSelectedBrush}" CornerRadius="12" Margin="3" Padding="10,4">
+                                        <TextBlock Text="{Binding}" Foreground="{StaticResource PrimaryTextBrush}"/>
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
@@ -148,7 +148,7 @@
 
                     <Border Grid.Row="1" x:Name="SummaryPanel" DataContext="{Binding Filters}" Background="{StaticResource PanelBackgroundBrush}"
                             BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="0,0,0,1"
-                            Padding="20,15">
+                            Padding="20,14">
                         <UniformGrid Columns="4">
                             <StackPanel HorizontalAlignment="Center">
                                 <TextBlock Text="{Binding TotalPurchaseCost}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource PrimaryTextBrush}" HorizontalAlignment="Center"/>
@@ -169,10 +169,10 @@
                         </UniformGrid>
                     </Border>
 
-                    <Border Grid.Row="2" x:Name="BulkActionPanel" Background="#EDF2F7" Padding="8" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="0,0,0,1"
+                    <Border Grid.Row="2" x:Name="BulkActionPanel" Background="{StaticResource SurfaceMutedBrush}" Padding="10,8" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="0,0,0,1"
                             Visibility="{Binding HasBulkSelection, Converter={StaticResource BoolToVis}}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock x:Name="SelectionCountText" Text="{Binding SelectionCountText}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="5,0,20,0" Foreground="#2D3748"/>
+                            <TextBlock x:Name="SelectionCountText" Text="{Binding SelectionCountText}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="5,0,20,0" Foreground="{StaticResource BodyTextBrush}"/>
                             <Button x:Name="BulkDeactivateButton" Content="Seçilmişləri Deaktiv et" Click="BulkDeactivateButton_Click" Background="{StaticResource WarningBrush}" Foreground="{StaticResource PrimaryForegroundBrush}" Padding="8,4" Margin="0,0,10,0" ToolTip="Seçilmiş aktiv işçiləri qeyri-aktiv olaraq işarələyin."/>
                             <Button x:Name="BulkActivateButton" Content="Seçilmişləri Aktiv et" Click="BulkActivateButton_Click" Background="{StaticResource SuccessBrush}" Foreground="{StaticResource PrimaryForegroundBrush}" Padding="8,4" ToolTip="Seçilmiş qeyri-aktiv işçiləri aktiv olaraq işarələyin."/>
                         </StackPanel>

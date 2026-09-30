@@ -41,13 +41,13 @@
                         </Grid.ColumnDefinitions>
                         <local:AppIcon Grid.Column="0" Icon="User" Size="48" VerticalAlignment="Center" Margin="0,0,20,0"/>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding Name, Mode=OneWay, TargetNullValue='İşçi seçin'}" FontSize="22" FontWeight="Bold" Foreground="{StaticResource PrimaryTextBrush}" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Text="{Binding Name, Mode=OneWay, TargetNullValue='İşçi seçin'}" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}" TextTrimming="CharacterEllipsis"/>
                             <TextBlock Text="{Binding Position, Mode=OneWay}" FontSize="16" Foreground="{StaticResource BodyTextBrush}" TextTrimming="CharacterEllipsis"/>
                         </StackPanel>
                     </Grid>
                 </Border>
 
-                <Border DockPanel.Dock="Top" Background="#F7F9FC" CornerRadius="8" Padding="15" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="1" Margin="0,0,0,15">
+                <Border DockPanel.Dock="Top" Background="{StaticResource SurfaceMutedBrush}" CornerRadius="10" Padding="15" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="1" Margin="0,0,0,15">
                     <Grid TextElement.Foreground="{StaticResource BodyTextBrush}" TextElement.FontWeight="SemiBold">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -55,7 +55,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" HorizontalAlignment="Center">
-                            <TextBlock Text="{Binding TotalPurchaseCost, Mode=OneWay, TargetNullValue='₼0.00'}" FontSize="18" Foreground="#1F618D" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding TotalPurchaseCost, Mode=OneWay, TargetNullValue='₼0.00'}" FontSize="18" Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center"/>
                             <TextBlock Text="Cəmi Alış Dəyəri" FontSize="11" HorizontalAlignment="Center"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" HorizontalAlignment="Center">
