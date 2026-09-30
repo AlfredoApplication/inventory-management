@@ -82,7 +82,10 @@ namespace LoginAppFramework
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Dəyişiklik detallarını oxumaq mümkün olmadı.\n\nXəta: " + ex.Message);
+                DialogService.Error(
+                    this,
+                    "Dəyişiklik Detalları",
+                    "Dəyişiklik detallarını oxumaq mümkün olmadı.\n\nXəta: " + ex.Message);
             }
 
             ChangesDataGrid.ItemsSource = changes.OrderBy(c => c.FieldName).ToList();
@@ -90,11 +93,10 @@ namespace LoginAppFramework
 
         private void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show(
-                "Audit qeydləri dəyişdirilmir və silinmir.",
+            DialogService.Info(
+                this,
                 "Audit qorunması",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
+                "Audit qeydləri dəyişdirilmir və silinmir.");
         }
 
         // --- THIS METHOD CONTAINS THE FINAL FIX ---
