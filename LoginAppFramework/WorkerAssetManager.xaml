@@ -74,32 +74,41 @@
                     <Run Text="(" FontWeight="Normal" Foreground="{StaticResource SubtleTextBrush}"/><Run Text="{Binding AssignedAssetsCount, Mode=OneWay}" FontWeight="Normal" Foreground="{StaticResource SubtleTextBrush}"/><Run Text=")" FontWeight="Normal" Foreground="{StaticResource SubtleTextBrush}"/>
                 </TextBlock>
 
-                <DataGrid x:Name="AssignedAssetsDataGrid"
-                          AutoGenerateColumns="False"
-                          IsReadOnly="True"
-                          AlternationCount="2"
-                          HeadersVisibility="Column"
-                          GridLinesVisibility="Horizontal"
-                          MouseDoubleClick="AssignedAssetsDataGrid_MouseDoubleClick">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Vesaitin Kodu" Binding="{Binding VesaitinKodu}" Width="1.5*"/>
-                        <DataGridTextColumn Header="Vesaitin Adı" Binding="{Binding VesaitinAdi}" Width="2*"/>
-                        <DataGridTextColumn Header="Kateqoriya" Binding="{Binding Kateqoriya}" Width="1.5*"/>
-                        <DataGridTextColumn Header="Alış Dəyəri" Binding="{Binding PurchaseCost, StringFormat=C, ConverterCulture=az-AZ}" Width="1*"/>
-                        <DataGridTextColumn Header="Cari Dəyər" Binding="{Binding CurrentValue, StringFormat=C, ConverterCulture=az-AZ}" Width="1*"/>
-                        <DataGridTemplateColumn Header="Əməliyyatlar" Width="Auto">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Button Content="Ləğv et"
-                                            FontSize="10" Padding="5,2"
-                                            Style="{StaticResource WarningActionButton}"
-                                            Click="UnassignButton_Click"
-                                            IsEnabled="{Binding DataContext.CanEditAssets, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                    </DataGrid.Columns>
-                </DataGrid>
+                <Grid>
+                    <DataGrid x:Name="AssignedAssetsDataGrid"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              AlternationCount="2"
+                              HeadersVisibility="Column"
+                              GridLinesVisibility="Horizontal"
+                              MouseDoubleClick="AssignedAssetsDataGrid_MouseDoubleClick">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Vesaitin Kodu" Binding="{Binding VesaitinKodu}" Width="1.5*"/>
+                            <DataGridTextColumn Header="Vesaitin Adı" Binding="{Binding VesaitinAdi}" Width="2*"/>
+                            <DataGridTextColumn Header="Kateqoriya" Binding="{Binding Kateqoriya}" Width="1.5*"/>
+                            <DataGridTextColumn Header="Alış Dəyəri" Binding="{Binding PurchaseCost, StringFormat=C, ConverterCulture=az-AZ}" Width="1*"/>
+                            <DataGridTextColumn Header="Cari Dəyər" Binding="{Binding CurrentValue, StringFormat=C, ConverterCulture=az-AZ}" Width="1*"/>
+                            <DataGridTemplateColumn Header="Əməliyyatlar" Width="Auto">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Ləğv et"
+                                                FontSize="10" Padding="5,2"
+                                                Style="{StaticResource WarningActionButton}"
+                                                Click="UnassignButton_Click"
+                                                IsEnabled="{Binding DataContext.CanEditAssets, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <local:EmptyStateControl x:Name="AssignedAssetsEmptyState"
+                                             Visibility="Collapsed"
+                                             Icon="Assets"
+                                             Title="Təhkim olunmuş vəsait yoxdur"
+                                             Message="Bu işçiyə hələ heç bir vəsait təhkim edilməyib."
+                                             ActionText="Vəsait təhkim et"
+                                             ActionClick="AssignNewAssetButton_Click"/>
+                </Grid>
 
             </DockPanel>
 
