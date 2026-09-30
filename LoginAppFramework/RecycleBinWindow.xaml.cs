@@ -39,6 +39,16 @@ namespace LoginAppFramework
         {
             DateTime nowUtc = DateTime.UtcNow;
 
+            var expired = AppData.GetDeletedAssets()
+                .Where(asset =>
+                    AssetDeletionMetadata.ShouldPurge(
+                        asset,
+                        nowUtc))
+                .ToList();
+
+            if (expired.Count > 0)
+                AppServices.Assets.PermanentlyDeleteMany(expired);
+
             _allItems = AppData.GetDeletedAssets()
                 .Select(asset =>
                     new RecycleBinAssetItem(
