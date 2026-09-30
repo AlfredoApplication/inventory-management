@@ -204,5 +204,21 @@
             </Grid>
         </DockPanel>
         <local:MainNavigationMenu x:Name="SharedNavigationMenu" CurrentPage="History"/>
+        <Border x:Name="LoadingOverlay"
+                Background="{StaticResource GlassBackgroundBrush}"
+                Visibility="Collapsed">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="Tarixçə yüklənir..."
+                           FontSize="22"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource PrimaryTextBrush}"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="Qeydlər hazırlanır."
+                           Foreground="{StaticResource BodyTextBrush}"
+                           HorizontalAlignment="Center"
+                           Margin="0,4,0,12"/>
+                <ProgressBar Width="220" Height="4" IsIndeterminate="True"/>
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>
