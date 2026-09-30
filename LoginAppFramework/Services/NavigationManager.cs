@@ -190,6 +190,20 @@ namespace LoginAppFramework
             window.NavigateToWorker(workerId);
         }
 
+        public static void GoToNotificationCenter(
+            Window owner = null)
+        {
+            var notificationWindow = new NotificationCenterWindow
+            {
+                Owner =
+                    owner ??
+                    _currentWindow ??
+                    Application.Current.MainWindow
+            };
+
+            notificationWindow.ShowDialog();
+        }
+
         public static void GoToGlobalSearch(Window owner = null)
         {
             var searchWindow = new GlobalSearchWindow

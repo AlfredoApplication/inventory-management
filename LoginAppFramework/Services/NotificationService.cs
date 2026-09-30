@@ -77,6 +77,11 @@ namespace LoginAppFramework
             string actionText = null,
             Action action = null)
         {
+            NotificationCenterService.AddActivity(
+                type,
+                title,
+                message);
+
             Window resolvedOwner =
                 owner ??
                 Application.Current?.Windows

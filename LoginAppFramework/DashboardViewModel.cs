@@ -105,7 +105,9 @@ namespace LoginAppFramework
 
         public void LoadAllData(List<Asset> allAssets, List<Worker> allWorkers)
         {
-            if (allAssets == null || !allAssets.Any() || allWorkers == null) return;
+            if (allAssets == null || allWorkers == null)
+                return;
+
             LoadKpiData(allAssets, allWorkers);
             LoadCategoryPieChartData(allAssets);
             LoadTopAssetsChart(allAssets);

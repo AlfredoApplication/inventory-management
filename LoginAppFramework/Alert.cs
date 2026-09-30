@@ -7,6 +7,8 @@ namespace LoginAppFramework
     {
         public Guid Id { get; } = Guid.NewGuid();
         public AlertType Type { get; set; }
+        public AlertCategory Category { get; set; }
+        public string SourceKey { get; set; }
         public NavigationTargetType? TargetType { get; set; }
         public int TargetId { get; set; }
         public string Title { get; set; }
@@ -20,6 +22,14 @@ namespace LoginAppFramework
         Info,
         Warning,
         Critical
+    }
+
+    public enum AlertCategory
+    {
+        Warranty,
+        Maintenance,
+        Lifecycle,
+        General
     }
 
     public enum NavigationTargetType

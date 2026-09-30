@@ -34,6 +34,8 @@ namespace LoginAppFramework
         Error,
         Warning,
         Info,
+        Notification,
+        Maintenance,
         Edit,
         Delete
     }
@@ -129,6 +131,8 @@ namespace LoginAppFramework
                 AppIconKind.Error => PackIconMaterialKind.AlertCircle,
                 AppIconKind.Warning => PackIconMaterialKind.Alert,
                 AppIconKind.Info => PackIconMaterialKind.Information,
+                AppIconKind.Notification => PackIconMaterialKind.Bell,
+                AppIconKind.Maintenance => PackIconMaterialKind.Tools,
                 AppIconKind.Edit => PackIconMaterialKind.Pencil,
                 AppIconKind.Delete => PackIconMaterialKind.Delete,
                 _ => PackIconMaterialKind.CircleOutline
