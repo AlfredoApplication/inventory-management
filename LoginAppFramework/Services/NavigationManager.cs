@@ -190,6 +190,28 @@ namespace LoginAppFramework
             window.NavigateToWorker(workerId);
         }
 
+        public static async Task GoToRecycleBin(
+            Window owner = null)
+        {
+            Window resolvedOwner =
+                owner ??
+                _currentWindow ??
+                Application.Current.MainWindow;
+
+            var recycleWindow = new RecycleBinWindow
+            {
+                Owner = resolvedOwner
+            };
+
+            recycleWindow.ShowDialog();
+
+            if (resolvedOwner is INavigationRefreshable refreshable &&
+                resolvedOwner.IsLoaded)
+            {
+                await refreshable.RefreshForNavigationAsync();
+            }
+        }
+
         public static void GoToNotificationCenter(
             Window owner = null)
         {
