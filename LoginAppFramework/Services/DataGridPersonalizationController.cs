@@ -39,6 +39,7 @@ namespace LoginAppFramework
             _columnsButton.Click += ColumnsButton_Click;
 
             _grid.ColumnReordered += (_, _) => SaveCurrentState();
+            _grid.Unloaded += (_, _) => SaveCurrentState();
             _grid.AddHandler(
                 Thumb.DragCompletedEvent,
                 new DragCompletedEventHandler((_, _) => SaveCurrentState()),
@@ -177,7 +178,12 @@ namespace LoginAppFramework
                         continue;
 
                     int maxIndex = Math.Max(0, _grid.Columns.Count - 1);
-                    int target = Math.Clamp(state.DisplayIndex, 0, maxIndex);
+                    int firstCustomizableIndex =
+                        _grid.Columns.Count(column => GetColumnKey(column) == null);
+                    int target = Math.Clamp(
+                        state.DisplayIndex,
+                        Math.Min(firstCustomizableIndex, maxIndex),
+                        maxIndex);
 
                     try
                     {
