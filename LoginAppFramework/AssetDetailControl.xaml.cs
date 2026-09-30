@@ -53,6 +53,7 @@ namespace LoginAppFramework
 
                 AppServices.Assets.Save(_currentAsset);
                 PopulateFinancialsAndMaintenance();
+                PopulateActivityTimeline();
             }
         }
 
@@ -115,8 +116,7 @@ namespace LoginAppFramework
             AlinmaTarixiValue.Text = _currentAsset.PurchaseDate > DateTime.MinValue
                 ? _currentAsset.PurchaseDate.ToString("yyyy-MM-dd")
                 : "N/A";
-            StatusValue.Text = _currentAsset.Status ?? "N/A";
-            StatusValue.Foreground = _currentAsset.StatusColor;
+            StatusBadge.Status = _currentAsset.Status;
             DepartmentOrSectionValue.Text = _currentAsset.Department ?? "N/A";
             YerlesmeYeriValue.Text = _currentAsset.YerleshmeYeri ?? "N/A";
             EraziValue.Text = _currentAsset.Erazi ?? "N/A";
@@ -125,17 +125,8 @@ namespace LoginAppFramework
 
             PopulateCustomFields();
             PopulateUserInfo();
-            var historyItems = _currentAsset.History?
-                .OrderByDescending(h => h.ChangeDate)
-                .ToList() ?? new List<AssignmentHistoryEntry>();
-
-            HistoryListView.ItemsSource = historyItems;
-            HistoryListView.Visibility =
-                historyItems.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-            HistoryEmptyState.Visibility =
-                historyItems.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-
             PopulateFinancialsAndMaintenance();
+            PopulateActivityTimeline();
             ApplyReadOnlyPermissions();
         }
 
@@ -269,6 +260,135 @@ namespace LoginAppFramework
                 OnAssetDeleted?.Invoke(this, _currentAsset);
             }
         }
+
+        private void PopulateActivityTimeline()
+        {
+            if (_currentAsset == null)
+                return;
+
+            var activities = new List<AssetActivityItem>();
+
+            if (_currentAsset.PurchaseDate > DateTime.MinValue)
+            {
+                var purchaseDescriptionParts = new List<string>();
+
+                if (_currentAsset.PurchaseCost > 0)
+                {
+                    purchaseDescriptionParts.Add(
+                        $"Alış qiyməti: {_currentAsset.PurchaseCost.ToString("C", new CultureInfo("az-Latn-AZ"))}");
+                }
+
+                if (!string.IsNullOrWhiteSpace(_currentAsset.Supplier))
+                    purchaseDescriptionParts.Add($"Təchizatçı: {_currentAsset.Supplier}");
+
+                activities.Add(new AssetActivityItem
+                {
+                    Date = _currentAsset.PurchaseDate,
+                    Kind = AssetActivityKind.Purchase,
+                    Icon = AppIconKind.Money,
+                    Title = "Vəsait alındı",
+                    Description = string.Join(" • ", purchaseDescriptionParts),
+                    Actor = null
+                });
+            }
+
+            foreach (var entry in _currentAsset.History ?? Enumerable.Empty<AssignmentHistoryEntry>())
+            {
+                string title;
+                string description;
+                AppIconKind icon;
+                AssetActivityKind kind;
+
+                switch (entry.Action)
+                {
+                    case AssignmentAction.Assigned:
+                        title = "Vəsait təhkim edildi";
+                        description = string.IsNullOrWhiteSpace(entry.ToWorkerName)
+                            ? "İşçiyə təhkim edildi."
+                            : $"{entry.ToWorkerName} adlı işçiyə təhkim edildi.";
+                        icon = AppIconKind.Assign;
+                        kind = AssetActivityKind.Assigned;
+                        break;
+
+                    case AssignmentAction.Unassigned:
+                        title = "Təhkimat ləğv edildi";
+                        description = string.IsNullOrWhiteSpace(entry.FromWorkerName)
+                            ? "İşçidən təhkim ləğv edildi."
+                            : $"{entry.FromWorkerName} adlı işçidən təhkim ləğv edildi.";
+                        icon = AppIconKind.User;
+                        kind = AssetActivityKind.Unassigned;
+                        break;
+
+                    default:
+                        title = "Təhkimat dəyişdirildi";
+                        description =
+                            $"{entry.FromWorkerName ?? "—"} → {entry.ToWorkerName ?? "—"}";
+                        icon = AppIconKind.SwitchUser;
+                        kind = AssetActivityKind.Reassigned;
+                        break;
+                }
+
+                activities.Add(new AssetActivityItem
+                {
+                    Date = entry.ChangeDate,
+                    Kind = kind,
+                    Icon = icon,
+                    Title = title,
+                    Description = description,
+                    Actor = $"Dəyişdirən: {entry.ChangedBy ?? "Sistem"}"
+                });
+            }
+
+            foreach (var record in _currentAsset.MaintenanceHistory ?? new List<MaintenanceRecord>())
+            {
+                var details = new List<string>
+                {
+                    GetMaintenanceTypeText(record.MaintenanceType)
+                };
+
+                if (!string.IsNullOrWhiteSpace(record.Description))
+                    details.Add(record.Description);
+
+                if (record.Cost > 0)
+                {
+                    details.Add(
+                        record.Cost.ToString("C", new CultureInfo("az-Latn-AZ")));
+                }
+
+                activities.Add(new AssetActivityItem
+                {
+                    Date = record.MaintenanceDate,
+                    Kind = AssetActivityKind.Maintenance,
+                    Icon = AppIconKind.Edit,
+                    Title = "Texniki xidmət qeydi",
+                    Description = string.Join(" • ", details),
+                    Actor = string.IsNullOrWhiteSpace(record.PerformedBy)
+                        ? null
+                        : $"İcra edən: {record.PerformedBy}"
+                });
+            }
+
+            var ordered = activities
+                .OrderByDescending(item => item.Date)
+                .ToList();
+
+            ActivityTimelineList.ItemsSource = ordered;
+            ActivityTimelineList.Visibility =
+                ordered.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            ActivityEmptyState.Visibility =
+                ordered.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private static string GetMaintenanceTypeText(MaintenanceType type)
+            => type switch
+            {
+                MaintenanceType.Repair => "Təmir",
+                MaintenanceType.Upgrade => "Təkmilləşdirmə",
+                MaintenanceType.Inspection => "Yoxlama",
+                MaintenanceType.Cleaning => "Təmizləmə",
+                MaintenanceType.SoftwareUpdate => "Proqram yeniləməsi",
+                _ => type.ToString()
+            };
 
         private void PopulateFinancialsAndMaintenance()
         {

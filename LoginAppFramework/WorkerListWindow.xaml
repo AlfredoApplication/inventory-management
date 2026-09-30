@@ -180,41 +180,11 @@
                              <DataGridTextColumn Header="Tam Ad" Binding="{Binding Name}" Width="2*"/>
                              <DataGridTextColumn Header="Vəzifə" Binding="{Binding Position}" Width="2.5*"/>
                              <DataGridTextColumn Header="Departament" Binding="{Binding Department}" Width="2*"/>
-                             <DataGridTemplateColumn Header="Status" Width="120" SortMemberPath="IsActive">
+                             <DataGridTemplateColumn Header="Status" Width="125" SortMemberPath="IsActive">
                                  <DataGridTemplateColumn.CellTemplate>
                                      <DataTemplate>
-                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="5,0">
-                                             <Ellipse Width="8" Height="8" Margin="0,0,8,0">
-                                                 <Ellipse.Style>
-                                                     <Style TargetType="Ellipse">
-                                                         <Style.Triggers>
-                                                             <DataTrigger Binding="{Binding IsActive}" Value="True">
-                                                                 <Setter Property="Fill" Value="{StaticResource SuccessBrush}"/>
-                                                             </DataTrigger>
-                                                             <DataTrigger Binding="{Binding IsActive}" Value="False">
-                                                                 <Setter Property="Fill" Value="{StaticResource DangerBrush}"/>
-                                                             </DataTrigger>
-                                                         </Style.Triggers>
-                                                     </Style>
-                                                 </Ellipse.Style>
-                                             </Ellipse>
-                                             <TextBlock VerticalAlignment="Center">
-                                                 <TextBlock.Style>
-                                                     <Style TargetType="TextBlock">
-                                                         <Style.Triggers>
-                                                             <DataTrigger Binding="{Binding IsActive}" Value="True">
-                                                                 <Setter Property="Text" Value="Aktiv"/>
-                                                                 <Setter Property="Foreground" Value="{StaticResource SuccessBrush}"/>
-                                                             </DataTrigger>
-                                                             <DataTrigger Binding="{Binding IsActive}" Value="False">
-                                                                 <Setter Property="Text" Value="Qeyri-Aktiv"/>
-                                                                 <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
-                                                             </DataTrigger>
-                                                         </Style.Triggers>
-                                                     </Style>
-                                                 </TextBlock.Style>
-                                             </TextBlock>
-                                         </StackPanel>
+                                         <local:StatusBadgeControl Status="{Binding StatusText}"
+                                                                   VerticalAlignment="Center"/>
                                      </DataTemplate>
                                  </DataGridTemplateColumn.CellTemplate>
                              </DataGridTemplateColumn>

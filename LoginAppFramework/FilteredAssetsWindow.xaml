@@ -73,7 +73,14 @@
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
-                                <GridViewColumn Header="Status" DisplayMemberBinding="{Binding Status}" Width="120"/>
+                                <GridViewColumn Header="Status" Width="130">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <local:StatusBadgeControl Status="{Binding Status}"
+                                                                      VerticalAlignment="Center"/>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
                                 <GridViewColumn Header="Təhkim Olunmuş İstifadəçi" DisplayMemberBinding="{Binding AssignedUser, TargetNullValue=(Boşdur)}" Width="150"/>
                                 <GridViewColumn Header="Seriya Nömrəsi" DisplayMemberBinding="{Binding SerialNumber}" Width="150"/>
                                 <GridViewColumn Header="Alınma Tarixi" DisplayMemberBinding="{Binding PurchaseDate, StringFormat='yyyy-MM-dd'}"/>
