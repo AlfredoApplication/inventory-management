@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -15,7 +16,19 @@ namespace LoginAppFramework
         private readonly DispatcherTimer _selectionTimer;
 
         private WorkerViewModel _selectedWorker;
+        private int? _workerIdToSelectOnLoad;
+        private DataGridPersonalizationController _gridPersonalization;
         private bool isDetailPanelOpen;
+
+        private static readonly IReadOnlyDictionary<string, string> WorkerColumnLabels =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["Name"] = "Tam Ad",
+                ["Position"] = "Vəzifə",
+                ["Department"] = "Departament",
+                ["IsActive"] = "Status",
+                ["AssignedAssetsCount"] = "Vəsaitlər"
+            };
 
         public WorkerListWindow()
         {
@@ -29,6 +42,12 @@ namespace LoginAppFramework
                 Interval = TimeSpan.FromMilliseconds(150)
             };
             _selectionTimer.Tick += SelectionTimer_Tick;
+
+            _gridPersonalization = new DataGridPersonalizationController(
+                WorkersDataGrid,
+                ColumnsButton,
+                "workers-grid",
+                WorkerColumnLabels);
         }
 
         private async void Window_Loaded(object _, RoutedEventArgs e)
@@ -50,6 +69,10 @@ namespace LoginAppFramework
                 }
 
                 _viewModel.Refresh();
+
+                if (_workerIdToSelectOnLoad.HasValue)
+                    SelectWorkerById(_workerIdToSelectOnLoad.Value);
+
                 WorkerAssetManager.OnDetailPanelClosed += DetailControl_PanelClosed;
                 WorkerAssetManager.OnAssetDoubleClicked += Manager_AssetDoubleClicked;
             }
@@ -359,17 +382,169 @@ namespace LoginAppFramework
 
         private void WorkersDataGrid_MouseDoubleClick(object _, MouseButtonEventArgs e)
         {
-            if (WorkersDataGrid.SelectedItem is not WorkerViewModel selectedWorker) return;
-
-            var detailWindow = new WorkerDetailWindow(
-                selectedWorker.GetModel(),
-                AppData.GetAssets())
+            if (e.OriginalSource is not DependencyObject source ||
+                FindParent<DataGridRow>(source) == null ||
+                WorkersDataGrid.SelectedItem is not WorkerViewModel selectedWorker)
             {
-                Owner = this
-            };
+                return;
+            }
 
-            detailWindow.OnWorkerUpdated += RefreshViewModelPreservingSelection;
-            detailWindow.ShowDialog();
+            OpenWorkerDetails(selectedWorker);
+            e.Handled = true;
+        }
+
+        private static T FindParent<T>(DependencyObject child)
+            where T : DependencyObject
+        {
+            if (child == null)
+                return null;
+
+            DependencyObject parent = System.Windows.Media.VisualTreeHelper.GetParent(child);
+            if (parent == null)
+                return null;
+
+            return parent is T typed ? typed : FindParent<T>(parent);
+        }
+
+        private WorkerViewModel GetWorkerFromContext(object sender)
+            => (sender as FrameworkElement)?.DataContext as WorkerViewModel;
+
+        private void OpenWorkerDetails(WorkerViewModel workerVm)
+        {
+            if (workerVm == null)
+                return;
+
+            WorkersDataGrid.SelectedItem = workerVm;
+            WorkersDataGrid.ScrollIntoView(workerVm);
+            _selectedWorker = workerVm;
+            UpdateDetailView();
+
+            if (!isDetailPanelOpen)
+                OpenDetailPanel();
+        }
+
+        private void OpenWorkerDetailsContext_Click(object sender, RoutedEventArgs e)
+            => OpenWorkerDetails(GetWorkerFromContext(sender));
+
+        private void EditWorkerContext_Click(object sender, RoutedEventArgs e)
+        {
+            var workerVm = GetWorkerFromContext(sender);
+            if (workerVm == null)
+                return;
+
+            if (!SessionManager.CanEdit())
+            {
+                DialogService.Warning(
+                    this,
+                    "Giriş Qadağandır",
+                    "Bu əməliyyat üçün icazəniz yoxdur.");
+                return;
+            }
+
+            Manager_EditWorker(sender, workerVm.GetModel());
+        }
+
+        private void CopyWorkerNameContext_Click(object sender, RoutedEventArgs e)
+        {
+            var worker = GetWorkerFromContext(sender)?.GetModel();
+            CopyWorkerText(worker?.per_adiper_soyadi, "İşçi adı");
+        }
+
+        private void CopyWorkerCodeContext_Click(object sender, RoutedEventArgs e)
+        {
+            var worker = GetWorkerFromContext(sender)?.GetModel();
+            CopyWorkerText(worker?.per_kod, "İşçi kodu");
+        }
+
+        private void CopyWorkerText(string value, string label)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                NotificationService.Info(
+                    this,
+                    $"{label} boşdur.",
+                    title: "Kopyalama");
+                return;
+            }
+
+            try
+            {
+                Clipboard.SetText(value);
+                NotificationService.Success(this, $"{label} kopyalandı.");
+            }
+            catch (Exception ex)
+            {
+                NotificationService.Error(
+                    this,
+                    $"Kopyalama zamanı xəta baş verdi: {ex.Message}");
+            }
+        }
+
+        private void ToggleWorkerActiveContext_Click(object sender, RoutedEventArgs e)
+        {
+            var workerVm = GetWorkerFromContext(sender);
+            if (workerVm == null)
+                return;
+
+            if (!SessionManager.CanEdit())
+            {
+                DialogService.Warning(
+                    this,
+                    "Giriş Qadağandır",
+                    "Bu əməliyyat üçün icazəniz yoxdur.");
+                return;
+            }
+
+            var worker = workerVm.GetModel();
+            bool nextState = !worker.IsActive;
+            _viewModel.SetActiveState(new[] { worker.Id }, nextState);
+            RefreshViewModelPreservingSelection();
+
+            NotificationService.Success(
+                this,
+                nextState
+                    ? "İşçi aktiv edildi."
+                    : "İşçi qeyri-aktiv edildi.");
+        }
+
+        public void NavigateToWorker(int workerId)
+        {
+            if (workerId <= 0)
+                return;
+
+            _workerIdToSelectOnLoad = workerId;
+
+            if (IsLoaded)
+                SelectWorkerById(workerId);
+        }
+
+        private void SelectWorkerById(int workerId)
+        {
+            var visible = _viewModel.VisibleWorkers
+                .FirstOrDefault(vm => vm.GetModel().Id == workerId);
+
+            if (visible != null)
+            {
+                OpenWorkerDetails(visible);
+                return;
+            }
+
+            var worker = AppData.GetWorkers()
+                .FirstOrDefault(item => item.Id == workerId);
+
+            if (worker == null)
+                return;
+
+            var assignedAssets = AppData.GetAssets()
+                .Where(asset => asset.WorkerId == workerId)
+                .ToList();
+
+            _selectedWorker = new WorkerViewModel(worker, assignedAssets);
+            WorkersDataGrid.SelectedItem = null;
+            UpdateDetailView();
+
+            if (!isDetailPanelOpen)
+                OpenDetailPanel();
         }
 
         private void AssetManager_AssetAssignmentChanged(object _, EventArgs e)
