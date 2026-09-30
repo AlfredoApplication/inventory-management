@@ -23,13 +23,16 @@ namespace LoginAppFramework
         {
             if (_workerToShow == null)
             {
-                MessageBox.Show("Cannot display details for a null worker.", "Error");
+                DialogService.Error(
+                    this,
+                    "Xəta",
+                    "İşçi məlumatlarını göstərmək mümkün olmadı.");
                 this.Close();
                 return;
             }
 
             // This now populates the correctly named UI elements using your 'per_' property names.
-            this.Title = $"{_workerToShow.per_adiper_soyadi} - Details";
+            this.Title = $"{_workerToShow.per_adiper_soyadi} - Detallar";
             WorkerNameTextBlock.Text = _workerToShow.per_adiper_soyadi ?? "N/A";
             WorkerPositionTextBlock.Text = _workerToShow.pgk_gorev_adi ?? "N/A";
             DepartmentTextBlock.Text = _workerToShow.pdp_adi ?? "N/A";
@@ -58,7 +61,10 @@ namespace LoginAppFramework
         {
             if (!SessionManager.CanEdit())
             {
-                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                DialogService.Warning(
+                    this,
+                    "Giriş Qadağandır",
+                    "Bu əməliyyat üçün icazəniz yoxdur.");
                 return;
             }
 
