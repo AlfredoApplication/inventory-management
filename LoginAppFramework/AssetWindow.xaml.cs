@@ -51,27 +51,40 @@ namespace LoginAppFramework
             LoadingOverlay.Visibility = Visibility.Visible;
             await Task.Delay(20);
 
-            _viewModel.Refresh();
-            InitializeColumnFilters();
-
-            if (_assetIdToSelectOnLoad.HasValue)
+            try
             {
-                SelectAssetById(_assetIdToSelectOnLoad.Value);
+                _viewModel.Refresh();
+                InitializeColumnFilters();
+
+                if (_assetIdToSelectOnLoad.HasValue)
+                {
+                    SelectAssetById(_assetIdToSelectOnLoad.Value);
+                }
+                else
+                {
+                    UpdateDetailView();
+                }
+
+                AssetDetailControl.OnAssetModified += (s, asset) =>
+                    DetailControl_EditAsset(s, new AssetCheckableViewModel(asset));
+                AssetDetailControl.OnAssetDeleted += (s, asset) =>
+                    DetailControl_DeleteAsset(s, new AssetCheckableViewModel(asset));
+                AssetDetailControl.OnAssignmentChanged += DetailControl_AssignmentChanged;
+                AssetDetailControl.OnDetailPanelClosed += DetailControl_PanelClosed;
             }
-            else
+            catch (Exception ex)
             {
-                UpdateDetailView();
+                MessageBox.Show(
+                    $"Vəsaitlər yüklənərkən xəta baş verdi:\n\n{ex.Message}",
+                    "Yükləmə Xətası",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
             }
-
-            AssetDetailControl.OnAssetModified += (s, asset) =>
-                DetailControl_EditAsset(s, new AssetCheckableViewModel(asset));
-            AssetDetailControl.OnAssetDeleted += (s, asset) =>
-                DetailControl_DeleteAsset(s, new AssetCheckableViewModel(asset));
-            AssetDetailControl.OnAssignmentChanged += DetailControl_AssignmentChanged;
-            AssetDetailControl.OnDetailPanelClosed += DetailControl_PanelClosed;
-
-            LoadingOverlay.Visibility = Visibility.Collapsed;
-            ApplyRoleBasedPermissions();
+            finally
+            {
+                LoadingOverlay.Visibility = Visibility.Collapsed;
+                ApplyRoleBasedPermissions();
+            }
         }
 
         #region Action Buttons (QR, Import, Export)
@@ -457,15 +470,39 @@ namespace LoginAppFramework
         private void ToggleFilterPanelButton_Click(object sender, RoutedEventArgs e)
         {
             bool isVisible = FilterSidebar.Visibility == Visibility.Visible;
+            SetFilterPanelVisibility(!isVisible);
+        }
 
+        private void SetFilterPanelVisibility(bool isVisible)
+        {
             FilterSidebar.Visibility =
-                isVisible ? Visibility.Collapsed : Visibility.Visible;
+                isVisible ? Visibility.Visible : Visibility.Collapsed;
 
             FilterColumn.Width =
-                isVisible ? new GridLength(0) : new GridLength(280);
+                isVisible ? new GridLength(260) : new GridLength(0);
 
             FilterPanelToggleButton.Content =
-                isVisible ? "Filtrləri Göstər" : "Filtrləri Gizlət";
+                isVisible ? "Filtrləri Gizlət" : "Filtrləri Göstər";
+        }
+
+        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.F)
+            {
+                SetFilterPanelVisibility(true);
+                SearchBox.Focus();
+                SearchBox.SelectAll();
+                e.Handled = true;
+                return;
+            }
+
+            if (e.Key == Key.Escape && isDetailPanelOpen)
+            {
+                AssetsDataGrid.SelectedItems.Clear();
+                _selectedAssetVM = null;
+                CloseDetailPanel();
+                e.Handled = true;
+            }
         }
 
 
