@@ -30,6 +30,7 @@ namespace LoginAppFramework
                 ["VesaitinAdi"] = "Vəsaitin Adı",
                 ["ITAvadanliqlarininSeriyaNomresi"] = "Seriya Nömrəsi",
                 ["Kateqoriya"] = "Kateqoriya",
+                ["Status"] = "Status",
                 ["Worker.per_adiper_soyadi"] = "Təhkim Olunan Əməkdaş",
                 ["Worker.pgk_gorev_adi"] = "Vəzifəsi",
                 ["Worker.pdp_adi"] = "Bölmə/Şöbə/Departament",
