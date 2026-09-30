@@ -18,7 +18,8 @@ namespace LoginAppFramework
             => window is DashboardWindow
                 or AssetWindow
                 or WorkerListWindow
-                or HistoryLogWindow;
+                or HistoryLogWindow
+                or LifecycleReportWindow;
 
         private static async Task<T> NavigateAsync<T>(
             Window callingWindow = null,
@@ -156,6 +157,10 @@ namespace LoginAppFramework
         public static async Task GoToHistoryLogWindow(
             Window callingWindow = null)
             => await NavigateAsync<HistoryLogWindow>(callingWindow);
+
+        public static async Task GoToLifecycleReportWindow(
+            Window callingWindow = null)
+            => await NavigateAsync<LifecycleReportWindow>(callingWindow);
 
         public static void SwitchUser()
         {
