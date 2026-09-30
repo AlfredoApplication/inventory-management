@@ -79,6 +79,9 @@
             </Border>
 
             <Border Style="{StaticResource SurfaceCardStyle}"
+
+            <local:ConnectionStatusBannerControl DockPanel.Dock="Top"/>
+
                     Margin="20"
                     Padding="0">
                 <DockPanel>
