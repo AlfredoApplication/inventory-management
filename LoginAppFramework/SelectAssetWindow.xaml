@@ -29,15 +29,22 @@
             <TextBlock Grid.Column="0" Text="Mövcud Vəsaiti Seçin" Style="{StaticResource SectionTitleTextStyle}" VerticalAlignment="Center" Foreground="{StaticResource PrimaryTextBrush}"/>
             <TextBox x:Name="SearchBox" Grid.Column="1" Width="250" TextChanged="SearchBox_TextChanged" VerticalAlignment="Center" Tag="Axtarış..." ToolTip="Kod, ad və ya kateqoriya üzrə axtarış..."/>
         </Grid>
-        <ListView x:Name="AvailableAssetsListView" Grid.Row="1" Margin="0,0,0,15" MouseDoubleClick="AvailableAssetsListView_MouseDoubleClick" AlternationCount="2">
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn Header="Vesaitin Kodu" Width="200" DisplayMemberBinding="{Binding VesaitinKodu}"/>
-                    <GridViewColumn Header="Vesaitin Adı" Width="250" DisplayMemberBinding="{Binding VesaitinAdi}"/>
-                    <GridViewColumn Header="Kateqoriya" Width="200" DisplayMemberBinding="{Binding Kateqoriya}"/>
-                </GridView>
-            </ListView.View>
-        </ListView>
+        <Grid Grid.Row="1" Margin="0,0,0,15">
+            <ListView x:Name="AvailableAssetsListView" MouseDoubleClick="AvailableAssetsListView_MouseDoubleClick" AlternationCount="2">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Vesaitin Kodu" Width="200" DisplayMemberBinding="{Binding VesaitinKodu}"/>
+                        <GridViewColumn Header="Vesaitin Adı" Width="250" DisplayMemberBinding="{Binding VesaitinAdi}"/>
+                        <GridViewColumn Header="Kateqoriya" Width="200" DisplayMemberBinding="{Binding Kateqoriya}"/>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+            <local:EmptyStateControl x:Name="EmptyState"
+                                     Visibility="Collapsed"
+                                     Icon="Assets"
+                                     Title="Uyğun vəsait tapılmadı"
+                                     Message="Axtarış sözünü dəyişərək yenidən yoxlayın."/>
+        </Grid>
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="Seç" Width="90" IsDefault="True" Style="{StaticResource PrimaryActionButton}" Margin="0,0,10,0" Click="SelectButton_Click"/>
             <Button Content="Ləğv et" Width="90" IsCancel="True"/>
