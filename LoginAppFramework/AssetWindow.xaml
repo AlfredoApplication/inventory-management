@@ -7,6 +7,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         Title="Vəsait İdarəetməsi"
         Loaded="Window_Loaded"
+        PreviewKeyDown="Window_PreviewKeyDown"
         WindowStartupLocation="CenterScreen"
         Style="{StaticResource MainScreenWindowStyle}">
 
@@ -138,7 +139,7 @@
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,10,0,0">
                             <StackPanel x:Name="FilterPanel" DataContext="{Binding Filters}">
                                 <TextBlock Text="Ad/Seriya üzrə Axtarış" Style="{StaticResource FilterHeader}" Margin="0,0,0,5"/>
-                                <TextBox Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Tag="Axtarış..."/>
+                                <TextBox x:Name="SearchBox" Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Tag="Axtarış..."/>
 
                                 <TextBlock Text="Kateqoriya" Style="{StaticResource FilterHeader}" Margin="0,15,0,5"/>
                                 <CheckBox Content="Yalnız Kateqoriyasız Vəsaitlər" IsChecked="{Binding ShowOnlyUncategorized, Mode=TwoWay}" Margin="0,0,0,10" ToolTip="Mövcud kateqoriya siyahısına aid olmayan vəsaitləri göstərin."/>
@@ -350,9 +351,17 @@
                             </DataGridTextColumn>
                         </DataGrid.Columns>
                     </DataGrid>
-                    <TextBlock Grid.Row="2" x:Name="NoResultsTextBlock" Text="Heç bir vəsait tapılmadı." HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
+                    <Border Grid.Row="2"
+                            x:Name="NoResultsPanel"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Background="{StaticResource PanelBackgroundBrush}"
+                            BorderBrush="{StaticResource ControlBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="28,22">
+                        <Border.Style>
+                            <Style TargetType="Border">
                                 <Setter Property="Visibility" Value="Visible"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding HasResults}" Value="True">
@@ -360,8 +369,27 @@
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
+                        </Border.Style>
+                        <StackPanel HorizontalAlignment="Center">
+                            <local:AppIcon Icon="Assets"
+                                           Size="34"
+                                           Foreground="{StaticResource SubtleTextBrush}"
+                                           HorizontalAlignment="Center"
+                                           Margin="0,0,0,10"/>
+                            <TextBlock Text="Vəsait tapılmadı"
+                                       FontSize="17"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource PrimaryTextBrush}"
+                                       HorizontalAlignment="Center"/>
+                            <TextBlock Text="Axtarış və ya filtrləri dəyişərək yenidən yoxlayın."
+                                       Foreground="{StaticResource SubtleTextBrush}"
+                                       Margin="0,5,0,14"
+                                       HorizontalAlignment="Center"/>
+                            <Button Content="Filtrləri təmizlə"
+                                    HorizontalAlignment="Center"
+                                    Click="ClearFiltersButton_Click"/>
+                        </StackPanel>
+                    </Border>
                 </Grid>
                 <Border Grid.Column="1" x:Name="DetailPanelContainer" HorizontalAlignment="Right" Width="0" Background="{StaticResource GlassBackgroundBrush}" BorderThickness="1,0,0,0" BorderBrush="{StaticResource GlassBorderBrush}">
                     <Border.Effect>
@@ -374,8 +402,9 @@
         <local:MainNavigationMenu x:Name="SharedNavigationMenu" CurrentPage="Assets"/>
         <Border x:Name="LoadingOverlay" Background="{StaticResource GlassBackgroundBrush}" Visibility="Collapsed">
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                <TextBlock Text="Vəsaitlər Yüklənir..." FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/>
-                <TextBlock Text="Zəhmət olmasa, məlumatlar hazırlanarkən gözləyin." Foreground="{StaticResource BodyTextBrush}" HorizontalAlignment="Center"/>
+                <TextBlock Text="Vəsaitlər yüklənir..." FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}" HorizontalAlignment="Center"/>
+                <TextBlock Text="Məlumatlar hazırlanır." Foreground="{StaticResource BodyTextBrush}" HorizontalAlignment="Center" Margin="0,4,0,12"/>
+                <ProgressBar Width="220" Height="4" IsIndeterminate="True"/>
             </StackPanel>
         </Border>
     </Grid>
