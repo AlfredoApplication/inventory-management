@@ -3,205 +3,367 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:LoginAppFramework"
         Title="Vəsait Məlumatları"
-        Width="660"
-        Height="760"
-        MinWidth="520"
-        MinHeight="480"
+        Width="720"
+        Height="800"
+        MinWidth="560"
+        MinHeight="520"
         WindowStartupLocation="CenterOwner"
         ResizeMode="CanResizeWithGrip"
         Background="{StaticResource AppBackgroundBrush}"
         FontFamily="Segoe UI"
-        Loaded="Window_Loaded">
-    <Border Style="{StaticResource SurfaceCardStyle}" Margin="24" Padding="24">
+        Loaded="Window_Loaded"
+        Closing="Window_Closing"
+        PreviewKeyDown="Window_PreviewKeyDown">
+
+    <Window.Resources>
+        <Style x:Key="FormSectionCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource PanelBackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="Margin" Value="0,0,0,14"/>
+        </Style>
+
+        <Style x:Key="FormLabelStyle" TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,12,10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{StaticResource BodyTextBrush}"/>
+        </Style>
+    </Window.Resources>
+
+    <Border Style="{StaticResource SurfaceCardStyle}"
+            Margin="24"
+            Padding="24">
         <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <ScrollViewer Grid.Row="0"
-                      VerticalScrollBarVisibility="Auto"
-                      HorizontalScrollBarVisibility="Disabled">
-            <StackPanel>
+            <ScrollViewer Grid.Row="0"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <StackPanel>
+                    <StackPanel Margin="0,0,0,18">
+                        <TextBlock Text="Vəsait məlumatları"
+                                   Style="{StaticResource PageTitleTextStyle}"/>
+                        <TextBlock Text="Əsas məlumatları, təhkimatı və həyat dövrü parametrlərini bölmələr üzrə redaktə edin."
+                                   Style="{StaticResource PageSubtitleTextStyle}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,4,0,0"/>
+                    </StackPanel>
+
+                    <!-- Əsas məlumatlar -->
+                    <Border Style="{StaticResource FormSectionCardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Əsas məlumatlar"
+                                       Style="{StaticResource SectionTitleTextStyle}"
+                                       Margin="0,0,0,14"/>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" MinWidth="190"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0"
+                                           Text="Vəsaitin Kodu:"
+                                           Style="{StaticResource FormLabelStyle}"/>
+                                <TextBox x:Name="AssetCodeTextBox"
+                                         Grid.Row="0"
+                                         Grid.Column="1"
+                                         Text="{Binding VesaitinKodu, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         Margin="0,0,0,10"
+                                         Padding="10,7"/>
+
+                                <TextBlock Grid.Row="1"
+                                           Style="{StaticResource FormLabelStyle}">
+                                    <Run Text="Vəsaitin Adı:"/>
+                                    <Run Text=" *" Foreground="{StaticResource DangerBrush}"/>
+                                </TextBlock>
+                                <TextBox x:Name="AssetNameTextBox"
+                                         Grid.Row="1"
+                                         Grid.Column="1"
+                                         Text="{Binding VesaitinAdi, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         Margin="0,0,0,10"
+                                         Padding="10,7"/>
+
+                                <TextBlock Grid.Row="2"
+                                           Text="Seriya Nömrəsi:"
+                                           Style="{StaticResource FormLabelStyle}"/>
+                                <TextBox x:Name="SerialNumberTextBox"
+                                         Grid.Row="2"
+                                         Grid.Column="1"
+                                         Text="{Binding ITAvadanliqlarininSeriyaNomresi, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         Margin="0,0,0,10"
+                                         Padding="10,7"/>
+
+                                <TextBlock Grid.Row="3"
+                                           Text="Kateqoriya:"
+                                           Style="{StaticResource FormLabelStyle}"/>
+                                <ComboBox x:Name="CategoryComboBox"
+                                          Grid.Row="3"
+                                          Grid.Column="1"
+                                          SelectedItem="{Binding Kateqoriya, Mode=TwoWay}"
+                                          Margin="0,0,0,10"
+                                          Padding="10,7"
+                                          SelectionChanged="CategoryComboBox_SelectionChanged"/>
+
+                                <TextBlock Grid.Row="4"
+                                           Text="Status:"
+                                           Style="{StaticResource FormLabelStyle}"/>
+                                <ComboBox x:Name="StatusComboBox"
+                                          Grid.Row="4"
+                                          Grid.Column="1"
+                                          Margin="0,0,0,10"
+                                          Padding="10,7"
+                                          SelectionChanged="StatusComboBox_SelectionChanged"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Təhkimat və yerləşmə -->
+                    <Border Style="{StaticResource FormSectionCardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Təhkimat və yerləşmə"
+                                       Style="{StaticResource SectionTitleTextStyle}"
+                                       Margin="0,0,0,14"/>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" MinWidth="190"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0"
+                                           Text="Təhkim Olunan Əməkdaş:"
+                                           Style="{StaticResource FormLabelStyle}"/>
+                                <ComboBox x:Name="UserComboBox"
+                                          Grid.Row="0"
+                                          Grid.Column="1"
+                                          DisplayMemberPath="DisplayName"
+                                          TextSearch.TextPath="DisplayName"
+                                          Margin="0,0,0,10"
+                                          Padding="10,7"
+                                          IsEditable="True"
+                                          IsTextSearchEnabled="True"
+                                          StaysOpenOnEdit="True"
+                                          SelectionChanged="UserComboBox_SelectionChanged"
+                                          LostKeyboardFocus="UserComboBox_LostKeyboardFocus"/>
+
+                                <TextBlock Grid.Row="1"
+                                           Text="Bölmə/Şöbə/Departament:"
+                                           Style="{StaticResource FormLabelStyle}"/>
+                                <TextBox x:Name="AssignedDepartmentTextBox"
+                                         Grid.Row="1"
+                                         Grid.Column="1"
+                                         IsReadOnly="True"
+                                         IsTabStop="False"
+                                         Margin="0,0,0,10"
+                                         Padding="10,7"
+                                         ToolTip="Departament seçilmiş əməkdaşdan avtomatik müəyyən edilir."/>
+
+                                <TextBlock Grid.Row="2"
+                                           Text="Yerləşmə Yeri:"
+                                           Style="{StaticResource FormLabelStyle}"/>
+                                <TextBox x:Name="LocationTextBox"
+                                         Grid.Row="2"
+                                         Grid.Column="1"
+                                         Text="{Binding YerleshmeYeri, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         Margin="0,0,0,10"
+                                         Padding="10,7"/>
+
+                                <TextBlock Grid.Row="3"
+                                           Text="Ərazi:"
+                                           Style="{StaticResource FormLabelStyle}"/>
+                                <TextBox x:Name="AreaTextBox"
+                                         Grid.Row="3"
+                                         Grid.Column="1"
+                                         Text="{Binding Erazi, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         Margin="0,0,0,10"
+                                         Padding="10,7"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Maliyyə məlumatları -->
+                    <Border Style="{StaticResource FormSectionCardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Maliyyə məlumatları"
+                                       Style="{StaticResource SectionTitleTextStyle}"
+                                       Margin="0,0,0,14"/>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" MinWidth="190"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0"
+                                           Text="Alış Qiyməti:"
+                                           Style="{StaticResource FormLabelStyle}"/>
+                                <TextBox x:Name="PurchaseCostTextBox"
+                                         Grid.Row="0"
+                                         Grid.Column="1"
+                                         Margin="0,0,0,10"
+                                         Padding="10,7"
+                                         PreviewTextInput="PurchaseCostTextBox_PreviewTextInput"
+                                         DataObject.Pasting="PurchaseCostTextBox_Pasting"/>
+
+                                <TextBlock Grid.Row="1"
+                                           Style="{StaticResource FormLabelStyle}">
+                                    <Run Text="Alınma Tarixi:"/>
+                                    <Run Text=" *" Foreground="{StaticResource DangerBrush}"/>
+                                </TextBlock>
+                                <local:DateSelectorControl x:Name="PurchaseDateSelector"
+                                                           Grid.Row="1"
+                                                           Grid.Column="1"
+                                                           Margin="0,0,0,10"
+                                                           AllowClear="False"
+                                                           DialogTitle="Alınma tarixini seçin"/>
+
+                                <TextBlock Grid.Row="2"
+                                           Text="Təchizatçı:"
+                                           Style="{StaticResource FormLabelStyle}"/>
+                                <TextBox x:Name="SupplierTextBox"
+                                         Grid.Row="2"
+                                         Grid.Column="1"
+                                         Text="{Binding Supplier, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         Margin="0,0,0,10"
+                                         Padding="10,7"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Həyat dövrü -->
+                    <Border Style="{StaticResource FormSectionCardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Həyat dövrü"
+                                       Style="{StaticResource SectionTitleTextStyle}"
+                                       Margin="0,0,0,14"/>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" MinWidth="190"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0"
+                                           Text="Zəmanət Müddəti:"
+                                           Style="{StaticResource FormLabelStyle}"/>
+                                <local:DateSelectorControl x:Name="WarrantyDateSelector"
+                                                           Grid.Row="0"
+                                                           Grid.Column="1"
+                                                           Margin="0,0,0,10"
+                                                           AllowClear="True"
+                                                           DialogTitle="Zəmanət bitmə tarixini seçin"/>
+
+                                <TextBlock Grid.Row="1"
+                                           Text="İstifadə müddəti (İl):"
+                                           Style="{StaticResource FormLabelStyle}"/>
+                                <TextBox x:Name="UsefulLifeTextBox"
+                                         Grid.Row="1"
+                                         Grid.Column="1"
+                                         Margin="0,0,0,10"
+                                         Padding="10,7"
+                                         PreviewTextInput="UsefulLifeTextBox_PreviewTextInput"
+                                         DataObject.Pasting="UsefulLifeTextBox_Pasting"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Kateqoriyaya xas sahələr -->
+                    <Border x:Name="CustomFieldsSeparator"
+                            Style="{StaticResource FormSectionCardStyle}"
+                            Visibility="Collapsed">
+                        <StackPanel>
+                            <TextBlock Text="Kateqoriyaya Xas Məlumatlar"
+                                       Style="{StaticResource SectionTitleTextStyle}"
+                                       Margin="0,0,0,14"/>
+                            <StackPanel x:Name="CustomFieldsPanel"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <Border Grid.Row="1"
+                    BorderBrush="{StaticResource ControlBorderBrush}"
+                    BorderThickness="0,1,0,0"
+                    Margin="0,12,0,0"
+                    Padding="0,14,0,0">
                 <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" MinWidth="190"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <Label Grid.Row="0" Content="Vəsaitin Kodu:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
-                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding VesaitinKodu, Mode=TwoWay}" Margin="0,0,0,10" Padding="10,7"/>
-
-                    <Label Grid.Row="1" Content="Vəsaitin Adı:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
-                    <TextBox x:Name="AssetNameTextBox"
-                             Grid.Row="1"
-                             Grid.Column="1"
-                             Text="{Binding VesaitinAdi, Mode=TwoWay}"
-                             Margin="0,0,0,10"
-                             Padding="10,7"/>
-
-                    <Label Grid.Row="2" Content="Seriya Nömrəsi:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
-                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding ITAvadanliqlarininSeriyaNomresi, Mode=TwoWay}" Margin="0,0,0,10" Padding="10,7"/>
-
-                    <Label Grid.Row="3" Content="Kateqoriya:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
-                    <ComboBox x:Name="CategoryComboBox"
-                              Grid.Row="3"
-                              Grid.Column="1"
-                              SelectedItem="{Binding Kateqoriya, Mode=TwoWay}"
-                              Margin="0,0,0,10"
-                              Padding="10,7"
-                              SelectionChanged="CategoryComboBox_SelectionChanged"/>
-
-                    <Label Grid.Row="4" Content="Təhkim Olunan Əməkdaş:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
-                    <ComboBox x:Name="UserComboBox"
-                              Grid.Row="4"
-                              Grid.Column="1"
-                              DisplayMemberPath="DisplayName"
-                              TextSearch.TextPath="DisplayName"
-                              Margin="0,0,0,10"
-                              Padding="10,7"
-                              IsEditable="True"
-                              IsTextSearchEnabled="True"
-                              StaysOpenOnEdit="True"
-                              SelectionChanged="UserComboBox_SelectionChanged"
-                              LostKeyboardFocus="UserComboBox_LostKeyboardFocus"/>
-
-                    <Label Grid.Row="5" Content="Bölmə/Şöbə/Departament:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
-                    <TextBox x:Name="AssignedDepartmentTextBox"
-                             Grid.Row="5"
-                             Grid.Column="1"
-                             IsReadOnly="True"
-                             IsTabStop="False"
-                             Margin="0,0,0,10"
-                             Padding="10,7"
-                             ToolTip="Departament seçilmiş əməkdaşdan avtomatik müəyyən edilir."/>
-
-                    <Label Grid.Row="6" Content="Yerləşmə Yeri:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
-                    <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding YerleshmeYeri, Mode=TwoWay}" Margin="0,0,0,10" Padding="10,7"/>
-
-                    <Label Grid.Row="7" Content="Ərazi:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
-                    <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding Erazi, Mode=TwoWay}" Margin="0,0,0,10" Padding="10,7"/>
-
-                    <Label Grid.Row="8" Content="Status:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
-                    <ComboBox x:Name="StatusComboBox"
-                              Grid.Row="8"
-                              Grid.Column="1"
-                              Margin="0,0,0,10"
-                              Padding="10,7"
-                              SelectionChanged="StatusComboBox_SelectionChanged"/>
-                </Grid>
-
-                <Separator Margin="0,5,0,10"/>
-
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" MinWidth="190"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-
-                    <Label Grid.Row="0" Content="Alış Qiyməti:" VerticalAlignment="Center" Margin="0,0,10,10"/>
-                    <TextBox x:Name="PurchaseCostTextBox"
-                             Grid.Row="0"
-                             Grid.Column="1"
-                             Margin="0,0,0,10"
-                             Padding="10,7"
-                             PreviewTextInput="PurchaseCostTextBox_PreviewTextInput"
-                             DataObject.Pasting="PurchaseCostTextBox_Pasting"/>
-
-                    <Label Grid.Row="1" Content="Alınma Tarixi:" VerticalAlignment="Center" Margin="0,0,10,10"/>
-                    <local:DateSelectorControl x:Name="PurchaseDateSelector"
-                                               Grid.Row="1"
-                                               Grid.Column="1"
-                                               Margin="0,0,0,10"
-                                               AllowClear="False"
-                                               DialogTitle="Alınma tarixini seçin"/>
-
-                    <Label Grid.Row="2" Content="Təchizatçı:" VerticalAlignment="Center" Margin="0,0,10,10"/>
-                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Supplier, Mode=TwoWay}" Margin="0,0,0,10" Padding="10,7"/>
-
-                    <Label Grid.Row="3" Content="Zəmanət Müddəti:" VerticalAlignment="Center" Margin="0,0,10,10"/>
-                    <local:DateSelectorControl x:Name="WarrantyDateSelector"
-                                               Grid.Row="3"
-                                               Grid.Column="1"
-                                               Margin="0,0,0,10"
-                                               AllowClear="True"
-                                               DialogTitle="Zəmanət bitmə tarixini seçin"/>
-
-                    <Label Grid.Row="4" Content="İstifadə müddəti (İl):" VerticalAlignment="Center" Margin="0,0,10,10"/>
-                    <TextBox x:Name="UsefulLifeTextBox"
-                             Grid.Row="4"
-                             Grid.Column="1"
-                             Margin="0,0,0,10"
-                             Padding="10,7"
-                             PreviewTextInput="UsefulLifeTextBox_PreviewTextInput"
-                             DataObject.Pasting="UsefulLifeTextBox_Pasting"/>
-                </Grid>
-
-                <StackPanel x:Name="CustomFieldsSeparator" Visibility="Collapsed">
-                    <Separator Margin="0,10"/>
-                    <TextBlock Text="Kateqoriyaya Xas Məlumatlar"
-                               FontWeight="SemiBold"
-                               Foreground="{StaticResource PrimaryTextBrush}"
+                    <TextBlock x:Name="ValidationTextBlock"
+                               Grid.Row="0"
+                               Visibility="Collapsed"
+                               Foreground="{StaticResource DangerBrush}"
+                               TextWrapping="Wrap"
                                Margin="0,0,0,10"/>
-                </StackPanel>
 
-                <StackPanel x:Name="CustomFieldsPanel"/>
-            </StackPanel>
-        </ScrollViewer>
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
 
-        <Border Grid.Row="1"
-                BorderBrush="{StaticResource ControlBorderBrush}"
-                BorderThickness="0,1,0,0"
-                Margin="0,12,0,0"
-                Padding="0,14,0,0">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+                        <TextBlock x:Name="DirtyStateTextBlock"
+                                   Grid.Column="0"
+                                   Text="Yadda saxlanılmamış dəyişikliklər var"
+                                   Foreground="{StaticResource WarningTextBrush}"
+                                   VerticalAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,12,0"
+                                   Visibility="Collapsed"/>
 
-                <TextBlock x:Name="ValidationTextBlock"
-                           Grid.Row="0"
-                           Visibility="Collapsed"
-                           Foreground="{StaticResource DangerBrush}"
-                           TextWrapping="Wrap"
-                           Margin="0,0,0,10"/>
-
-                <StackPanel Grid.Row="1"
-                            Orientation="Horizontal"
-                            HorizontalAlignment="Right">
-                    <Button Content="Yadda Saxla"
-                            Width="110"
-                            Margin="0,0,10,0"
-                            Padding="10,5"
-                            Style="{StaticResource PrimaryActionButton}"
-                            IsDefault="True"
-                            Click="SaveButton_Click"/>
-                    <Button Content="Ləğv et"
-                            Width="90"
-                            Padding="10,5"
-                            IsCancel="True"/>
-                </StackPanel>
-            </Grid>
-        </Border>
+                        <StackPanel Grid.Column="1"
+                                    Orientation="Horizontal"
+                                    HorizontalAlignment="Right">
+                            <Button x:Name="SaveButton"
+                                    Content="Yadda Saxla"
+                                    Width="110"
+                                    Margin="0,0,10,0"
+                                    Padding="10,5"
+                                    Style="{StaticResource PrimaryActionButton}"
+                                    IsDefault="True"
+                                    IsEnabled="False"
+                                    Click="SaveButton_Click"/>
+                            <Button x:Name="CancelButton"
+                                    Content="Ləğv et"
+                                    Width="90"
+                                    Padding="10,5"
+                                    Click="CancelButton_Click"/>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Border>
         </Grid>
     </Border>
 </Window>

@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -15,12 +17,28 @@ namespace LoginAppFramework
 
         private List<Worker> _availableWorkers;
         private List<WorkerSelectionOption> _workerOptions;
+        private string _initialFormFingerprint;
+        private bool _isTrackingChanges;
+        private bool _allowClose;
 
         public AddEditAssetWindow(Asset assetToEdit)
         {
             InitializeComponent();
             Asset = assetToEdit.Clone();
             DataContext = Asset;
+
+            AddHandler(
+                TextBox.TextChangedEvent,
+                new TextChangedEventHandler(FormTextChanged),
+                true);
+
+            AddHandler(
+                Selector.SelectionChangedEvent,
+                new SelectionChangedEventHandler(FormSelectionChanged),
+                true);
+
+            PurchaseDateSelector.SelectedDateChanged += DateSelector_SelectedDateChanged;
+            WarrantyDateSelector.SelectedDateChanged += DateSelector_SelectedDateChanged;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -63,6 +81,10 @@ namespace LoginAppFramework
             SelectCurrentWorker();
             UpdateStatusBehavior();
             GenerateCustomFields(Asset.Kateqoriya);
+
+            _initialFormFingerprint = BuildFormFingerprint();
+            _isTrackingChanges = true;
+            UpdateDirtyState();
         }
 
         private void ApplyResponsiveBounds()
@@ -72,11 +94,11 @@ namespace LoginAppFramework
             MaxWidth = Math.Max(460, workArea.Width - 40);
             MaxHeight = Math.Max(420, workArea.Height - 40);
 
-            MinWidth = Math.Min(520, MaxWidth);
-            MinHeight = Math.Min(480, MaxHeight);
+            MinWidth = Math.Min(560, MaxWidth);
+            MinHeight = Math.Min(520, MaxHeight);
 
-            Width = Math.Min(620, MaxWidth);
-            Height = Math.Min(720, MaxHeight);
+            Width = Math.Min(720, MaxWidth);
+            Height = Math.Min(800, MaxHeight);
         }
 
         private void PopulateUserComboBox()
@@ -221,15 +243,18 @@ namespace LoginAppFramework
         }
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
+            => TrySaveAndClose();
+
+        private bool TrySaveAndClose()
         {
             ClearValidation();
 
-            if (string.IsNullOrWhiteSpace(Asset.VesaitinAdi))
+            if (string.IsNullOrWhiteSpace(AssetNameTextBox.Text))
             {
                 ShowValidation(
                     "Vəsaitin adı tələb olunur.",
                     AssetNameTextBox);
-                return;
+                return false;
             }
 
             if (!AssetFormValidator.TryParsePurchaseCost(
@@ -240,7 +265,7 @@ namespace LoginAppFramework
                 ShowValidation(
                     purchaseCostError,
                     PurchaseCostTextBox);
-                return;
+                return false;
             }
 
             if (!AssetFormValidator.TryParseUsefulLife(
@@ -251,7 +276,7 @@ namespace LoginAppFramework
                 ShowValidation(
                     usefulLifeError,
                     UsefulLifeTextBox);
-                return;
+                return false;
             }
 
             DateTime? purchaseDate = PurchaseDateSelector.SelectedDate;
@@ -269,7 +294,7 @@ namespace LoginAppFramework
                     warrantyDate.Value.Date < purchaseDate.Value.Date
                         ? WarrantyDateSelector
                         : PurchaseDateSelector);
-                return;
+                return false;
             }
 
             var workerResolution = ResolveWorkerSelection();
@@ -279,8 +304,17 @@ namespace LoginAppFramework
                 ShowValidation(
                     workerResolution.ErrorMessage,
                     UserComboBox);
-                return;
+                return false;
             }
+
+            Asset.VesaitinKodu = AssetCodeTextBox.Text?.Trim();
+            Asset.VesaitinAdi = AssetNameTextBox.Text?.Trim();
+            Asset.ITAvadanliqlarininSeriyaNomresi =
+                SerialNumberTextBox.Text?.Trim();
+            Asset.Kateqoriya = CategoryComboBox.SelectedItem?.ToString();
+            Asset.YerleshmeYeri = LocationTextBox.Text?.Trim();
+            Asset.Erazi = AreaTextBox.Text?.Trim();
+            Asset.Supplier = SupplierTextBox.Text?.Trim();
 
             if (workerResolution.Kind == WorkerSelectionKind.Worker)
                 Asset.AssignWorker(workerResolution.Worker);
@@ -306,13 +340,21 @@ namespace LoginAppFramework
                 if (child is Grid grid &&
                     grid.Children.OfType<TextBox>().FirstOrDefault() is { } textBox)
                 {
-                    Asset.CustomFields[textBox.Tag.ToString()] = textBox.Text;
+                    Asset.CustomFields[textBox.Tag?.ToString() ?? string.Empty] =
+                        textBox.Text ?? string.Empty;
                 }
             }
 
             AppServices.Assets.Save(Asset);
+
+            _isTrackingChanges = false;
+            _initialFormFingerprint = BuildFormFingerprint();
+            SaveButton.IsEnabled = false;
+            DirtyStateTextBlock.Visibility = Visibility.Collapsed;
+            _allowClose = true;
+
             DialogResult = true;
-            Close();
+            return true;
         }
 
         private void ClearValidation()
@@ -426,6 +468,135 @@ namespace LoginAppFramework
             return current
                 .Remove(selectionStart, selectionLength)
                 .Insert(selectionStart, insertedText ?? string.Empty);
+        }
+
+        private void FormTextChanged(
+            object sender,
+            TextChangedEventArgs e)
+            => UpdateDirtyState();
+
+        private void FormSelectionChanged(
+            object sender,
+            SelectionChangedEventArgs e)
+            => UpdateDirtyState();
+
+        private void DateSelector_SelectedDateChanged(
+            object sender,
+            EventArgs e)
+            => UpdateDirtyState();
+
+        private void UpdateDirtyState()
+        {
+            if (!_isTrackingChanges)
+                return;
+
+            bool isDirty =
+                !string.Equals(
+                    _initialFormFingerprint,
+                    BuildFormFingerprint(),
+                    StringComparison.Ordinal);
+
+            SaveButton.IsEnabled = isDirty;
+            DirtyStateTextBlock.Visibility =
+                isDirty ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private bool HasUnsavedChanges()
+            => _isTrackingChanges &&
+               !string.Equals(
+                   _initialFormFingerprint,
+                   BuildFormFingerprint(),
+                   StringComparison.Ordinal);
+
+        private string BuildFormFingerprint()
+        {
+            string workerKey =
+                UserComboBox.SelectedItem is WorkerSelectionOption option
+                    ? $"{option.Kind}:{option.Worker?.Id}:{UserComboBox.Text}"
+                    : $"text:{UserComboBox.Text}";
+
+            string customFields = string.Join(
+                "\u001D",
+                CustomFieldsPanel.Children
+                    .OfType<Grid>()
+                    .SelectMany(grid => grid.Children.OfType<TextBox>())
+                    .Where(textBox => textBox.Tag != null)
+                    .OrderBy(textBox => textBox.Tag.ToString())
+                    .Select(textBox =>
+                        $"{textBox.Tag}={textBox.Text ?? string.Empty}"));
+
+            return string.Join(
+                "\u001F",
+                new[]
+                {
+                    AssetCodeTextBox.Text ?? string.Empty,
+                    AssetNameTextBox.Text ?? string.Empty,
+                    SerialNumberTextBox.Text ?? string.Empty,
+                    CategoryComboBox.SelectedItem?.ToString() ?? string.Empty,
+                    StatusComboBox.SelectedItem?.ToString() ?? string.Empty,
+                    workerKey,
+                    LocationTextBox.Text ?? string.Empty,
+                    AreaTextBox.Text ?? string.Empty,
+                    PurchaseCostTextBox.Text ?? string.Empty,
+                    PurchaseDateSelector.SelectedDate?.ToString("O") ?? string.Empty,
+                    SupplierTextBox.Text ?? string.Empty,
+                    WarrantyDateSelector.SelectedDate?.ToString("O") ?? string.Empty,
+                    UsefulLifeTextBox.Text ?? string.Empty,
+                    customFields
+                });
+        }
+
+        private void CancelButton_Click(
+            object sender,
+            RoutedEventArgs e)
+            => Close();
+
+        private void Window_PreviewKeyDown(
+            object sender,
+            KeyEventArgs e)
+        {
+            if (e.Key != Key.Escape)
+                return;
+
+            e.Handled = true;
+            Close();
+        }
+
+        private void Window_Closing(
+            object sender,
+            CancelEventArgs e)
+        {
+            if (_allowClose ||
+                !_isTrackingChanges ||
+                !HasUnsavedChanges())
+            {
+                return;
+            }
+
+            e.Cancel = true;
+
+            string itemName =
+                !string.IsNullOrWhiteSpace(AssetNameTextBox.Text)
+                    ? AssetNameTextBox.Text.Trim()
+                    : "Yeni vəsait";
+
+            var choice = DialogService.ConfirmUnsavedChanges(
+                this,
+                itemName);
+
+            if (choice == UnsavedChangesChoice.Save)
+            {
+                Dispatcher.BeginInvoke(
+                    new Action(() => TrySaveAndClose()));
+                return;
+            }
+
+            if (choice == UnsavedChangesChoice.Discard)
+            {
+                _allowClose = true;
+                Dispatcher.BeginInvoke(
+                    new Action(Close));
+            }
         }
 
         private void CategoryComboBox_SelectionChanged(

@@ -11,6 +11,13 @@ namespace LoginAppFramework
         Question
     }
 
+    public enum UnsavedChangesChoice
+    {
+        Save,
+        Discard,
+        Cancel
+    }
+
     public static class DialogService
     {
         public static void Info(Window owner, string title, string message)
@@ -44,6 +51,36 @@ namespace LoginAppFramework
                 destructive);
 
             return dialog.ShowDialog() == true && dialog.Confirmed;
+        }
+
+        public static UnsavedChangesChoice ConfirmUnsavedChanges(
+            Window owner,
+            string itemName = null)
+        {
+            string subject = string.IsNullOrWhiteSpace(itemName)
+                ? "Bu pəncərədə"
+                : $"'{itemName}' üçün";
+
+            var dialog = new AppDialogWindow(
+                owner,
+                "Yadda saxlanılmamış dəyişikliklər",
+                $"{subject} yadda saxlanılmamış dəyişikliklər var. Nə etmək istəyirsiniz?",
+                AppDialogType.Warning,
+                true,
+                "Yadda saxla",
+                "Dəyişiklikləri at",
+                false,
+                showTertiary: true,
+                tertiaryText: "Geri qayıt");
+
+            dialog.ShowDialog();
+
+            return dialog.SelectedAction switch
+            {
+                AppDialogAction.Primary => UnsavedChangesChoice.Save,
+                AppDialogAction.Secondary => UnsavedChangesChoice.Discard,
+                _ => UnsavedChangesChoice.Cancel
+            };
         }
 
         private static void Show(

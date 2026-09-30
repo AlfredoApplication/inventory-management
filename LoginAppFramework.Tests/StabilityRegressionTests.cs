@@ -151,7 +151,18 @@ public class WpfXamlSmokeTests
                     new SelectWorkerWindow(new List<Worker>()),
                     new FilteredAssetsWindow(
                         "XAML smoke test",
-                        new List<Asset>())
+                        new List<Asset>()),
+                    new AppDialogWindow(
+                        null,
+                        "Unsaved smoke test",
+                        "Unsaved changes",
+                        AppDialogType.Warning,
+                        true,
+                        "Save",
+                        "Discard",
+                        false,
+                        showTertiary: true,
+                        tertiaryText: "Cancel")
                 };
 
                 foreach (var window in windows)

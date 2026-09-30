@@ -63,6 +63,12 @@
             <StackPanel Grid.Row="2"
                         Orientation="Horizontal"
                         HorizontalAlignment="Right">
+                <Button x:Name="TertiaryButton"
+                        Content="Geri qayıt"
+                        MinWidth="100"
+                        Margin="0,0,10,0"
+                        Visibility="Collapsed"
+                        Click="TertiaryButton_Click"/>
                 <Button x:Name="SecondaryButton"
                         Content="Ləğv et"
                         MinWidth="100"

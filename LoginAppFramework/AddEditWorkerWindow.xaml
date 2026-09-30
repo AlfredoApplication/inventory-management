@@ -2,101 +2,163 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="İşçi Məlumatları"
-        Width="540"
+        Width="560"
         SizeToContent="Height"
         WindowStartupLocation="CenterOwner"
         ResizeMode="CanResize"
         Background="{StaticResource AppBackgroundBrush}"
         FontFamily="Segoe UI"
-        Loaded="Window_Loaded">
-    <Border Style="{StaticResource SurfaceCardStyle}" Margin="24" Padding="24">
+        Loaded="Window_Loaded"
+        Closing="Window_Closing"
+        PreviewKeyDown="Window_PreviewKeyDown">
+
+    <Border Style="{StaticResource SurfaceCardStyle}"
+            Margin="24"
+            Padding="24">
         <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="165"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <Label Grid.Row="0"
-               Content="Tam Ad:"
-               VerticalAlignment="Center"
-               Margin="0,0,10,10"/>
-        <TextBox x:Name="FullNameTextBox"
-                 Grid.Row="0"
-                 Grid.Column="1"
-                 Margin="0,0,0,10"
-                 Padding="10,7"
-                 FontSize="14"
-                 Text="{Binding per_adiper_soyadi, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+            <StackPanel Grid.Row="0"
+                        Margin="0,0,0,18">
+                <TextBlock Text="İşçi məlumatları"
+                           Style="{StaticResource PageTitleTextStyle}"/>
+                <TextBlock Text="Ulduz (*) ilə işarələnmiş sahələr məcburidir."
+                           Style="{StaticResource PageSubtitleTextStyle}"
+                           Margin="0,4,0,0"/>
+            </StackPanel>
 
-        <Label Grid.Row="1"
-               Content="İşçi Kodu (per_kod):"
-               VerticalAlignment="Center"
-               Margin="0,0,10,10"/>
-        <TextBox x:Name="LogonNameTextBox"
-                 Grid.Row="1"
-                 Grid.Column="1"
-                 Margin="0,0,0,10"
-                 Padding="10,7"
-                 FontSize="14"
-                 Text="{Binding per_kod, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                 ToolTip="İşçi kodu yaradıldıqdan sonra dəyişdirilə bilməz."/>
+            <Border Grid.Row="1"
+                    Background="{StaticResource PanelBackgroundBrush}"
+                    BorderBrush="{StaticResource ControlBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12"
+                    Padding="16">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="175"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-        <Label Grid.Row="2"
-               Content="Vəzifə:"
-               VerticalAlignment="Center"
-               Margin="0,0,10,10"/>
-        <TextBox x:Name="PositionTextBox"
-                 Grid.Row="2"
-                 Grid.Column="1"
-                 Margin="0,0,0,10"
-                 Padding="10,7"
-                 FontSize="14"
-                 Text="{Binding pgk_gorev_adi, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBlock Grid.Row="0"
+                               VerticalAlignment="Center"
+                               Margin="0,0,12,10"
+                               FontWeight="SemiBold">
+                        <Run Text="Tam Ad:"/>
+                        <Run Text=" *" Foreground="{StaticResource DangerBrush}"/>
+                    </TextBlock>
+                    <TextBox x:Name="FullNameTextBox"
+                             Grid.Row="0"
+                             Grid.Column="1"
+                             Margin="0,0,0,10"
+                             Padding="10,7"
+                             FontSize="14"
+                             Text="{Binding per_adiper_soyadi, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
-        <Label Grid.Row="3"
-               Content="Departament:"
-               VerticalAlignment="Center"
-               Margin="0,0,10,10"/>
-        <ComboBox x:Name="DepartmentComboBox"
-                  Grid.Row="3"
-                  Grid.Column="1"
-                  Margin="0,0,0,10"
-                  Padding="10,7"
-                  FontSize="14"
-                  Text="{Binding pdp_adi, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                  IsEditable="True"/>
+                    <TextBlock Grid.Row="1"
+                               VerticalAlignment="Center"
+                               Margin="0,0,12,10"
+                               FontWeight="SemiBold">
+                        <Run Text="İşçi Kodu (per_kod):"/>
+                        <Run Text=" *" Foreground="{StaticResource DangerBrush}"/>
+                    </TextBlock>
+                    <TextBox x:Name="LogonNameTextBox"
+                             Grid.Row="1"
+                             Grid.Column="1"
+                             Margin="0,0,0,10"
+                             Padding="10,7"
+                             FontSize="14"
+                             Text="{Binding per_kod, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="İşçi kodu yaradıldıqdan sonra dəyişdirilə bilməz."/>
 
-        <TextBlock x:Name="ValidationTextBlock"
-                   Grid.Row="4"
-                   Grid.ColumnSpan="2"
-                   Visibility="Collapsed"
-                   Foreground="{StaticResource DangerBrush}"
-                   TextWrapping="Wrap"
-                   Margin="0,2,0,8"/>
+                    <TextBlock Grid.Row="2"
+                               VerticalAlignment="Center"
+                               Margin="0,0,12,10"
+                               FontWeight="SemiBold">
+                        <Run Text="Vəzifə:"/>
+                        <Run Text=" *" Foreground="{StaticResource DangerBrush}"/>
+                    </TextBlock>
+                    <TextBox x:Name="PositionTextBox"
+                             Grid.Row="2"
+                             Grid.Column="1"
+                             Margin="0,0,0,10"
+                             Padding="10,7"
+                             FontSize="14"
+                             Text="{Binding pgk_gorev_adi, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
-        <StackPanel Grid.Row="5"
-                    Grid.ColumnSpan="2"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Right"
-                    Margin="0,10,0,0">
-            <Button Content="Yadda Saxla"
-                    Width="110"
-                    Margin="0,0,10,0"
-                    Style="{StaticResource PrimaryActionButton}"
-                    IsDefault="True"
-                    Click="SaveButton_Click"/>
-            <Button Content="Ləğv et"
-                    Width="90"
-                    IsCancel="True"/>
-        </StackPanel>
+                    <TextBlock Grid.Row="3"
+                               VerticalAlignment="Center"
+                               Margin="0,0,12,0"
+                               FontWeight="SemiBold">
+                        <Run Text="Departament:"/>
+                        <Run Text=" *" Foreground="{StaticResource DangerBrush}"/>
+                    </TextBlock>
+                    <ComboBox x:Name="DepartmentComboBox"
+                              Grid.Row="3"
+                              Grid.Column="1"
+                              Padding="10,7"
+                              FontSize="14"
+                              Text="{Binding pdp_adi, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              IsEditable="True"/>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Row="2"
+                  Margin="0,14,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock x:Name="ValidationTextBlock"
+                           Grid.Row="0"
+                           Visibility="Collapsed"
+                           Foreground="{StaticResource DangerBrush}"
+                           TextWrapping="Wrap"
+                           Margin="0,0,0,10"/>
+
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock x:Name="DirtyStateTextBlock"
+                               Grid.Column="0"
+                               Text="Yadda saxlanılmamış dəyişikliklər var"
+                               Foreground="{StaticResource WarningTextBrush}"
+                               VerticalAlignment="Center"
+                               TextWrapping="Wrap"
+                               Margin="0,0,12,0"
+                               Visibility="Collapsed"/>
+
+                    <StackPanel Grid.Column="1"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Right">
+                        <Button x:Name="SaveButton"
+                                Content="Yadda Saxla"
+                                Width="110"
+                                Margin="0,0,10,0"
+                                Style="{StaticResource PrimaryActionButton}"
+                                IsDefault="True"
+                                IsEnabled="False"
+                                Click="SaveButton_Click"/>
+                        <Button x:Name="CancelButton"
+                                Content="Ləğv et"
+                                Width="90"
+                                Click="CancelButton_Click"/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
         </Grid>
     </Border>
 </Window>
