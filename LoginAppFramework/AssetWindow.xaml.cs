@@ -299,7 +299,7 @@ namespace LoginAppFramework
 
             var dryRun = AssetImportPreviewBuilder.Build(
                 batch,
-                AppData.GetAssets(),
+                AppData.GetAssetsIncludingDeleted(),
                 confirmedMappings);
 
             var previewWindow = new AssetImportPreviewWindow(dryRun)
@@ -393,17 +393,31 @@ namespace LoginAppFramework
 
             bool result = DialogService.Confirm(
                 this,
-                "Toplu Silməni Təsdiq Et",
-                $"İşarələnmiş {checkedAssets.Count} vəsaiti həmişəlik silməyə əminsinizmi?",
-                "Seçilmişləri sil",
-                "Ləğv et",
-                destructive: true);
+                "Silinənlərə Göndər",
+                $"İşarələnmiş {checkedAssets.Count} vəsait Silinənlər bölməsinə göndəriləcək və 30 gün ərzində bərpa edilə biləcək.",
+                "Silinənlərə göndər",
+                "Ləğv et");
 
             if (!result)
                 return;
 
             _viewModel.DeleteCheckedAssets();
             RefreshDataAndSelection();
+
+            NotificationService.SuccessWithAction(
+                this,
+                $"{checkedAssets.Count} vəsait Silinənlər bölməsinə göndərildi.",
+                "Geri qaytar",
+                () =>
+                {
+                    AppServices.Assets.RestoreMany(checkedAssets);
+                    RefreshDataAndSelection();
+
+                    NotificationService.Success(
+                        this,
+                        $"{checkedAssets.Count} vəsait bərpa edildi.");
+                },
+                title: "Silinənlər");
         }
 
         private void BulkEditButton_Click(object sender, RoutedEventArgs e)
@@ -632,20 +646,36 @@ namespace LoginAppFramework
 
         private void DetailControl_DeleteAsset(object _, AssetCheckableViewModel assetVMToDelete)
         {
+            var asset = assetVMToDelete.Asset;
+
             bool confirm = DialogService.Confirm(
                 this,
-                "Silməni Təsdiq Et",
-                $"'{assetVMToDelete.Asset.VesaitinAdi}' adlı vəsaiti həmişəlik silmək istədiyinizə əminsinizmi?",
-                "Vəsaiti sil",
-                "Ləğv et",
-                destructive: true);
+                "Silinənlərə Göndər",
+                $"'{asset.VesaitinAdi}' adlı vəsait Silinənlər bölməsinə göndəriləcək. 30 gün ərzində onu bərpa edə bilərsiniz.",
+                "Silinənlərə göndər",
+                "Ləğv et");
 
             if (!confirm)
                 return;
 
-            _viewModel.DeleteAsset(assetVMToDelete.Asset);
+            _viewModel.DeleteAsset(asset);
             _selectedAssetVM = null;
             RefreshDataAndSelection();
+
+            NotificationService.SuccessWithAction(
+                this,
+                $"'{asset.VesaitinAdi}' Silinənlər bölməsinə göndərildi.",
+                "Geri qaytar",
+                () =>
+                {
+                    AppServices.Assets.Restore(asset);
+                    RefreshDataAndSelection(asset.Id);
+
+                    NotificationService.Success(
+                        this,
+                        "Vəsait bərpa edildi.");
+                },
+                title: "Silinənlər");
         }
 
         private void DetailControl_AssignmentChanged(object _, EventArgs e) => RefreshDataAndSelection(_selectedAssetVM?.Asset.Id);

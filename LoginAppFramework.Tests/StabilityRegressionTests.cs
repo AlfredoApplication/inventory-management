@@ -372,6 +372,153 @@ public class Phase10AlertRegressionTests
     }
 }
 
+public class Phase10RecycleBinRegressionTests
+{
+    [Fact]
+    public void SoftDeleteMetadata_RestoresWithoutChangingAssetState()
+    {
+        DateTime deletedAt =
+            new DateTime(
+                2026,
+                9,
+                30,
+                10,
+                0,
+                0,
+                DateTimeKind.Utc);
+
+        var asset = new Asset
+        {
+            Id = 21,
+            VesaitinKodu = "IT-021",
+            VesaitinAdi = "Laptop",
+            Status = "İstifadədədir",
+            WorkerId = 99
+        };
+
+        AssetDeletionMetadata.MarkDeleted(
+            asset,
+            "Admin User",
+            deletedAt);
+
+        Assert.True(
+            AssetDeletionMetadata.IsDeleted(asset));
+
+        Assert.Equal(
+            "Admin User",
+            AssetDeletionMetadata.GetDeletedBy(asset));
+
+        Assert.Equal(
+            "İstifadədədir",
+            asset.Status);
+
+        Assert.Equal(99, asset.WorkerId);
+
+        AssetDeletionMetadata.Restore(asset);
+
+        Assert.False(
+            AssetDeletionMetadata.IsDeleted(asset));
+
+        Assert.Equal(
+            "İstifadədədir",
+            asset.Status);
+
+        Assert.Equal(99, asset.WorkerId);
+    }
+
+    [Fact]
+    public void SoftDeleteMetadata_UsesThirtyDayRetention()
+    {
+        DateTime deletedAt =
+            new DateTime(
+                2026,
+                9,
+                1,
+                12,
+                0,
+                0,
+                DateTimeKind.Utc);
+
+        var asset = new Asset
+        {
+            Id = 22
+        };
+
+        AssetDeletionMetadata.MarkDeleted(
+            asset,
+            "Admin",
+            deletedAt);
+
+        Assert.Equal(
+            1,
+            AssetDeletionMetadata.GetDaysRemaining(
+                asset,
+                deletedAt.AddDays(29)));
+
+        Assert.True(
+            AssetDeletionMetadata.ShouldPurge(
+                asset,
+                deletedAt.AddDays(30)));
+    }
+
+    [Fact]
+    public void DuplicateDetector_IgnoresCurrentAssetDuringEdit()
+    {
+        var asset = new Asset
+        {
+            Id = 23,
+            VesaitinKodu = "IT-023",
+            ITAvadanliqlarininSeriyaNomresi = "SN-023"
+        };
+
+        Assert.Null(
+            AssetDuplicateDetector.FindCodeConflict(
+                new[] { asset },
+                " IT-023 ",
+                asset.Id));
+
+        Assert.Null(
+            AssetDuplicateDetector.FindSerialConflict(
+                new[] { asset },
+                "sn-023",
+                asset.Id));
+    }
+
+    [Fact]
+    public void DuplicateDetector_ReservesDeletedAssetIdentity()
+    {
+        var deleted = new Asset
+        {
+            Id = 24,
+            VesaitinKodu = "IT-024",
+            VesaitinAdi = "Deleted laptop",
+            ITAvadanliqlarininSeriyaNomresi = "SN-024"
+        };
+
+        AssetDeletionMetadata.MarkDeleted(
+            deleted,
+            "Admin",
+            DateTime.UtcNow);
+
+        var codeConflict =
+            AssetDuplicateDetector.FindCodeConflict(
+                new[] { deleted },
+                "it-024");
+
+        var serialConflict =
+            AssetDuplicateDetector.FindSerialConflict(
+                new[] { deleted },
+                "SN-024");
+
+        Assert.NotNull(codeConflict);
+        Assert.True(codeConflict.IsDeleted);
+        Assert.Contains("Silinənlər", codeConflict.Message);
+
+        Assert.NotNull(serialConflict);
+        Assert.True(serialConflict.IsDeleted);
+    }
+}
+
 [CollectionDefinition("WPF smoke tests", DisableParallelization = true)]
 public sealed class WpfSmokeTestCollection
 {
@@ -437,7 +584,8 @@ public class WpfXamlSmokeTests
                         {
                             TotalRows = 1
                         }),
-                    new NotificationCenterWindow()
+                    new NotificationCenterWindow(),
+                    new RecycleBinWindow()
                 };
 
                 var controls = new object[]

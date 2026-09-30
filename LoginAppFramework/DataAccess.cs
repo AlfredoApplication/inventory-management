@@ -394,18 +394,69 @@ namespace LoginAppFramework
 
         public static void DeleteAsset(Asset asset)
         {
-            using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
-            context.Database.ExecuteSqlRaw("EXEC sp_set_session_context @key=N'CurrentUser', @value=@user", new SqlParameter("@user", SessionManager.CurrentUser.FullName));
-            context.Assets.Remove(asset);
+            if (asset == null || asset.Id <= 0)
+                return;
+
+            using var context =
+                new InventoryDbContext(
+                    SessionManager.CurrentUserConnectionString);
+
+            context.Database.ExecuteSqlRaw(
+                "EXEC sp_set_session_context @key=N'CurrentUser', @value=@user",
+                new SqlParameter(
+                    "@user",
+                    SessionManager.CurrentUser?.FullName ??
+                    SessionManager.CurrentUser?.Username ??
+                    "Sistem"));
+
+            var existing = context.Assets
+                .Include(current => current.History)
+                .FirstOrDefault(current =>
+                    current.Id == asset.Id);
+
+            if (existing == null)
+                return;
+
+            context.Assets.Remove(existing);
             context.SaveChanges();
         }
 
         public static void BulkDeleteAssets(List<Asset> assetsToDelete)
         {
-            if (assetsToDelete == null || !assetsToDelete.Any()) return;
-            using var context = new InventoryDbContext(SessionManager.CurrentUserConnectionString);
-            context.Database.ExecuteSqlRaw("EXEC sp_set_session_context @key=N'CurrentUser', @value=@user", new SqlParameter("@user", SessionManager.CurrentUser.FullName));
-            context.Assets.RemoveRange(assetsToDelete);
+            var ids = assetsToDelete?
+                .Where(asset => asset?.Id > 0)
+                .Select(asset => asset.Id)
+                .Distinct()
+                .ToList()
+                ?? new List<int>();
+
+            if (ids.Count == 0)
+                return;
+
+            using var context =
+                new InventoryDbContext(
+                    SessionManager.CurrentUserConnectionString);
+
+            context.Database.ExecuteSqlRaw(
+                "EXEC sp_set_session_context @key=N'CurrentUser', @value=@user",
+                new SqlParameter(
+                    "@user",
+                    SessionManager.CurrentUser?.FullName ??
+                    SessionManager.CurrentUser?.Username ??
+                    "Sistem"));
+
+            foreach (var batch in ids.Chunk(1000))
+            {
+                var batchIds = batch.ToArray();
+
+                var existing = context.Assets
+                    .Include(asset => asset.History)
+                    .Where(asset => batchIds.Contains(asset.Id))
+                    .ToList();
+
+                context.Assets.RemoveRange(existing);
+            }
+
             context.SaveChanges();
         }
 

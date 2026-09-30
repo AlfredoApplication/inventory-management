@@ -78,12 +78,20 @@
                                 <TextBlock Grid.Row="0"
                                            Text="Vəsaitin Kodu:"
                                            Style="{StaticResource FormLabelStyle}"/>
-                                <TextBox x:Name="AssetCodeTextBox"
-                                         Grid.Row="0"
-                                         Grid.Column="1"
-                                         Text="{Binding VesaitinKodu, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                         Margin="0,0,0,10"
-                                         Padding="10,7"/>
+                                <StackPanel Grid.Row="0"
+                                            Grid.Column="1">
+                                    <TextBox x:Name="AssetCodeTextBox"
+                                             Text="{Binding VesaitinKodu, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             Margin="0,0,0,4"
+                                             Padding="10,7"
+                                             TextChanged="IdentityField_TextChanged"/>
+                                    <TextBlock x:Name="AssetCodeDuplicateWarning"
+                                               Visibility="Collapsed"
+                                               Foreground="{StaticResource WarningTextBrush}"
+                                               FontSize="11"
+                                               TextWrapping="Wrap"
+                                               Margin="2,0,0,10"/>
+                                </StackPanel>
 
                                 <TextBlock Grid.Row="1"
                                            Style="{StaticResource FormLabelStyle}">
@@ -100,12 +108,20 @@
                                 <TextBlock Grid.Row="2"
                                            Text="Seriya Nömrəsi:"
                                            Style="{StaticResource FormLabelStyle}"/>
-                                <TextBox x:Name="SerialNumberTextBox"
-                                         Grid.Row="2"
-                                         Grid.Column="1"
-                                         Text="{Binding ITAvadanliqlarininSeriyaNomresi, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                         Margin="0,0,0,10"
-                                         Padding="10,7"/>
+                                <StackPanel Grid.Row="2"
+                                            Grid.Column="1">
+                                    <TextBox x:Name="SerialNumberTextBox"
+                                             Text="{Binding ITAvadanliqlarininSeriyaNomresi, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             Margin="0,0,0,4"
+                                             Padding="10,7"
+                                             TextChanged="IdentityField_TextChanged"/>
+                                    <TextBlock x:Name="SerialDuplicateWarning"
+                                               Visibility="Collapsed"
+                                               Foreground="{StaticResource WarningTextBrush}"
+                                               FontSize="11"
+                                               TextWrapping="Wrap"
+                                               Margin="2,0,0,10"/>
+                                </StackPanel>
 
                                 <TextBlock Grid.Row="3"
                                            Text="Kateqoriya:"

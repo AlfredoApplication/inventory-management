@@ -141,6 +141,11 @@ namespace LoginAppFramework
                 SessionManager.CanManageUsers()
                     ? Visibility.Visible
                     : Visibility.Collapsed;
+
+            RecycleBinButton.Visibility =
+                SessionManager.CanDelete()
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
         }
 
         private void UpdateActiveButton()
@@ -227,6 +232,15 @@ namespace LoginAppFramework
             => await NavigateAsync(
                 "Assets",
                 window => NavigationManager.GoToAssetWindow(window));
+
+        private async void RecycleBinButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            var owner = OwnerWindow;
+            Close();
+            await NavigationManager.GoToRecycleBin(owner);
+        }
 
         private async void HistoryButton_Click(object sender, RoutedEventArgs e)
             => await NavigateAsync(
