@@ -1,0 +1,98 @@
+<Window x:Class="LoginAppFramework.CrashReportWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:LoginAppFramework"
+        Title="Gözlənilməz Xəta"
+        Width="640"
+        Height="470"
+        MinWidth="560"
+        MinHeight="420"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanResize"
+        Background="{StaticResource AppBackgroundBrush}"
+        FontFamily="Segoe UI">
+    <Border Style="{StaticResource SurfaceCardStyle}"
+            Margin="24"
+            Padding="24">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0"
+                        Orientation="Horizontal">
+                <Border Width="48"
+                        Height="48"
+                        CornerRadius="24"
+                        Background="{StaticResource DangerSurfaceBrush}"
+                        Margin="0,0,14,0">
+                    <local:AppIcon Icon="Error"
+                                   Size="24"
+                                   Foreground="{StaticResource DangerTextBrush}"/>
+                </Border>
+
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Gözlənilməz xəta baş verdi"
+                               Style="{StaticResource PageTitleTextStyle}"/>
+                    <TextBlock Text="Proqramın təhlükəsiz davam etməsi zəmanətli deyil."
+                               Style="{StaticResource PageSubtitleTextStyle}"
+                               Margin="0,4,0,0"/>
+                </StackPanel>
+            </StackPanel>
+
+            <Border Grid.Row="1"
+                    Background="{StaticResource WarningSurfaceBrush}"
+                    BorderBrush="{StaticResource WarningBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="10"
+                    Padding="12"
+                    Margin="0,18,0,12">
+                <TextBlock Text="Diaqnostika paketi server şifrəsini saxlamır. Paket tətbiq versiyası, sistem məlumatı, bağlantı statusu, log və xəta məlumatını ehtiva edir."
+                           TextWrapping="Wrap"
+                           Foreground="{StaticResource BodyTextBrush}"/>
+            </Border>
+
+            <Grid Grid.Row="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Text="Xəta xülasəsi"
+                           Style="{StaticResource SectionTitleTextStyle}"
+                           Margin="0,0,0,8"/>
+
+                <TextBox x:Name="ExceptionSummaryTextBox"
+                         Grid.Row="1"
+                         IsReadOnly="True"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         VerticalScrollBarVisibility="Auto"
+                         HorizontalScrollBarVisibility="Disabled"/>
+            </Grid>
+
+            <Grid Grid.Row="3"
+                  Margin="0,18,0,0">
+                <Button Content="Diaqnostika paketini saxla"
+                        HorizontalAlignment="Left"
+                        Padding="12,6"
+                        Click="ExportDiagnosticsButton_Click"/>
+
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Right">
+                    <Button Content="Proqramı bağla"
+                            MinWidth="105"
+                            Margin="0,0,10,0"
+                            Click="CloseApplicationButton_Click"/>
+                    <Button Content="Yenidən başlat"
+                            MinWidth="120"
+                            Style="{StaticResource PrimaryActionButton}"
+                            Click="RestartButton_Click"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>
