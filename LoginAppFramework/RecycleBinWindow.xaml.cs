@@ -63,7 +63,7 @@ namespace LoginAppFramework
             RetentionSummaryTextBlock.Text =
                 _allItems.Count == 0
                     ? "Səbət boşdur"
-                    : $"{_allItems.Count} vəsait • 30 gün retention";
+                    : $"{_allItems.Count} vəsait • 30 gün saxlanma";
 
             EmptyBinButton.IsEnabled =
                 _allItems.Count > 0;
@@ -76,6 +76,13 @@ namespace LoginAppFramework
 
         private void ApplyFilter()
         {
+            if (RecycleDataGrid == null ||
+                EmptyState == null ||
+                CountTextBlock == null)
+            {
+                return;
+            }
+
             string query =
                 SearchTextBox?.Text?.Trim() ?? string.Empty;
 
@@ -123,7 +130,14 @@ namespace LoginAppFramework
 
         private void UpdateActionState()
         {
-            int selected = RecycleDataGrid?.SelectedItems?.Count ?? 0;
+            if (RestoreButton == null ||
+                PermanentDeleteButton == null)
+            {
+                return;
+            }
+
+            int selected =
+                RecycleDataGrid?.SelectedItems?.Count ?? 0;
 
             RestoreButton.IsEnabled = selected > 0;
             PermanentDeleteButton.IsEnabled = selected > 0;
