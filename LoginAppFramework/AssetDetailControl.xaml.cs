@@ -188,13 +188,44 @@ namespace LoginAppFramework
                 return;
             }
 
-            if (_currentAsset == null) return;
-            var availableWorkers = _allWorkers.Where(w => w.IsActive).ToList();
-            var selectWindow = new SelectWorkerWindow(availableWorkers) { Owner = Window.GetWindow(this) };
-            if (selectWindow.ShowDialog() == true && selectWindow.SelectedWorker != null)
+            if (_currentAsset == null)
+                return;
+
+            var owner = Window.GetWindow(this);
+            var availableWorkers = _allWorkers
+                .Where(worker => worker.IsActive)
+                .ToList();
+
+            var selectWindow = new SelectWorkerWindow(availableWorkers)
             {
-                AppServices.Assets.Assign(_currentAsset, selectWindow.SelectedWorker, "Vəsait detalları");
+                Owner = owner
+            };
+
+            if (selectWindow.ShowDialog() == true &&
+                selectWindow.SelectedWorker != null)
+            {
+                var snapshot = _currentAsset.Clone();
+                string workerName =
+                    selectWindow.SelectedWorker.per_adiper_soyadi;
+
+                AppServices.Assets.Assign(
+                    _currentAsset,
+                    selectWindow.SelectedWorker,
+                    "Vəsait detalları");
+
                 OnAssignmentChanged?.Invoke(this, EventArgs.Empty);
+
+                NotificationService.Undo(
+                    owner,
+                    $"Vəsait {workerName} adlı işçiyə təhkim edildi.",
+                    () =>
+                    {
+                        AppServices.Assets.Save(snapshot);
+                        OnAssignmentChanged?.Invoke(this, EventArgs.Empty);
+                        NotificationService.Success(
+                            owner,
+                            "Təhkimat geri qaytarıldı.");
+                    });
             }
         }
 
@@ -221,8 +252,26 @@ namespace LoginAppFramework
                 if (!confirm)
                     return;
 
-                AppServices.Assets.Unassign(_currentAsset, "Vəsait detalları");
+                var owner = Window.GetWindow(this);
+                var snapshot = _currentAsset.Clone();
+
+                AppServices.Assets.Unassign(
+                    _currentAsset,
+                    "Vəsait detalları");
+
                 OnAssignmentChanged?.Invoke(this, EventArgs.Empty);
+
+                NotificationService.Undo(
+                    owner,
+                    "Təhkimat ləğv edildi.",
+                    () =>
+                    {
+                        AppServices.Assets.Save(snapshot);
+                        OnAssignmentChanged?.Invoke(this, EventArgs.Empty);
+                        NotificationService.Success(
+                            owner,
+                            "Təhkimat bərpa edildi.");
+                    });
             }
         }
 
@@ -240,8 +289,23 @@ namespace LoginAppFramework
             if (!result)
                 return;
 
+            var owner = Window.GetWindow(this);
+            var snapshot = _currentAsset.Clone();
+
             AppServices.Assets.Archive(_currentAsset, "Arxiv");
             OnAssignmentChanged?.Invoke(this, EventArgs.Empty);
+
+            NotificationService.Undo(
+                owner,
+                "Vəsait arxivləşdirildi.",
+                () =>
+                {
+                    AppServices.Assets.Save(snapshot);
+                    OnAssignmentChanged?.Invoke(this, EventArgs.Empty);
+                    NotificationService.Success(
+                        owner,
+                        "Arxivləmə geri qaytarıldı.");
+                });
         }
 
         private void DeleteAssetButton_Click(object sender, RoutedEventArgs e)
