@@ -21,7 +21,7 @@
             <Setter Property="TextWrapping" Value="Wrap"/>
         </Style>
     </Window.Resources>
-    <Border Padding="25">
+    <Border Style="{StaticResource SurfaceCardStyle}" Margin="24" Padding="24">
         <StackPanel>
             <Grid Margin="0,0,0,20">
                 <Grid.ColumnDefinitions>
@@ -31,12 +31,12 @@
                 </Grid.ColumnDefinitions>
                 <local:AppIcon Grid.Column="0" Icon="User" Size="48" VerticalAlignment="Center" Margin="0,0,20,0"/>
                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                    <TextBlock x:Name="WorkerNameTextBlock" FontSize="22" FontWeight="Bold" Foreground="{StaticResource PrimaryTextBrush}" Text="İşçinin Adı"/>
+                    <TextBlock x:Name="WorkerNameTextBlock" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}" Text="İşçinin Adı"/>
                     <TextBlock x:Name="WorkerPositionTextBlock" FontSize="16" Foreground="{StaticResource BodyTextBrush}" Text="Vəzifə"/>
                 </StackPanel>
                 <Button x:Name="EditButton" Grid.Column="2" Content="İşçini Dəyiş" VerticalAlignment="Top" Click="EditButton_Click"/>
             </Grid>
-            <Border Background="{StaticResource PanelBackgroundBrush}" CornerRadius="8" Padding="15" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="1">
+            <Border Background="{StaticResource SurfaceMutedBrush}" CornerRadius="10" Padding="16" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="1">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
