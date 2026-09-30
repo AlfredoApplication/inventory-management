@@ -185,7 +185,7 @@
                             <TextBlock Text="İstifadəçini Dəyiş" Margin="15,0,0,0"/>
                         </StackPanel>
                     </Button>
-                    <Separator Background="#55FFFFFF"/>
+                    <Separator Background="{StaticResource GlassBorderBrush}"/>
                     <Button Style="{StaticResource SharedNavButtonStyle}"
                             Click="LogoutButton_Click">
                         <StackPanel Orientation="Horizontal">
