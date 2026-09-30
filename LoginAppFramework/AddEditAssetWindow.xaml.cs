@@ -512,7 +512,7 @@ namespace LoginAppFramework
         {
             string workerKey =
                 UserComboBox.SelectedItem is WorkerSelectionOption option
-                    ? $"{option.Kind}:{option.Worker?.Id}"
+                    ? $"{option.Kind}:{option.Worker?.Id}:{UserComboBox.Text}"
                     : $"text:{UserComboBox.Text}";
 
             string customFields = string.Join(
