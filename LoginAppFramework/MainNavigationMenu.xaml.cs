@@ -26,10 +26,20 @@ namespace LoginAppFramework
         public MainNavigationMenu()
         {
             InitializeComponent();
+
             Loaded += (_, _) =>
             {
                 UpdateUserDisplay();
                 UpdateActiveButton();
+                UpdateNotificationBadge();
+                NotificationCenterService.Changed +=
+                    NotificationCenterService_Changed;
+            };
+
+            Unloaded += (_, _) =>
+            {
+                NotificationCenterService.Changed -=
+                    NotificationCenterService_Changed;
             };
         }
 
@@ -39,6 +49,7 @@ namespace LoginAppFramework
 
             UpdateUserDisplay();
             UpdateActiveButton();
+            UpdateNotificationBadge();
             UserPopup.IsOpen = false;
             Visibility = Visibility.Visible;
 
@@ -78,6 +89,39 @@ namespace LoginAppFramework
         {
             if (d is MainNavigationMenu menu && menu.IsLoaded)
                 menu.UpdateActiveButton();
+        }
+
+        private void NotificationCenterService_Changed(
+            object sender,
+            EventArgs e)
+        {
+            if (Dispatcher.CheckAccess())
+                UpdateNotificationBadge();
+            else
+                Dispatcher.BeginInvoke(
+                    new Action(UpdateNotificationBadge));
+        }
+
+        private void UpdateNotificationBadge()
+        {
+            if (NotificationBadge == null ||
+                NotificationCountText == null)
+            {
+                return;
+            }
+
+            int unread =
+                NotificationCenterService.GetUnreadCount();
+
+            NotificationCountText.Text =
+                unread > 99
+                    ? "99+"
+                    : unread.ToString();
+
+            NotificationBadge.Visibility =
+                unread > 0
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
         }
 
         private void UpdateUserDisplay()
@@ -157,6 +201,15 @@ namespace LoginAppFramework
             => await NavigateAsync(
                 "Dashboard",
                 window => NavigationManager.GoToDashboard(window));
+
+        private void NotificationButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            var owner = OwnerWindow;
+            Close();
+            NavigationManager.GoToNotificationCenter(owner);
+        }
 
         private void GlobalSearchButton_Click(object sender, RoutedEventArgs e)
         {
