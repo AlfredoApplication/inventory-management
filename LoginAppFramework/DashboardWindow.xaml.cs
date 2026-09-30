@@ -27,15 +27,29 @@ namespace LoginAppFramework
         {
             LoadingOverlay.Visibility = Visibility.Visible;
             await Task.Delay(20);
-            await Task.Run(() =>
+
+            try
             {
-                _allAssets = AppData.GetAssets();
-                _allWorkers = AppData.GetWorkers();
-            });
+                await Task.Run(() =>
+                {
+                    _allAssets = AppData.GetAssets();
+                    _allWorkers = AppData.GetWorkers();
+                });
 
-            _viewModel.LoadAllData(_allAssets, _allWorkers);
-
-            LoadingOverlay.Visibility = Visibility.Collapsed;
+                _viewModel.LoadAllData(_allAssets, _allWorkers);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"İdarə paneli yüklənərkən xəta baş verdi:\n\n{ex.Message}",
+                    "Yükləmə Xətası",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+            finally
+            {
+                LoadingOverlay.Visibility = Visibility.Collapsed;
+            }
         }
 
         private void PieChart_DataClick(object sender, ChartPoint chartPoint)
