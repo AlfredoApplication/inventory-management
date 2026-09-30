@@ -16,6 +16,7 @@ namespace LoginAppFramework
         public string Position => _worker.pgk_gorev_adi;
         public string Department => _worker.pdp_adi;
         public bool IsActive => _worker.IsActive;
+        public string StatusText => _worker.IsActive ? "Aktiv" : "Qeyri-Aktiv";
         public int AssignedAssetsCount { get; private set; }
 
         // Formatted String Properties (for display)
