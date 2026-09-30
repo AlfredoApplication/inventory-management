@@ -45,7 +45,7 @@
 
     <Grid>
         <DockPanel>
-            <Border DockPanel.Dock="Top" Background="{StaticResource PanelBackgroundBrush}" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="0,0,0,1" Padding="15">
+            <Border DockPanel.Dock="Top" Background="{StaticResource PanelBackgroundBrush}" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="0,0,0,1" Padding="16,14">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -61,7 +61,7 @@
                 </Grid>
             </Border>
 
-            <Border DockPanel.Dock="Top" Background="{StaticResource PanelBackgroundBrush}" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="0,0,0,1" Padding="15">
+            <Border DockPanel.Dock="Top" Background="{StaticResource SurfaceMutedBrush}" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="0,0,0,1" Padding="14">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -88,8 +88,8 @@
             <Border x:Name="RestoreActionBar"
                     DockPanel.Dock="Top"
                     Visibility="{Binding HasRestorableItems, Converter={StaticResource BoolToVis}}"
-                    Background="#1A3A5C"
-                    BorderBrush="#2979FF"
+                    Background="{StaticResource MenuBackgroundBrush}"
+                    BorderBrush="{StaticResource PrimaryBrushHover}"
                     BorderThickness="0,0,0,2"
                     Padding="15,10">
                 <Grid>
@@ -107,13 +107,13 @@
                                   Unchecked="SelectAllDeletedCheckBox_Unchecked"/>
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
-                        <Border Background="#2979FF" CornerRadius="12" Padding="10,4" Margin="0,0,10,0">
+                        <Border Background="{StaticResource PrimaryBrush}" CornerRadius="12" Padding="10,4" Margin="0,0,10,0">
                             <TextBlock x:Name="SelectedCountBadge"
                                        Text="{Binding SelectedRestoreCountText}"
                                        Foreground="White" FontWeight="Bold" FontSize="13"/>
                         </Border>
                         <TextBlock Text="'Silinən' vəsaitlər bərpa ediləcək"
-                                   Foreground="#90CAF9" VerticalAlignment="Center" FontSize="13"/>
+                                   Foreground="#D6F5EE" VerticalAlignment="Center" FontSize="13"/>
                     </StackPanel>
                     <Button x:Name="RestoreSelectedButton"
                             Grid.Column="2"
@@ -134,7 +134,7 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Margin="25" Background="{StaticResource PanelBackgroundBrush}" CornerRadius="8">
+                <Border Grid.Column="0" Margin="20" Style="{StaticResource SurfaceCardStyle}" Padding="0">
                     <DockPanel>
                         <Border DockPanel.Dock="Bottom" Padding="10" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="0,1,0,0">
                             <Grid>
@@ -194,9 +194,9 @@
                     </DockPanel>
                 </Border>
 
-                <Border Grid.Column="1" Background="{StaticResource PanelBackgroundBrush}" Padding="15" Margin="0,25,25,25" CornerRadius="8" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="1">
+                <Border Grid.Column="1" Style="{StaticResource SurfaceCardStyle}" Padding="16" Margin="0,20,20,20">
                     <StackPanel>
-                        <TextBlock Text="Tarixə Görə Filtr" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                        <TextBlock Text="Tarixə görə filtr" Style="{StaticResource SectionTitleTextStyle}" Margin="0,0,0,10"/>
                         <Calendar x:Name="DateFilterCalendar" SelectedDate="{Binding SelectedDate, Mode=TwoWay}"/>
                     </StackPanel>
                 </Border>
