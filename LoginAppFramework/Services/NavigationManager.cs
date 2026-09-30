@@ -41,6 +41,10 @@ namespace LoginAppFramework
                     currentTarget.Show();
 
                 currentTarget.Activate();
+
+                if (currentTarget.IsLoaded)
+                    await RefreshCachedPageAsync(currentTarget);
+
                 return currentTarget;
             }
 
@@ -77,7 +81,13 @@ namespace LoginAppFramework
             nextWindow.Activate();
 
             if (loadedTcs != null)
+            {
                 await loadedTcs.Task;
+            }
+            else
+            {
+                await RefreshCachedPageAsync(nextWindow);
+            }
 
             if (previousWindow != null &&
                 !ReferenceEquals(previousWindow, nextWindow))
@@ -93,6 +103,24 @@ namespace LoginAppFramework
             }
 
             return nextWindow;
+        }
+
+        private static async Task RefreshCachedPageAsync(Window window)
+        {
+            if (window is not INavigationRefreshable refreshable)
+                return;
+
+            try
+            {
+                await refreshable.RefreshForNavigationAsync();
+            }
+            catch (Exception ex)
+            {
+                DialogService.Error(
+                    window,
+                    "Yeniləmə Xətası",
+                    $"Səhifə məlumatları yenilənərkən xəta baş verdi:\n\n{ex.Message}");
+            }
         }
 
         private static void RegisterCachedPage(Window window)
