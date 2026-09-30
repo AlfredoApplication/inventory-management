@@ -74,11 +74,10 @@ namespace LoginAppFramework
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Vəsaitlər yüklənərkən xəta baş verdi:\n\n{ex.Message}",
+                DialogService.Error(
+                    this,
                     "Yükləmə Xətası",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                    $"Vəsaitlər yüklənərkən xəta baş verdi:\n\n{ex.Message}");
             }
             finally
             {
@@ -106,7 +105,10 @@ namespace LoginAppFramework
 
             if (!checkedAssets.Any())
             {
-                MessageBox.Show("Barkod yaratmaq üçün ən azı bir vəsait işarələyin (vəsaitin kodu boş olmamalıdır).", "Vəsait İşarələnməyib", MessageBoxButton.OK, MessageBoxImage.Information);
+                NotificationService.Info(
+                    this,
+                    "Barkod yaratmaq üçün ən azı bir vəsait işarələyin (vəsaitin kodu boş olmamalıdır).",
+                    title: "Vəsait İşarələnməyib");
                 return;
             }
 
@@ -122,7 +124,10 @@ namespace LoginAppFramework
 
             if (assetsToExport.Count == 0)
             {
-                MessageBox.Show("Export üçün heç bir vəsait tapılmadı.", "Boş Siyahı", MessageBoxButton.OK, MessageBoxImage.Information);
+                NotificationService.Info(
+                    this,
+                    "Export üçün heç bir vəsait tapılmadı.",
+                    title: "Boş Siyahı");
                 return;
             }
 
@@ -142,7 +147,9 @@ namespace LoginAppFramework
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Export zamanı xəta baş verdi: {ex.Message}", "Xəta", MessageBoxButton.OK, MessageBoxImage.Error);
+                NotificationService.Error(
+                    this,
+                    $"Export zamanı xəta baş verdi: {ex.Message}");
             }
         }
 
@@ -150,7 +157,10 @@ namespace LoginAppFramework
         {
             if (!SessionManager.CanEdit())
             {
-                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                DialogService.Warning(
+                    this,
+                    "Giriş Qadağandır",
+                    "Bu əməliyyat üçün icazəniz yoxdur.");
                 return;
             }
 
@@ -169,7 +179,10 @@ namespace LoginAppFramework
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Excel faylı oxunarkən xəta baş verdi:\n\n{ex.Message}", "Import Xətası", MessageBoxButton.OK, MessageBoxImage.Error);
+                DialogService.Error(
+                    this,
+                    "Import Xətası",
+                    $"Excel faylı oxunarkən xəta baş verdi:\n\n{ex.Message}");
                 return;
             }
 
@@ -179,7 +192,10 @@ namespace LoginAppFramework
                     ? $"İmport üçün etibarlı vəsait tapılmadı.\n\n{string.Join("\n", batch.Errors.Take(10))}"
                     : "İmport üçün etibarlı vəsait tapılmadı.";
 
-                MessageBox.Show(message, "Import Başa Çatdı", MessageBoxButton.OK, MessageBoxImage.Information);
+                DialogService.Info(
+                    this,
+                    "Import Başa Çatdı",
+                    message);
                 return;
             }
 
@@ -233,7 +249,12 @@ namespace LoginAppFramework
                 summary += $"\n\n{batch.Errors.Count} sətir xətaya görə ötürüldü.";
             summary += "\n\nBu vəsaitləri verilənlər bazasında yadda saxlamaq istəyirsiniz?";
 
-            if (MessageBox.Show(summary, "Importu Təsdiq Et", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            if (!DialogService.Confirm(
+                    this,
+                    "Importu Təsdiq Et",
+                    summary,
+                    "Import et",
+                    "Ləğv et"))
                 return;
 
             try
@@ -243,7 +264,10 @@ namespace LoginAppFramework
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Verilənlər bazasına yadda saxlayarkən kritik xəta baş verdi.\n\nXəta: {ex.InnerException?.Message ?? ex.Message}", "Verilənlər Bazası Xətası", MessageBoxButton.OK, MessageBoxImage.Error);
+                DialogService.Error(
+                    this,
+                    "Verilənlər Bazası Xətası",
+                    $"Verilənlər bazasına yadda saxlayarkən kritik xəta baş verdi.\n\nXəta: {ex.InnerException?.Message ?? ex.Message}");
             }
             finally
             {
@@ -260,19 +284,29 @@ namespace LoginAppFramework
         {
             if (!SessionManager.CanDelete())
             {
-                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                DialogService.Warning(
+                    this,
+                    "Giriş Qadağandır",
+                    "Bu əməliyyat üçün icazəniz yoxdur.");
                 return;
             }
 
             var checkedAssets = _viewModel.AllAssets.Where(vm => vm.IsChecked).Select(vm => vm.Asset).ToList();
             if (!checkedAssets.Any()) return;
 
-            var result = MessageBox.Show($"İşarələnmiş {checkedAssets.Count} vəsaiti həmişəlik silməyə əminsinizmi?", "Toplu Silməni Təsdiq Et", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-            if (result == MessageBoxResult.Yes)
-            {
-                _viewModel.DeleteCheckedAssets();
-                RefreshDataAndSelection();
-            }
+            bool result = DialogService.Confirm(
+                this,
+                "Toplu Silməni Təsdiq Et",
+                $"İşarələnmiş {checkedAssets.Count} vəsaiti həmişəlik silməyə əminsinizmi?",
+                "Seçilmişləri sil",
+                "Ləğv et",
+                destructive: true);
+
+            if (!result)
+                return;
+
+            _viewModel.DeleteCheckedAssets();
+            RefreshDataAndSelection();
         }
 
         private void BulkEditButton_Click(object sender, RoutedEventArgs e)
@@ -316,11 +350,10 @@ namespace LoginAppFramework
                         "\n",
                         result.SkippedStatusAssets.Select(a => $"- {a.VesaitinAdi}"));
 
-                    MessageBox.Show(
-                        $"XƏBƏRDARLIQ: {result.SkippedStatusAssets.Count} vəsaitin statusu dəyişdirilmədi, çünki onlar işçiyə təhkim olunub və 'İstifadədədir' statusunda qalmalıdırlar:\n\n{skippedNames}",
+                    DialogService.Warning(
+                        this,
                         "Status Dəyişikliyi Ötürüldü",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Warning);
+                        $"{result.SkippedStatusAssets.Count} vəsaitin statusu dəyişdirilmədi, çünki onlar işçiyə təhkim olunub və 'İstifadədədir' statusunda qalmalıdırlar:\n\n{skippedNames}");
                 }
 
                 if (result.UpdatedCount == 0 &&
@@ -333,11 +366,10 @@ namespace LoginAppFramework
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Məlumat bazasına yadda saxlayarkən xəta baş verdi: {ex.Message}",
+                DialogService.Error(
+                    this,
                     "Xəta",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                    $"Məlumat bazasına yadda saxlayarkən xəta baş verdi: {ex.Message}");
             }
         }
 
@@ -345,14 +377,20 @@ namespace LoginAppFramework
         {
             if (!SessionManager.CanEdit())
             {
-                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                DialogService.Warning(
+                    this,
+                    "Giriş Qadağandır",
+                    "Bu əməliyyat üçün icazəniz yoxdur.");
                 return;
             }
 
             var checkedAssets = _viewModel.AllAssets.Where(vm => vm.IsChecked).Select(vm => vm.Asset).ToList();
             if (!checkedAssets.Any())
             {
-                MessageBox.Show("Təhkim etmək üçün ən azı bir vəsait işarələyin.", "Vəsait Seçilməyib", MessageBoxButton.OK, MessageBoxImage.Information);
+                NotificationService.Info(
+                    this,
+                    "Təhkim etmək üçün ən azı bir vəsait işarələyin.",
+                    title: "Vəsait Seçilməyib");
                 return;
             }
 
@@ -372,8 +410,10 @@ namespace LoginAppFramework
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Toplu təhkim zamanı xəta baş verdi:\n\n{ex.Message}",
-                                    "Xəta", MessageBoxButton.OK, MessageBoxImage.Error);
+                    DialogService.Error(
+                        this,
+                        "Xəta",
+                        $"Toplu təhkim zamanı xəta baş verdi:\n\n{ex.Message}");
                 }
             }
         }
@@ -403,7 +443,10 @@ namespace LoginAppFramework
         {
             if (!SessionManager.CanEdit())
             {
-                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                DialogService.Warning(
+                    this,
+                    "Giriş Qadağandır",
+                    "Bu əməliyyat üçün icazəniz yoxdur.");
                 return;
             }
 
@@ -420,12 +463,20 @@ namespace LoginAppFramework
 
         private void DetailControl_DeleteAsset(object _, AssetCheckableViewModel assetVMToDelete)
         {
-            if (MessageBox.Show($"'{assetVMToDelete.Asset.VesaitinAdi}' adlı vəsaiti HƏMİŞƏLİK SİLMƏK istədiyinizə əminsinizmi?", "Silməni Təsdiq Et", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
-            {
-                _viewModel.DeleteAsset(assetVMToDelete.Asset);
-                _selectedAssetVM = null;
-                RefreshDataAndSelection();
-            }
+            bool confirm = DialogService.Confirm(
+                this,
+                "Silməni Təsdiq Et",
+                $"'{assetVMToDelete.Asset.VesaitinAdi}' adlı vəsaiti həmişəlik silmək istədiyinizə əminsinizmi?",
+                "Vəsaiti sil",
+                "Ləğv et",
+                destructive: true);
+
+            if (!confirm)
+                return;
+
+            _viewModel.DeleteAsset(assetVMToDelete.Asset);
+            _selectedAssetVM = null;
+            RefreshDataAndSelection();
         }
 
         private void DetailControl_AssignmentChanged(object _, EventArgs e) => RefreshDataAndSelection(_selectedAssetVM?.Asset.Id);
@@ -649,7 +700,9 @@ namespace LoginAppFramework
                                 }
                                 catch (Exception ex)
                                 {
-                                    MessageBox.Show($"Kopyalana bilmədi: {ex.Message}");
+                                    NotificationService.Error(
+                                        this,
+                                        $"Kopyalana bilmədi: {ex.Message}");
                                 }
                             }
                         }
