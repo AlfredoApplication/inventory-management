@@ -210,9 +210,9 @@
                             Visibility="{Binding HasCheckedAssets, Converter={StaticResource BoolToVis}}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock x:Name="SelectionCountText" Text="{Binding CheckedCountText}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="5,0,20,0"/>
-                            <Button x:Name="BulkDeleteButton" Content="Seçilmişləri Sil" Click="BulkDeleteButton_Click" Background="{StaticResource DangerBrush}" Foreground="{StaticResource PrimaryForegroundBrush}" Padding="8,4" Margin="0,0,10,0"/>
+                            <Button x:Name="BulkDeleteButton" Content="Seçilmişləri Sil" Click="BulkDeleteButton_Click" Style="{StaticResource DangerActionButton}" Padding="8,4" Margin="0,0,10,0"/>
                             <Button x:Name="BulkEditButton" Content="Seçilmişləri Dəyiş" Click="BulkEditButton_Click" Style="{StaticResource PrimaryActionButton}" Padding="8,4" Margin="0,0,10,0"/>
-                            <Button x:Name="BulkAssignButton" Content="Seçilmişləri Təhkim et..." Click="BulkAssignButton_Click" Background="{StaticResource SuccessBrush}" Foreground="{StaticResource PrimaryForegroundBrush}" Padding="8,4" Margin="0,0,10,0"/>
+                            <Button x:Name="BulkAssignButton" Content="Seçilmişləri Təhkim et..." Click="BulkAssignButton_Click" Style="{StaticResource SuccessActionButton}" Padding="8,4" Margin="0,0,10,0"/>
                             <Button x:Name="GenerateBarcodesButton" Click="GenerateBarcodesButton_Click" Style="{StaticResource PrimaryActionButton}" Padding="8,4">
                                 <StackPanel Orientation="Horizontal">
                                     <local:AppIcon Icon="Assign" Size="17" VerticalAlignment="Center" Margin="0,0,8,0"/>
