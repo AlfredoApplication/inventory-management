@@ -313,7 +313,8 @@ public class WpfXamlSmokeTests
                         new AssetImportPreview
                         {
                             TotalRows = 1
-                        })
+                        }),
+                    new NotificationCenterWindow()
                 };
 
                 var controls = new object[]
