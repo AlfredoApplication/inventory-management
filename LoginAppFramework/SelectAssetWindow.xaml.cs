@@ -20,6 +20,7 @@ namespace LoginAppFramework
             _availableAssets = availableAssets;
 
             AvailableAssetsListView.ItemsSource = _availableAssets;
+            UpdateEmptyState(_availableAssets.Count);
         }
 
         private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -37,7 +38,17 @@ namespace LoginAppFramework
                 );
             }
 
-            AvailableAssetsListView.ItemsSource = filteredView.ToList();
+            var results = filteredView.ToList();
+            AvailableAssetsListView.ItemsSource = results;
+            UpdateEmptyState(results.Count);
+        }
+
+        private void UpdateEmptyState(int count)
+        {
+            AvailableAssetsListView.Visibility =
+                count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            EmptyState.Visibility =
+                count == 0 ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void SelectButton_Click(object sender, RoutedEventArgs e)
