@@ -68,7 +68,7 @@
                                    FontWeight="Bold"
                                    Foreground="{StaticResource WarningTextBrush}"
                                    HorizontalAlignment="Center"/>
-                        <TextBlock Text="Import olunacaq"
+                        <TextBlock Text="Xəbərdarlıq"
                                    FontSize="11"
                                    Foreground="{StaticResource SubtleTextBrush}"/>
                     </StackPanel>
