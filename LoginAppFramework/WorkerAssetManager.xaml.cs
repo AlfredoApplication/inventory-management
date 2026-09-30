@@ -38,7 +38,15 @@ namespace LoginAppFramework
             {
                 SelectWorkerPrompt.Visibility = Visibility.Collapsed;
                 DetailViewPanel.Visibility = Visibility.Visible;
-                AssignedAssetsDataGrid.ItemsSource = allAssets.Where(a => a.WorkerId == _currentWorker.GetModel().Id).ToList();
+                var assignedAssets = allAssets
+                    .Where(a => a.WorkerId == _currentWorker.GetModel().Id)
+                    .ToList();
+
+                AssignedAssetsDataGrid.ItemsSource = assignedAssets;
+                AssignedAssetsDataGrid.Visibility =
+                    assignedAssets.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+                AssignedAssetsEmptyState.Visibility =
+                    assignedAssets.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
             }
             else
             {
