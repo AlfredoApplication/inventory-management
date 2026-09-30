@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
 using LiveCharts;
@@ -16,11 +17,30 @@ namespace LoginAppFramework
         private List<Worker> _allWorkers;
         private readonly DashboardViewModel _viewModel;
 
+        private enum DashboardPeriod
+        {
+            All,
+            Year,
+            Month
+        }
+
+        private DashboardPeriod _selectedPeriod =
+            DashboardPeriod.All;
+
         public DashboardWindow()
         {
             InitializeComponent();
             _viewModel = new DashboardViewModel();
             DataContext = _viewModel;
+
+            NotificationCenterService.Changed +=
+                NotificationCenterService_Changed;
+
+            Closed += (_, _) =>
+            {
+                NotificationCenterService.Changed -=
+                    NotificationCenterService_Changed;
+            };
         }
 
         private async void Window_Loaded(object _, RoutedEventArgs e)
@@ -45,7 +65,10 @@ namespace LoginAppFramework
                     _allWorkers = AppData.GetWorkers();
                 });
 
-                _viewModel.LoadAllData(_allAssets, _allWorkers);
+                AlertService.Refresh(_allAssets);
+                ApplyDashboardPeriod();
+                UpdateAlertSummary();
+                ApplyResponsiveDashboardLayout();
             }
             catch (Exception ex)
             {
@@ -59,6 +82,324 @@ namespace LoginAppFramework
                 if (showLoading)
                     LoadingOverlay.Visibility = Visibility.Collapsed;
             }
+        }
+
+        private void DashboardPeriodComboBox_SelectionChanged(
+            object sender,
+            SelectionChangedEventArgs e)
+        {
+            if (DashboardPeriodComboBox?.SelectedItem is not ComboBoxItem item ||
+                item.Tag is not string tag)
+            {
+                return;
+            }
+
+            _selectedPeriod = tag switch
+            {
+                "Year" => DashboardPeriod.Year,
+                "Month" => DashboardPeriod.Month,
+                _ => DashboardPeriod.All
+            };
+
+            ApplyDashboardPeriod();
+        }
+
+        private void ApplyDashboardPeriod()
+        {
+            if (_allAssets == null ||
+                _allWorkers == null ||
+                _viewModel == null)
+            {
+                return;
+            }
+
+            DateTime today = DateTime.Today;
+
+            var filtered = _selectedPeriod switch
+            {
+                DashboardPeriod.Year => _allAssets
+                    .Where(asset =>
+                        asset.PurchaseDate > DateTime.MinValue &&
+                        asset.PurchaseDate.Year == today.Year)
+                    .ToList(),
+
+                DashboardPeriod.Month => _allAssets
+                    .Where(asset =>
+                        asset.PurchaseDate > DateTime.MinValue &&
+                        asset.PurchaseDate.Year == today.Year &&
+                        asset.PurchaseDate.Month == today.Month)
+                    .ToList(),
+
+                _ => _allAssets.ToList()
+            };
+
+            _viewModel.LoadAllData(
+                filtered,
+                _allWorkers);
+
+            if (DashboardPeriodSummaryText != null)
+            {
+                string periodText = _selectedPeriod switch
+                {
+                    DashboardPeriod.Year => $"{today.Year}",
+                    DashboardPeriod.Month => today.ToString("MMMM yyyy"),
+                    _ => "Bütün dövr"
+                };
+
+                DashboardPeriodSummaryText.Text =
+                    $"{periodText} • {filtered.Count} vəsait";
+            }
+        }
+
+        private void UpdateAlertSummary()
+        {
+            if (WarrantyAlertCountText == null ||
+                MaintenanceAlertCountText == null ||
+                NotificationUnreadCountText == null)
+            {
+                return;
+            }
+
+            int warranty = AlertService.WarrantyAlertCount;
+            int maintenance = AlertService.MaintenanceAlertCount;
+            int unread = NotificationCenterService.GetUnreadCount();
+
+            WarrantyAlertCountText.Text =
+                $"Zəmanət: {warranty}";
+
+            MaintenanceAlertCountText.Text =
+                $"Texniki xidmət: {maintenance}";
+
+            NotificationUnreadCountText.Text =
+                unread == 0
+                    ? "Bildiriş yoxdur"
+                    : $"Bildirişlər: {unread}";
+
+            WarrantyAlertButton.IsEnabled = warranty > 0;
+            MaintenanceAlertButton.IsEnabled = maintenance > 0;
+        }
+
+        private void NotificationCenterService_Changed(
+            object sender,
+            EventArgs e)
+        {
+            if (Dispatcher.CheckAccess())
+                UpdateAlertSummary();
+            else
+                Dispatcher.BeginInvoke(
+                    new Action(UpdateAlertSummary));
+        }
+
+        private void WarrantyAlertButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            var assets = AlertService
+                .GetWarrantyAssets(_allAssets)
+                .ToList();
+
+            if (assets.Count == 0)
+                return;
+
+            var window = new FilteredAssetsWindow(
+                "Zəmanət xəbərdarlıqları",
+                assets)
+            {
+                Owner = this
+            };
+
+            window.ShowDialog();
+        }
+
+        private void MaintenanceAlertButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            var assets = AlertService
+                .GetMaintenanceAssets(_allAssets)
+                .ToList();
+
+            if (assets.Count == 0)
+                return;
+
+            var window = new FilteredAssetsWindow(
+                "Texniki xidmət vaxtı çatan vəsaitlər",
+                assets)
+            {
+                Owner = this
+            };
+
+            window.ShowDialog();
+        }
+
+        private void NotificationCenterButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            NavigationManager.GoToNotificationCenter(this);
+            UpdateAlertSummary();
+        }
+
+        private void Window_SizeChanged(
+            object sender,
+            SizeChangedEventArgs e)
+            => ApplyResponsiveDashboardLayout();
+
+        private void ApplyResponsiveDashboardLayout()
+        {
+            if (DashboardLayoutGrid == null ||
+                KpiGrid == null ||
+                ChartsGrid == null)
+            {
+                return;
+            }
+
+            bool compact = ActualWidth < 1180;
+
+            if (!compact)
+            {
+                DashboardChartsColumn.Width =
+                    new GridLength(3.5, GridUnitType.Star);
+
+                DashboardKpiColumn.Width =
+                    new GridLength(1, GridUnitType.Star);
+
+                DashboardTopRow.Height =
+                    new GridLength(1, GridUnitType.Star);
+
+                DashboardBottomRow.Height =
+                    new GridLength(1, GridUnitType.Star);
+
+                Grid.SetRow(ChartsGrid, 0);
+                Grid.SetColumn(ChartsGrid, 0);
+                Grid.SetRowSpan(ChartsGrid, 2);
+                Grid.SetColumnSpan(ChartsGrid, 1);
+                ChartsGrid.Margin =
+                    new Thickness(0, 0, 15, 0);
+
+                Grid.SetRow(KpiGrid, 0);
+                Grid.SetColumn(KpiGrid, 1);
+                Grid.SetRowSpan(KpiGrid, 2);
+                Grid.SetColumnSpan(KpiGrid, 1);
+                KpiGrid.Margin = new Thickness(0);
+
+                KpiGrid.ColumnDefinitions[0].Width =
+                    new GridLength(0);
+
+                KpiGrid.ColumnDefinitions[1].Width =
+                    new GridLength(0);
+
+                KpiGrid.RowDefinitions[0].Height =
+                    new GridLength(1, GridUnitType.Star);
+                KpiGrid.RowDefinitions[1].Height =
+                    new GridLength(1.5, GridUnitType.Star);
+                KpiGrid.RowDefinitions[2].Height =
+                    new GridLength(1, GridUnitType.Star);
+                KpiGrid.RowDefinitions[3].Height =
+                    new GridLength(1, GridUnitType.Star);
+
+                SetKpiCard(
+                    TotalAssetsCard,
+                    0,
+                    0,
+                    new Thickness(0, 0, 0, 7.5));
+
+                SetKpiCard(
+                    TotalPurchaseCard,
+                    1,
+                    0,
+                    new Thickness(0, 7.5, 0, 7.5));
+
+                SetKpiCard(
+                    CurrentValueCard,
+                    2,
+                    0,
+                    new Thickness(0, 7.5, 0, 7.5));
+
+                SetKpiCard(
+                    DepreciationCard,
+                    3,
+                    0,
+                    new Thickness(0, 7.5, 0, 0));
+
+                return;
+            }
+
+            DashboardChartsColumn.Width =
+                new GridLength(1, GridUnitType.Star);
+
+            DashboardKpiColumn.Width =
+                new GridLength(0);
+
+            DashboardTopRow.Height =
+                new GridLength(
+                    ActualWidth < 900 ? 250 : 210);
+
+            DashboardBottomRow.Height =
+                new GridLength(1, GridUnitType.Star);
+
+            Grid.SetRow(KpiGrid, 0);
+            Grid.SetColumn(KpiGrid, 0);
+            Grid.SetRowSpan(KpiGrid, 1);
+            Grid.SetColumnSpan(KpiGrid, 2);
+            KpiGrid.Margin =
+                new Thickness(0, 0, 0, 12);
+
+            Grid.SetRow(ChartsGrid, 1);
+            Grid.SetColumn(ChartsGrid, 0);
+            Grid.SetRowSpan(ChartsGrid, 1);
+            Grid.SetColumnSpan(ChartsGrid, 2);
+            ChartsGrid.Margin = new Thickness(0);
+
+            KpiGrid.ColumnDefinitions[0].Width =
+                new GridLength(1, GridUnitType.Star);
+
+            KpiGrid.ColumnDefinitions[1].Width =
+                new GridLength(1, GridUnitType.Star);
+
+            KpiGrid.RowDefinitions[0].Height =
+                new GridLength(1, GridUnitType.Star);
+            KpiGrid.RowDefinitions[1].Height =
+                new GridLength(1, GridUnitType.Star);
+            KpiGrid.RowDefinitions[2].Height =
+                new GridLength(0);
+            KpiGrid.RowDefinitions[3].Height =
+                new GridLength(0);
+
+            SetKpiCard(
+                TotalAssetsCard,
+                0,
+                0,
+                new Thickness(0, 0, 6, 6));
+
+            SetKpiCard(
+                TotalPurchaseCard,
+                0,
+                1,
+                new Thickness(6, 0, 0, 6));
+
+            SetKpiCard(
+                CurrentValueCard,
+                1,
+                0,
+                new Thickness(0, 6, 6, 0));
+
+            SetKpiCard(
+                DepreciationCard,
+                1,
+                1,
+                new Thickness(6, 6, 0, 0));
+        }
+
+        private static void SetKpiCard(
+            FrameworkElement card,
+            int row,
+            int column,
+            Thickness margin)
+        {
+            Grid.SetRow(card, row);
+            Grid.SetColumn(card, column);
+            card.Margin = margin;
         }
 
         private void PieChart_DataClick(object sender, ChartPoint chartPoint)
