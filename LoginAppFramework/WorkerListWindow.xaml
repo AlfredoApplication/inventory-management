@@ -8,6 +8,7 @@
         Title="İşçi İdarəetməsi"
         Loaded="Window_Loaded"
         PreviewKeyDown="Window_PreviewKeyDown"
+        SizeChanged="Window_SizeChanged"
         WindowStartupLocation="CenterScreen"
         Style="{StaticResource MainScreenWindowStyle}">
 
