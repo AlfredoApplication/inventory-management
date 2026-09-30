@@ -1,0 +1,201 @@
+<Window x:Class="LoginAppFramework.NotificationCenterWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:LoginAppFramework"
+        Title="Bildiriş Mərkəzi"
+        Width="780"
+        Height="680"
+        MinWidth="620"
+        MinHeight="480"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResizeWithGrip"
+        Background="{StaticResource AppBackgroundBrush}"
+        FontFamily="Segoe UI"
+        Loaded="Window_Loaded"
+        Closed="Window_Closed"
+        PreviewKeyDown="Window_PreviewKeyDown">
+
+    <Border Style="{StaticResource SurfaceCardStyle}"
+            Margin="22"
+            Padding="0">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0"
+                    Padding="20,18"
+                    BorderBrush="{StaticResource ControlBorderBrush}"
+                    BorderThickness="0,0,0,1">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel>
+                        <TextBlock Text="Bildiriş Mərkəzi"
+                                   Style="{StaticResource PageTitleTextStyle}"/>
+                        <TextBlock Text="Əməliyyat tarixçəsi, zəmanət və texniki xidmət xəbərdarlıqları."
+                                   Style="{StaticResource PageSubtitleTextStyle}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,4,0,0"/>
+                    </StackPanel>
+
+                    <Border Grid.Column="1"
+                            Background="{StaticResource WarningSurfaceBrush}"
+                            BorderBrush="{StaticResource WarningBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="10,5"
+                            VerticalAlignment="Center">
+                        <TextBlock x:Name="UnreadCountTextBlock"
+                                   Foreground="{StaticResource WarningTextBrush}"
+                                   FontWeight="SemiBold"/>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <Border Grid.Row="1"
+                    Background="{StaticResource SurfaceMutedBrush}"
+                    BorderBrush="{StaticResource ControlBorderBrush}"
+                    BorderThickness="0,0,0,1"
+                    Padding="14">
+                <Grid>
+                    <StackPanel Orientation="Horizontal">
+                        <CheckBox x:Name="UnreadOnlyCheckBox"
+                                  Content="Yalnız oxunmamış"
+                                  VerticalAlignment="Center"
+                                  Checked="FilterChanged"
+                                  Unchecked="FilterChanged"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Right">
+                        <Button Content="Hamısını oxundu et"
+                                Margin="0,0,8,0"
+                                Padding="10,5"
+                                Click="MarkAllReadButton_Click"/>
+                        <Button Content="Oxunmuşları təmizlə"
+                                Padding="10,5"
+                                Click="ClearReadButton_Click"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Row="2">
+                <ListView x:Name="NotificationsListView"
+                          BorderThickness="0"
+                          MouseDoubleClick="NotificationsListView_MouseDoubleClick"
+                          SelectionChanged="NotificationsListView_SelectionChanged">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Padding="14,12"
+                                    BorderBrush="{StaticResource ControlBorderBrush}"
+                                    BorderThickness="0,0,0,1">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="46"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Border Width="36"
+                                            Height="36"
+                                            CornerRadius="18"
+                                            Background="{StaticResource SurfaceMutedBrush}"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Top">
+                                        <local:AppIcon Icon="{Binding Icon}"
+                                                       Size="18"
+                                                       Foreground="{StaticResource PrimaryBrush}"/>
+                                    </Border>
+
+                                    <StackPanel Grid.Column="1"
+                                                Margin="8,0,12,0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding Title}"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{StaticResource PrimaryTextBrush}"
+                                                       FontSize="14"/>
+                                            <Border Background="{StaticResource RowSelectedBrush}"
+                                                    CornerRadius="8"
+                                                    Padding="7,2"
+                                                    Margin="8,0,0,0">
+                                                <TextBlock Text="{Binding CategoryText}"
+                                                           FontSize="10"
+                                                           Foreground="{StaticResource PrimaryTextBrush}"/>
+                                            </Border>
+                                        </StackPanel>
+
+                                        <TextBlock Text="{Binding Message}"
+                                                   Foreground="{StaticResource BodyTextBrush}"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,5,0,0"/>
+
+                                        <StackPanel Orientation="Horizontal"
+                                                    Margin="0,6,0,0">
+                                            <TextBlock Text="{Binding Timestamp, StringFormat='dd.MM.yyyy HH:mm'}"
+                                                       FontSize="11"
+                                                       Foreground="{StaticResource SubtleTextBrush}"/>
+                                            <TextBlock Text="  •  "
+                                                       FontSize="11"
+                                                       Foreground="{StaticResource SubtleTextBrush}"/>
+                                            <TextBlock Text="{Binding StateText}"
+                                                       FontSize="11"
+                                                       Foreground="{StaticResource SubtleTextBrush}"/>
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <Button Grid.Column="2"
+                                            Content="Aç"
+                                            MinWidth="60"
+                                            VerticalAlignment="Center"
+                                            Tag="{Binding}"
+                                            Click="OpenNotificationButton_Click">
+                                        <Button.Style>
+                                            <Style TargetType="Button"
+                                                   BasedOn="{StaticResource {x:Type Button}}">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding TargetType}" Value="{x:Null}">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
+                <local:EmptyStateControl x:Name="EmptyState"
+                                         Visibility="Collapsed"
+                                         Icon="Notification"
+                                         Title="Bildiriş yoxdur"
+                                         Message="Yeni əməliyyat və xəbərdarlıqlar burada görünəcək."/>
+            </Grid>
+
+            <Border Grid.Row="3"
+                    Padding="14,12"
+                    BorderBrush="{StaticResource ControlBorderBrush}"
+                    BorderThickness="0,1,0,0">
+                <Grid>
+                    <TextBlock x:Name="CountTextBlock"
+                               VerticalAlignment="Center"
+                               Foreground="{StaticResource SubtleTextBrush}"/>
+                    <Button Content="Bağla"
+                            HorizontalAlignment="Right"
+                            MinWidth="90"
+                            IsCancel="True"
+                            Click="CloseButton_Click"/>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</Window>
