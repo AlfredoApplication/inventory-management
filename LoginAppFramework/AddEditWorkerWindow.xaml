@@ -127,13 +127,19 @@
                            Margin="0,0,0,10"/>
 
                 <Grid Grid.Row="1">
-                    <TextBlock x:Name="DirtyStateTextBlock"
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        x:Name="DirtyStateTextBlock"
                                Text="Yadda saxlanılmamış dəyişikliklər var"
                                Foreground="{StaticResource WarningTextBrush}"
                                VerticalAlignment="Center"
                                Visibility="Collapsed"/>
 
-                    <StackPanel Orientation="Horizontal"
+                    <StackPanel Grid.Column="1"
+                                    Orientation="Horizontal"
                                 HorizontalAlignment="Right">
                         <Button x:Name="SaveButton"
                                 Content="Yadda Saxla"
