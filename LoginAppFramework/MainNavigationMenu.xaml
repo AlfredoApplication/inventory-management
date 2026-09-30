@@ -83,6 +83,15 @@
                         </StackPanel>
                     </Button>
 
+                    <Button x:Name="GlobalSearchButton"
+                            Style="{StaticResource SharedNavButtonStyle}"
+                            Click="GlobalSearchButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <local:AppIcon Icon="Search" Size="18"/>
+                            <TextBlock Text="Qlobal Axtarış" Margin="15,0,0,0"/>
+                        </StackPanel>
+                    </Button>
+
                     <Button x:Name="WorkersButton"
                             Style="{StaticResource SharedNavButtonStyle}"
                             Click="WorkersButton_Click">
