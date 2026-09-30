@@ -714,15 +714,32 @@ namespace LoginAppFramework
             }
 
             var worker = workerVm.GetModel();
-            bool nextState = !worker.IsActive;
-            _viewModel.SetActiveState(new[] { worker.Id }, nextState);
+            bool previousState = worker.IsActive;
+            bool nextState = !previousState;
+
+            _viewModel.SetActiveState(
+                new[] { worker.Id },
+                nextState);
+
             RefreshViewModelPreservingSelection();
 
-            NotificationService.Success(
+            NotificationService.Undo(
                 this,
                 nextState
                     ? "İşçi aktiv edildi."
-                    : "İşçi qeyri-aktiv edildi.");
+                    : "İşçi qeyri-aktiv edildi.",
+                () =>
+                {
+                    _viewModel.SetActiveState(
+                        new[] { worker.Id },
+                        previousState);
+
+                    RefreshViewModelPreservingSelection();
+
+                    NotificationService.Success(
+                        this,
+                        "İşçi statusu geri qaytarıldı.");
+                });
         }
 
         public void NavigateToWorker(int workerId)
