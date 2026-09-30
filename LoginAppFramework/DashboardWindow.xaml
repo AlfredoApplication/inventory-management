@@ -91,11 +91,10 @@
                 </Grid>
             </Border>
 
-            <Border DockPanel.Dock="Top"
-                    Background="{StaticResource SurfaceMutedBrush}"
-
             <local:ConnectionStatusBannerControl DockPanel.Dock="Top"/>
 
+            <Border DockPanel.Dock="Top"
+                    Background="{StaticResource SurfaceMutedBrush}"
                     BorderBrush="{StaticResource ControlBorderBrush}"
                     BorderThickness="0,0,0,1"
                     Padding="16,10">
