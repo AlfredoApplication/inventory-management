@@ -149,6 +149,44 @@
                 </StackPanel>
 
                 <StackPanel Grid.Row="2" Margin="10,0,10,14">
+                    <Button x:Name="NotificationButton"
+                            Style="{StaticResource SharedNavButtonStyle}"
+                            Click="NotificationButton_Click">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <local:AppIcon Icon="Notification"
+                                           Size="18"
+                                           VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1"
+                                       Text="Bildirişlər"
+                                       Margin="15,0,0,0"
+                                       VerticalAlignment="Center"/>
+
+                            <Border x:Name="NotificationBadge"
+                                    Grid.Column="2"
+                                    Background="{StaticResource WarningSurfaceBrush}"
+                                    BorderBrush="{StaticResource WarningBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="10"
+                                    MinWidth="24"
+                                    Height="20"
+                                    Padding="6,1"
+                                    Visibility="Collapsed">
+                                <TextBlock x:Name="NotificationCountText"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           FontSize="10"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource WarningTextBrush}"/>
+                            </Border>
+                        </Grid>
+                    </Button>
+
                     <Separator Margin="6,8"
                                Background="{StaticResource GlassBorderBrush}"/>
 
