@@ -35,11 +35,10 @@ namespace LoginAppFramework
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Tarixçə yüklənərkən xəta baş verdi:\n\n{ex.Message}",
+                DialogService.Error(
+                    this,
                     "Yükləmə Xətası",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                    $"Tarixçə yüklənərkən xəta baş verdi:\n\n{ex.Message}");
             }
             finally
             {
@@ -164,14 +163,15 @@ namespace LoginAppFramework
             var toRestore = _viewModel.GetSelectedRestoreEntries();
             if (toRestore.Count == 0) return;
 
-            var confirm = MessageBox.Show(
+            bool confirm = DialogService.Confirm(
+                this,
+                "Bərpanı Təsdiq Et",
                 $"{toRestore.Count} vəsaiti bərpa etmək istəyirsiniz?\n\n" +
                 string.Join("\n", toRestore.Select(v => $"  • {v.Log.VesaitinAdi} ({v.Log.VesaitinKodu})")),
-                "Bərpanı Təsdiq Et",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
+                "Bərpa et",
+                "Ləğv et");
 
-            if (confirm != MessageBoxResult.Yes) return;
+            if (!confirm) return;
 
             RestoreSelectedButton.SetCurrentValue(UIElement.IsEnabledProperty, false);
 
@@ -189,11 +189,10 @@ namespace LoginAppFramework
                     }
                 }
 
-                MessageBox.Show(
-                    message,
-                    "Bərpa Nəticəsi",
-                    MessageBoxButton.OK,
-                    result.SuccessCount > 0 ? MessageBoxImage.Information : MessageBoxImage.Warning);
+                if (result.FailureCount > 0)
+                    NotificationService.Warning(this, message, title: "Bərpa Nəticəsi");
+                else
+                    NotificationService.Success(this, message, title: "Bərpa Nəticəsi");
             }
             finally
             {
