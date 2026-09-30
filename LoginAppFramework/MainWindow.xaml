@@ -8,7 +8,7 @@
         Background="{StaticResource AppBackgroundBrush}">
     <Border Background="{StaticResource PanelBackgroundBrush}" Padding="42,36" Width="410" VerticalAlignment="Center" HorizontalAlignment="Center" CornerRadius="16">
         <Border.Effect>
-            <DropShadowEffect ShadowDepth="0" Color="#000000" Opacity="0.08" BlurRadius="28"/>
+            <DropShadowEffect ShadowDepth="0" Color="{StaticResource ShadowColor}" Opacity="0.08" BlurRadius="28"/>
         </Border.Effect>
         <StackPanel>
             <TextBlock Text="İnventar Sistemi" FontSize="28" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="{StaticResource PrimaryTextBrush}"/>

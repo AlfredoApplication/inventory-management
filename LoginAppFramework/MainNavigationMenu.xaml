@@ -7,7 +7,7 @@
     <UserControl.Resources>
         <Style x:Key="SharedNavButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#F5F5F5"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryForegroundBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="FontSize" Value="16"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
@@ -26,7 +26,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Border" Property="Background" Value="#16A085"/>
+                                <Setter TargetName="Border" Property="Background" Value="{StaticResource PrimaryBrushHover}"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.5"/>
@@ -39,7 +39,7 @@
     </UserControl.Resources>
 
     <Grid x:Name="Root">
-        <Border Background="#55000000"
+        <Border Background="{StaticResource OverlayBrush}"
                 MouseDown="Overlay_MouseDown"/>
 
         <Border x:Name="NavigationPanel"
@@ -110,6 +110,15 @@
                         </StackPanel>
                     </Button>
 
+                    <Button x:Name="LifecycleButton"
+                            Style="{StaticResource SharedNavButtonStyle}"
+                            Click="LifecycleButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <local:AppIcon Icon="Chart" Size="18"/>
+                            <TextBlock Text="Həyat Dövrü" Margin="15,0,0,0"/>
+                        </StackPanel>
+                    </Button>
+
                     <Button x:Name="ReportsButton"
                             Style="{StaticResource SharedNavButtonStyle}"
                             Click="ReportsButton_Click">
@@ -132,7 +141,7 @@
 
                 <StackPanel Grid.Row="2" Margin="10,0,10,14">
                     <Separator Margin="6,8"
-                               Background="#55FFFFFF"/>
+                               Background="{StaticResource GlassBorderBrush}"/>
 
                     <Button x:Name="UserProfileButton"
                             Style="{StaticResource SharedNavButtonStyle}"
@@ -148,7 +157,7 @@
                                            FontWeight="SemiBold"/>
                                 <TextBlock x:Name="UserRoleText"
                                            Text="Onlayn"
-                                           Foreground="LightGreen"/>
+                                           Foreground="{StaticResource MenuSuccessTextBrush}"/>
                             </StackPanel>
                         </StackPanel>
                     </Button>
@@ -176,7 +185,7 @@
                             <TextBlock Text="İstifadəçini Dəyiş" Margin="15,0,0,0"/>
                         </StackPanel>
                     </Button>
-                    <Separator Background="#55FFFFFF"/>
+                    <Separator Background="{StaticResource GlassBorderBrush}"/>
                     <Button Style="{StaticResource SharedNavButtonStyle}"
                             Click="LogoutButton_Click">
                         <StackPanel Orientation="Horizontal">

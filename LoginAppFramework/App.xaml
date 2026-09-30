@@ -37,6 +37,21 @@
             <SolidColorBrush x:Key="SubtleTextBrush" Color="#66757D" />
             <SolidColorBrush x:Key="SurfaceMutedBrush" Color="#F4F8F6" />
             <SolidColorBrush x:Key="FocusRingBrush" Color="#99D8C8" />
+            <SolidColorBrush x:Key="OverlayBrush" Color="#66000000" />
+            <SolidColorBrush x:Key="SuccessSurfaceBrush" Color="#ECFDF3" />
+            <SolidColorBrush x:Key="SuccessBorderBrush" Color="#86D3A5" />
+            <SolidColorBrush x:Key="SuccessTextBrush" Color="#166534" />
+            <SolidColorBrush x:Key="WarningSurfaceBrush" Color="#FFF7E8" />
+            <SolidColorBrush x:Key="WarningBorderBrush" Color="#F2C574" />
+            <SolidColorBrush x:Key="WarningTextBrush" Color="#9A5808" />
+            <SolidColorBrush x:Key="DangerSurfaceBrush" Color="#FEF2F2" />
+            <SolidColorBrush x:Key="DangerBorderBrush" Color="#F4A6A6" />
+            <SolidColorBrush x:Key="DangerTextBrush" Color="#991B1B" />
+            <SolidColorBrush x:Key="InfoSurfaceBrush" Color="#EFF6FF" />
+            <SolidColorBrush x:Key="InfoBorderBrush" Color="#93C5FD" />
+            <SolidColorBrush x:Key="InfoTextBrush" Color="#1D4ED8" />
+            <SolidColorBrush x:Key="MenuSuccessTextBrush" Color="#A7F3D0" />
+            <Color x:Key="ShadowColor">#000000</Color>
 
             <!-- ================================================================ -->
             <!-- ==          SURFACES & EFFECTS                                == -->

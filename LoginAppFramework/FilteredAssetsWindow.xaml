@@ -29,10 +29,10 @@
             <Setter Property="Cursor" Value="Hand"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#EAF2F8"/>
+                    <Setter Property="Background" Value="{StaticResource RowHoverBrush}"/>
                 </Trigger>
                 <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#D4E6F1"/>
+                    <Setter Property="Background" Value="{StaticResource RowSelectedBrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>

@@ -50,7 +50,10 @@ namespace LoginAppFramework
             }
             else
             {
-                MessageBox.Show("Please select an asset from the list.", "No Asset Selected", MessageBoxButton.OK, MessageBoxImage.Information);
+                NotificationService.Info(
+                    this,
+                    "Zəhmət olmasa siyahıdan bir vəsait seçin.",
+                    title: "Seçim Edilməyib");
             }
         }
 

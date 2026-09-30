@@ -138,13 +138,15 @@ namespace LoginAppFramework
             if (UsersListView.SelectedItem is not AppUser userToDelete)
                 return;
 
-            var confirm = MessageBox.Show(
-                $"'{userToDelete.Username}' istifadəçisini silmək istədiyinizə əminsiniz?\n\nBu əməliyyatı geri qaytarmaq mümkün deyil.",
+            bool confirm = DialogService.Confirm(
+                this,
                 "Silməni Təsdiq Et",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning);
+                $"'{userToDelete.Username}' istifadəçisini silmək istədiyinizə əminsiniz?\n\nBu əməliyyatı geri qaytarmaq mümkün deyil.",
+                "İstifadəçini sil",
+                "Ləğv et",
+                destructive: true);
 
-            if (confirm != MessageBoxResult.Yes)
+            if (!confirm)
                 return;
 
             try

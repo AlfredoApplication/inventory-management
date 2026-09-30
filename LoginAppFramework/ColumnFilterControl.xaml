@@ -13,7 +13,7 @@
                       Width="28"
                       Padding="0"
                       Background="Transparent"
-                      BorderBrush="#CCCCCC"
+                      BorderBrush="{StaticResource ControlBorderBrush}"
                       BorderThickness="1"
                       Cursor="Hand"
                       VerticalAlignment="Center"
@@ -25,7 +25,7 @@
                            Size="15"
                            VerticalAlignment="Center"
                            HorizontalAlignment="Center"
-                           Foreground="#666666"/>
+                           Foreground="{StaticResource SubtleTextBrush}"/>
         </ToggleButton>
 
         <Popup x:Name="FilterPopup"
@@ -36,8 +36,8 @@
                IsOpen="{Binding IsChecked, ElementName=FilterToggleButton, Mode=TwoWay}"
                PopupAnimation="Fade"
                Closed="FilterPopup_Closed">
-            <Border Background="White"
-                    BorderBrush="#CCCCCC"
+            <Border Background="{StaticResource PanelBackgroundBrush}"
+                    BorderBrush="{StaticResource ControlBorderBrush}"
                     BorderThickness="1"
                     CornerRadius="3"
                     MinWidth="250"

@@ -64,6 +64,7 @@ namespace LoginAppFramework
                 "workers" => WorkersButton,
                 "assets" => AssetsButton,
                 "history" => HistoryButton,
+                "lifecycle" => LifecycleButton,
                 "reports" => ReportsButton,
                 _ => DashboardButton
             };
@@ -107,6 +108,7 @@ namespace LoginAppFramework
             WorkersButton.Background = normal;
             AssetsButton.Background = normal;
             HistoryButton.Background = normal;
+            LifecycleButton.Background = normal;
             ReportsButton.Background = normal;
 
             switch ((CurrentPage ?? string.Empty).Trim().ToLowerInvariant())
@@ -122,6 +124,9 @@ namespace LoginAppFramework
                     break;
                 case "history":
                     HistoryButton.Background = active;
+                    break;
+                case "lifecycle":
+                    LifecycleButton.Background = active;
                     break;
                 case "reports":
                     ReportsButton.Background = active;
@@ -168,6 +173,11 @@ namespace LoginAppFramework
                 "History",
                 window => NavigationManager.GoToHistoryLogWindow(window));
 
+        private async void LifecycleButton_Click(object sender, RoutedEventArgs e)
+            => await NavigateAsync(
+                "Lifecycle",
+                window => NavigationManager.GoToLifecycleReportWindow(window));
+
         private void ReportsButton_Click(object sender, RoutedEventArgs e)
         {
             var owner = OwnerWindow;
@@ -179,11 +189,10 @@ namespace LoginAppFramework
         {
             if (!SessionManager.CanManageUsers())
             {
-                MessageBox.Show(
-                    "Bu əməliyyat üçün icazəniz yoxdur.",
+                DialogService.Warning(
+                    OwnerWindow,
                     "Giriş Qadağandır",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
+                    "Bu əməliyyat üçün icazəniz yoxdur.");
                 return;
             }
 
@@ -208,13 +217,14 @@ namespace LoginAppFramework
 
         private void LogoutButton_Click(object sender, RoutedEventArgs e)
         {
-            var confirm = MessageBox.Show(
-                "Proqramdan çıxmaq istəyirsiniz?",
+            bool confirm = DialogService.Confirm(
+                OwnerWindow,
                 "Çıxış",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
+                "Proqramdan çıxmaq istəyirsiniz?",
+                "Çıxış et",
+                "Ləğv et");
 
-            if (confirm == MessageBoxResult.Yes)
+            if (confirm)
                 NavigationManager.ExitApplication();
         }
 

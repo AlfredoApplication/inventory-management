@@ -7,39 +7,20 @@
         mc:Ignorable="d"
         Title="Vəsait Həyat Dövrü Hesabatı"
         Loaded="Window_Loaded"
+        PreviewKeyDown="Window_PreviewKeyDown"
         WindowStartupLocation="CenterScreen"
         Style="{StaticResource MainScreenWindowStyle}">
 
     <Window.Resources>
-        <Style x:Key="ModernNavButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#DDDDDD"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="FontSize" Value="16"/>
-            <Setter Property="HorizontalContentAlignment" Value="Left"/>
-            <Setter Property="Padding" Value="15,12"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#34495E"/>
-                    <Setter Property="Foreground" Value="White"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-        <Storyboard x:Key="OpenMenu">
-            <DoubleAnimation Storyboard.TargetName="SlideOutMenu" Storyboard.TargetProperty="Width" To="260" Duration="0:0:0.3"/>
-        </Storyboard>
-        <Storyboard x:Key="CloseMenu">
-            <DoubleAnimation Storyboard.TargetName="SlideOutMenu" Storyboard.TargetProperty="Width" To="0" Duration="0:0:0.3"/>
-        </Storyboard>
-
-        <Style TargetType="{x:Type ListViewItem}" BasedOn="{StaticResource {x:Type ListViewItem}}">
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <Style TargetType="{x:Type ListViewItem}"
+               BasedOn="{StaticResource {x:Type ListViewItem}}">
             <Style.Triggers>
                 <Trigger Property="ItemsControl.AlternationIndex" Value="1">
-                    <Setter Property="Background" Value="{StaticResource RowAlternateBrush}" />
+                    <Setter Property="Background" Value="{StaticResource RowAlternateBrush}"/>
                 </Trigger>
                 <DataTrigger Binding="{Binding IsEndOfLife}" Value="True">
-                    <Setter Property="Background" Value="#FEF2F2"/>
+                    <Setter Property="Background" Value="{StaticResource DangerSurfaceBrush}"/>
                     <Setter Property="ToolTip" Value="Bu vəsaitin istifadə müddəti bitib."/>
                 </DataTrigger>
                 <Trigger Property="IsMouseOver" Value="True">
@@ -54,187 +35,245 @@
 
     <Grid>
         <DockPanel>
-            <Border DockPanel.Dock="Top" Background="{StaticResource PanelBackgroundBrush}" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="0,0,0,1" Padding="15">
+            <Border DockPanel.Dock="Top"
+                    Background="{StaticResource PanelBackgroundBrush}"
+                    BorderBrush="{StaticResource ControlBorderBrush}"
+                    BorderThickness="0,0,0,1"
+                    Padding="16,14">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Button x:Name="MenuButton" Style="{StaticResource PrimaryActionButton}" Height="40" Padding="15,0" Click="MenuButton_Click">
+
+                    <Button x:Name="MenuButton"
+                            Style="{StaticResource PrimaryActionButton}"
+                            Height="40"
+                            Padding="15,0"
+                            Click="MenuButton_Click">
                         <StackPanel Orientation="Horizontal">
-                            <local:AppIcon Icon="Menu" Size="18" Foreground="White" VerticalAlignment="Center"/>
-                            <TextBlock Text="Menyu" Foreground="White" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                            <local:AppIcon Icon="Menu"
+                                           Size="18"
+                                           Foreground="{StaticResource PrimaryForegroundBrush}"/>
+                            <TextBlock Text="Menyu"
+                                       Foreground="{StaticResource PrimaryForegroundBrush}"
+                                       FontSize="15"
+                                       FontWeight="SemiBold"
+                                       Margin="10,0,0,0"/>
                         </StackPanel>
                     </Button>
-                    <TextBlock Grid.Column="1" Text="Vəsait Həyat Dövrü və Amortizasiya Hesabatı" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/>
+
+                    <StackPanel Grid.Column="1"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="Vəsait Həyat Dövrü və Amortizasiya"
+                                   FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource PrimaryTextBrush}"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="İstifadə müddəti, amortizasiya və cari dəyər görünüşü"
+                                   Foreground="{StaticResource SubtleTextBrush}"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
                 </Grid>
             </Border>
-            <Border Margin="25" Background="{StaticResource PanelBackgroundBrush}" CornerRadius="8">
-                <DockPanel Margin="20">
-                    <Border DockPanel.Dock="Top" Margin="0,0,0,15" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="0,0,0,1" Padding="0,0,0,15">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0">
-                                <TextBlock x:Name="TitleTextBlock" Text="Bütün Vəsaitlər" FontSize="24" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/>
-                                <TextBlock x:Name="CountTextBlock" Text="0 element tapıldı" FontSize="14" Foreground="{StaticResource BodyTextBrush}" Margin="0,2,0,0"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                <TextBox x:Name="SearchBox" TextChanged="Filter_Changed" VerticalContentAlignment="Center" Width="200" ToolTip="Ad, İstifadəçi və ya Seriya üzrə axtarış..."/>
-                                <Button x:Name="ExportExcelButton" Click="ExportExcelButton_Click"
-                                        Margin="10,0,0,0" Padding="12,6" VerticalAlignment="Center"
+
+            <Border Style="{StaticResource SurfaceCardStyle}"
+                    Margin="20"
+                    Padding="0">
+                <DockPanel>
+                    <Border DockPanel.Dock="Top"
+                            Background="{StaticResource PanelBackgroundBrush}"
+                            BorderBrush="{StaticResource ControlBorderBrush}"
+                            BorderThickness="0,0,0,1"
+                            Padding="18">
+                        <StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel>
+                                    <TextBlock x:Name="TitleTextBlock"
+                                               Text="Bütün Vəsaitlər"
+                                               Style="{StaticResource PageTitleTextStyle}"/>
+                                    <TextBlock x:Name="CountTextBlock"
+                                               Text="0 element tapıldı"
+                                               Style="{StaticResource PageSubtitleTextStyle}"
+                                               Margin="0,3,0,0"/>
+                                </StackPanel>
+
+                                <Button x:Name="ExportExcelButton"
+                                        Grid.Column="1"
+                                        Click="ExportExcelButton_Click"
+                                        Style="{StaticResource PrimaryActionButton}"
+                                        Margin="12,0,0,0"
+                                        VerticalAlignment="Center"
                                         ToolTip="Cari siyahını Excel faylı kimi ixrac edin">
                                     <StackPanel Orientation="Horizontal">
-                                        <local:AppIcon Icon="ExportExcel" Size="17" VerticalAlignment="Center" Margin="0,0,7,0"/>
-                                        <TextBlock Text="Excel-ə İxrac" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                        <local:AppIcon Icon="ExportExcel"
+                                                       Size="17"
+                                                       Margin="0,0,7,0"/>
+                                        <TextBlock Text="Excel-ə İxrac"
+                                                   FontWeight="SemiBold"/>
                                     </StackPanel>
                                 </Button>
+                            </Grid>
 
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="20,0,0,0">
-                                    <RadioButton x:Name="AllAssetsFilterButton" Content="Bütün" GroupName="LifecycleFilter" IsChecked="True" Click="Filter_Changed" VerticalAlignment="Center"/>
-                                    <RadioButton x:Name="ActiveAssetsFilterButton" Content="İstifadə Müddəti Davam Edən" GroupName="LifecycleFilter" Click="Filter_Changed" VerticalAlignment="Center" Margin="10,0,0,0"/>
-                                    <RadioButton x:Name="ExpiredAssetsFilterButton" Content="İstifadə Müddəti Bitmiş" GroupName="LifecycleFilter" Click="Filter_Changed" VerticalAlignment="Center" Margin="10,0,0,0"/>
-                                </StackPanel>
-                            </StackPanel>
-                        </Grid>
+                            <WrapPanel Margin="0,16,0,0">
+                                <TextBox x:Name="SearchBox"
+                                         Width="280"
+                                         MinWidth="180"
+                                         Tag="Axtarış..."
+                                         TextChanged="Filter_Changed"
+                                         ToolTip="Ad, istifadəçi və ya seriya üzrə axtarış..."
+                                         Margin="0,0,18,8"/>
+
+                                <RadioButton x:Name="AllAssetsFilterButton"
+                                             Content="Bütün"
+                                             GroupName="LifecycleFilter"
+                                             IsChecked="True"
+                                             Click="Filter_Changed"
+                                             Margin="0,8,14,8"/>
+
+                                <RadioButton x:Name="ActiveAssetsFilterButton"
+                                             Content="İstifadə müddəti davam edən"
+                                             GroupName="LifecycleFilter"
+                                             Click="Filter_Changed"
+                                             Margin="0,8,14,8"/>
+
+                                <RadioButton x:Name="ExpiredAssetsFilterButton"
+                                             Content="İstifadə müddəti bitmiş"
+                                             GroupName="LifecycleFilter"
+                                             Click="Filter_Changed"
+                                             Margin="0,8,0,8"/>
+                            </WrapPanel>
+                        </StackPanel>
                     </Border>
-                    <ListView x:Name="AssetReportListView" BorderThickness="0" MouseDoubleClick="AssetReportListView_MouseDoubleClick" AlternationCount="2">
-                        <ListView.View>
-                            <GridView>
-                                <GridViewColumn Header="Vəsaitin Kodu" DisplayMemberBinding="{Binding VesaitinKodu}" Width="110"/>
-                                <GridViewColumn Header="Vəsaitin Adı" DisplayMemberBinding="{Binding Name}" Width="130"/>
-                                <GridViewColumn Header="Təhkim Olunmuş Əməkdaş" DisplayMemberBinding="{Binding AssignedUser, TargetNullValue=(Boşdur)}" Width="170"/>
-                                <GridViewColumn Header="Alış tarixi" DisplayMemberBinding="{Binding PurchaseDate, StringFormat=d}" Width="100"/>
 
-                                <!-- THE FIX IS HERE: Added the StringFormat -->
-                                <GridViewColumn Header="Amortizasiya müddəti (il)" 
-                                                DisplayMemberBinding="{Binding UsefulLifeDisplay}" 
-                                                Width="140"/>
+                    <Grid>
+                        <ListView x:Name="AssetReportListView"
+                                  BorderThickness="0"
+                                  MouseDoubleClick="AssetReportListView_MouseDoubleClick"
+                                  AlternationCount="2"
+                                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                  ScrollViewer.VerticalScrollBarVisibility="Auto">
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Header="Vəsaitin Kodu"
+                                                    DisplayMemberBinding="{Binding VesaitinKodu}"
+                                                    Width="120"/>
+                                    <GridViewColumn Header="Vəsaitin Adı"
+                                                    DisplayMemberBinding="{Binding Name}"
+                                                    Width="170"/>
+                                    <GridViewColumn Header="Təhkim Olunmuş Əməkdaş"
+                                                    DisplayMemberBinding="{Binding AssignedUser, TargetNullValue=(Boşdur)}"
+                                                    Width="190"/>
+                                    <GridViewColumn Header="Alış tarixi"
+                                                    DisplayMemberBinding="{Binding PurchaseDate, StringFormat=d}"
+                                                    Width="110"/>
+                                    <GridViewColumn Header="Amortizasiya müddəti (il)"
+                                                    DisplayMemberBinding="{Binding UsefulLifeDisplay}"
+                                                    Width="155"/>
+                                    <GridViewColumn Header="İstifadə Müddətinin Sonu"
+                                                    DisplayMemberBinding="{Binding EndOfLifeDateDisplay}"
+                                                    Width="175"/>
+                                    <GridViewColumn Header="Alış qiyməti"
+                                                    DisplayMemberBinding="{Binding PurchaseCost, StringFormat=C, ConverterCulture=az-AZ}"
+                                                    Width="120"/>
+                                    <GridViewColumn Header="Aylıq amortizasiya" Width="135">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding MonthlyDepreciation, StringFormat=C, ConverterCulture=az-AZ}"
+                                                           HorizontalAlignment="Right"
+                                                           Foreground="{StaticResource SubtleTextBrush}"/>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Header="İllik amortizasiya" Width="135">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding AnnualDepreciation, StringFormat=C, ConverterCulture=az-AZ}"
+                                                           HorizontalAlignment="Right"
+                                                           Foreground="{StaticResource SubtleTextBrush}"/>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Header="Yığılmış amortizasiya" Width="150">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding TotalDepreciation, StringFormat=C, ConverterCulture=az-AZ}"
+                                                           HorizontalAlignment="Right"
+                                                           Foreground="{StaticResource DangerBrush}"/>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Header="Cari dəyər" Width="120">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding CurrentValue, StringFormat=C, ConverterCulture=az-AZ}"
+                                                           HorizontalAlignment="Right"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{StaticResource SuccessBrush}"/>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
 
-                                <GridViewColumn Header="İstifadə Müddətinin Sonu" DisplayMemberBinding="{Binding EndOfLifeDateDisplay}" Width="170"/>
-                                <GridViewColumn Header="Alış qiyməti" DisplayMemberBinding="{Binding PurchaseCost, StringFormat=C, ConverterCulture=az-AZ}" Width="110"/>
-
-                                <GridViewColumn Header="Aylıq amortizasiya" Width="120">
-                                    <GridViewColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding MonthlyDepreciation, StringFormat=C, ConverterCulture=az-AZ}" HorizontalAlignment="Right" Foreground="{StaticResource SubtleTextBrush}"/>
-                                        </DataTemplate>
-                                    </GridViewColumn.CellTemplate>
-                                </GridViewColumn>
-
-                                <GridViewColumn Header="İllik amortizasiya" Width="110">
-                                    <GridViewColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding AnnualDepreciation, StringFormat=C, ConverterCulture=az-AZ}" HorizontalAlignment="Right" Foreground="{StaticResource SubtleTextBrush}"/>
-                                        </DataTemplate>
-                                    </GridViewColumn.CellTemplate>
-                                </GridViewColumn>
-
-                                <GridViewColumn Header="Yığılmış amortizasiya" Width="140">
-                                    <GridViewColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding TotalDepreciation, StringFormat=C, ConverterCulture=az-AZ}" HorizontalAlignment="Right" Foreground="#E74C3C"/>
-                                        </DataTemplate>
-                                    </GridViewColumn.CellTemplate>
-                                </GridViewColumn>
-
-                                <GridViewColumn Header="Cari dəyər" Width="110">
-                                    <GridViewColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding CurrentValue, StringFormat=C, ConverterCulture=az-AZ}" HorizontalAlignment="Right" FontWeight="SemiBold"/>
-                                        </DataTemplate>
-                                    </GridViewColumn.CellTemplate>
-                                </GridViewColumn>
-                            </GridView>
-                        </ListView.View>
-                    </ListView>
+                        <Border x:Name="NoResultsPanel"
+                                Visibility="Collapsed"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Background="{StaticResource PanelBackgroundBrush}"
+                                BorderBrush="{StaticResource ControlBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                Padding="28,22">
+                            <StackPanel HorizontalAlignment="Center">
+                                <local:AppIcon Icon="Chart"
+                                               Size="34"
+                                               Foreground="{StaticResource SubtleTextBrush}"
+                                               Margin="0,0,0,10"/>
+                                <TextBlock Text="Hesabat nəticəsi tapılmadı"
+                                           FontSize="17"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource PrimaryTextBrush}"
+                                           HorizontalAlignment="Center"/>
+                                <TextBlock Text="Axtarışı və ya həyat dövrü filtrini dəyişin."
+                                           Foreground="{StaticResource SubtleTextBrush}"
+                                           Margin="0,5,0,0"
+                                           HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
                 </DockPanel>
             </Border>
         </DockPanel>
-        <Border x:Name="MenuOverlay" Background="#000000" Opacity="0.3" Visibility="Collapsed" MouseDown="MenuOverlay_MouseDown"/>
-        <Grid x:Name="SlideOutMenu" HorizontalAlignment="Left" Background="{StaticResource MenuBackgroundBrush}" Width="0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <Grid Grid.Row="0" Height="60">
-                <TextBlock Text="Əsas Menyu" Foreground="White" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="20,0"/>
-                <Button x:Name="CloseMenuButton"
-        Foreground="#AAAAAA"
-        HorizontalAlignment="Right"
-        VerticalAlignment="Center"
-        Padding="20"
-        Click="CloseMenuButton_Click"
-        Style="{StaticResource ModernNavButtonStyle}">
-    <local:AppIcon Icon="Close" Size="17"/>
-</Button>
-            </Grid>
-            <StackPanel Grid.Row="1" Margin="5,0">
-                <Button x:Name="DashboardButton" Click="DashboardButton_Click" Style="{StaticResource ModernNavButtonStyle}">
-                    <StackPanel Orientation="Horizontal">
-                        <local:AppIcon Icon="Dashboard" Size="18" VerticalAlignment="Center"/>
-                        <TextBlock Text="İdarə Paneli" Margin="15,0,0,0"/>
-                    </StackPanel>
-                </Button>
-                <Button x:Name="UsersButton" Click="UsersButton_Click" Style="{StaticResource ModernNavButtonStyle}">
-                    <StackPanel Orientation="Horizontal">
-                        <local:AppIcon Icon="Workers" Size="18" VerticalAlignment="Center"/>
-                        <TextBlock Text="İşçilər" Margin="15,0,0,0"/>
-                    </StackPanel>
-                </Button>
-                <Button x:Name="AssetsButton" Click="AssetsButton_Click" Style="{StaticResource ModernNavButtonStyle}">
-                    <StackPanel Orientation="Horizontal">
-                        <local:AppIcon Icon="Assets" Size="18" VerticalAlignment="Center"/>
-                        <TextBlock Text="Vəsaitlər" Margin="15,0,0,0"/>
-                    </StackPanel>
-                </Button>
-                <Button x:Name="HistoryLogButton" Click="HistoryLogButton_Click" Style="{StaticResource ModernNavButtonStyle}">
-                    <StackPanel Orientation="Horizontal">
-                        <local:AppIcon Icon="History" Size="18" VerticalAlignment="Center"/>
-                        <TextBlock Text="Tarixçə" Margin="15,0,0,0"/>
-                    </StackPanel>
-                </Button>
-                <Button x:Name="LifecycleReportButton" Style="{StaticResource ModernNavButtonStyle}" Background="#34495E" Click="LifecycleReportButton_Click">
-                    <StackPanel Orientation="Horizontal">
-                        <local:AppIcon Icon="Chart" Size="18" VerticalAlignment="Center"/>
-                        <TextBlock Text="Həyat Dövrü Hesabatı" Margin="15,0,0,0"/>
-                    </StackPanel>
-                </Button>
+
+        <local:MainNavigationMenu x:Name="SharedNavigationMenu"
+                                  CurrentPage="Lifecycle"/>
+
+        <Border x:Name="LoadingOverlay"
+                Background="{StaticResource GlassBackgroundBrush}"
+                Visibility="Collapsed">
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                <TextBlock Text="Həyat dövrü hesabatı yüklənir..."
+                           FontSize="22"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource PrimaryTextBrush}"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="Məlumatlar hazırlanır."
+                           Foreground="{StaticResource BodyTextBrush}"
+                           HorizontalAlignment="Center"
+                           Margin="0,4,0,12"/>
+                <ProgressBar Width="220"
+                             Height="4"
+                             IsIndeterminate="True"/>
             </StackPanel>
-            <StackPanel Grid.Row="2" Margin="5,0,5,10">
-                <Separator Background="#34495E" Margin="0,10"/>
-                <Button x:Name="UserProfileButton" Style="{StaticResource ModernNavButtonStyle}" Click="UserProfileButton_Click">
-                    <StackPanel Orientation="Horizontal">
-                        <local:AppIcon x:Name="UserProfileIcon" Icon="User" Size="28" VerticalAlignment="Center"/>
-                        <StackPanel Margin="10,0,0,0">
-                            <TextBlock x:Name="UserProfileName" Text="Admin User" Foreground="White" FontWeight="SemiBold"/>
-                            <TextBlock Text="Onlayn" Foreground="LightGreen"/>
-                        </StackPanel>
-                    </StackPanel>
-                </Button>
-            </StackPanel>
-        </Grid>
-        <Popup x:Name="UserSwitchPopup" StaysOpen="False" Placement="Top" AllowsTransparency="True" PopupAnimation="Fade" PlacementTarget="{Binding ElementName=UserProfileButton}">
-            <Border Background="#34495E" CornerRadius="5" BorderBrush="#4A6582" BorderThickness="1" MinWidth="250" Margin="0,0,5,5">
-                <StackPanel>
-                    <Button x:Name="SwitchUserButton" Click="SwitchUserButton_Click" Style="{StaticResource ModernNavButtonStyle}">
-                        <StackPanel Orientation="Horizontal">
-                            <local:AppIcon Icon="SwitchUser" Size="18" VerticalAlignment="Center"/>
-                            <TextBlock Text="İstifadəçini Dəyiş" Margin="15,0,0,0"/>
-                        </StackPanel>
-                    </Button>
-                    <Separator Background="#4A6582" Margin="5,0"/>
-                    <Button x:Name="LogoutButton" Click="LogoutButton_Click" Style="{StaticResource ModernNavButtonStyle}">
-                        <StackPanel Orientation="Horizontal">
-                            <local:AppIcon Icon="Logout" Size="18" VerticalAlignment="Center"/>
-                            <TextBlock Text="Çıxış" Margin="15,0,0,0"/>
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
-            </Border>
-        </Popup>
+        </Border>
     </Grid>
 </Window>
