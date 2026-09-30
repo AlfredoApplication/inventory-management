@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -522,7 +523,12 @@ namespace LoginAppFramework
 
         #region Filtering and Data Logic
 
+        private const string AssetDetailWidthPreferenceKey = "assets-detail-panel-width";
+        private const double AssetDetailMinimumWidth = 340;
+        private const double AssetListMinimumWidth = 360;
+
         private bool isDetailPanelOpen = false;
+        private double? _preferredDetailPanelWidth;
 
         private void RefreshDataAndSelection(int? assetIdToSelect = null)
         {
@@ -953,24 +959,96 @@ namespace LoginAppFramework
         #region Menu Handlers
         private void OpenDetailPanel()
         {
-            double targetWidth = GetResponsiveDetailPanelWidth();
+            double targetWidth = GetPreferredDetailPanelWidth();
+
+            DetailPanelSplitter.Visibility = Visibility.Visible;
 
             var animation = new DoubleAnimation(
                 DetailPanelContainer.ActualWidth,
                 targetWidth,
                 TimeSpan.FromMilliseconds(250))
             {
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+                EasingFunction = new CubicEase
+                {
+                    EasingMode = EasingMode.EaseOut
+                }
             };
 
             DetailPanelContainer.BeginAnimation(WidthProperty, animation);
             isDetailPanelOpen = true;
         }
 
+        private double GetPreferredDetailPanelWidth()
+        {
+            _preferredDetailPanelWidth ??=
+                UiPreferenceStore.LoadScalar(AssetDetailWidthPreferenceKey);
+
+            double fallback = GetResponsiveDetailPanelWidth();
+            double preferred = _preferredDetailPanelWidth ?? fallback;
+
+            return ClampDetailPanelWidth(preferred);
+        }
+
         private double GetResponsiveDetailPanelWidth()
         {
-            double available = Math.Max(ActualWidth, 900);
-            return Math.Clamp(available * 0.36, 380, 540);
+            double available =
+                (DetailPanelContainer.Parent as FrameworkElement)?.ActualWidth
+                ?? Math.Max(ActualWidth, 900);
+
+            return Math.Clamp(
+                available * 0.38,
+                AssetDetailMinimumWidth,
+                Math.Max(AssetDetailMinimumWidth, Math.Min(560, available - AssetListMinimumWidth)));
+        }
+
+        private double ClampDetailPanelWidth(double width)
+        {
+            double available =
+                (DetailPanelContainer.Parent as FrameworkElement)?.ActualWidth
+                ?? ActualWidth;
+
+            double maximum = Math.Max(
+                AssetDetailMinimumWidth,
+                Math.Min(720, available - AssetListMinimumWidth - 7));
+
+            return Math.Clamp(
+                width,
+                AssetDetailMinimumWidth,
+                maximum);
+        }
+
+        private void DetailPanelSplitter_DragDelta(
+            object sender,
+            DragDeltaEventArgs e)
+        {
+            if (!isDetailPanelOpen)
+                return;
+
+            DetailPanelContainer.BeginAnimation(WidthProperty, null);
+
+            double current =
+                double.IsNaN(DetailPanelContainer.Width)
+                    ? DetailPanelContainer.ActualWidth
+                    : DetailPanelContainer.Width;
+
+            double next = ClampDetailPanelWidth(
+                current - e.HorizontalChange);
+
+            DetailPanelContainer.Width = next;
+            _preferredDetailPanelWidth = next;
+            e.Handled = true;
+        }
+
+        private void DetailPanelSplitter_DragCompleted(
+            object sender,
+            DragCompletedEventArgs e)
+        {
+            if (!_preferredDetailPanelWidth.HasValue)
+                return;
+
+            UiPreferenceStore.SaveScalar(
+                AssetDetailWidthPreferenceKey,
+                _preferredDetailPanelWidth.Value);
         }
 
         private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -979,15 +1057,31 @@ namespace LoginAppFramework
                 return;
 
             DetailPanelContainer.BeginAnimation(WidthProperty, null);
-            DetailPanelContainer.Width = GetResponsiveDetailPanelWidth();
+            DetailPanelContainer.Width = GetPreferredDetailPanelWidth();
         }
 
         private void CloseDetailPanel()
         {
-            var animation = new DoubleAnimation(0, TimeSpan.FromMilliseconds(200))
+            DetailPanelContainer.BeginAnimation(WidthProperty, null);
+
+            var animation = new DoubleAnimation(
+                DetailPanelContainer.ActualWidth,
+                0,
+                TimeSpan.FromMilliseconds(200))
             {
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
+                EasingFunction = new CubicEase
+                {
+                    EasingMode = EasingMode.EaseIn
+                }
             };
+
+            animation.Completed += (_, _) =>
+            {
+                DetailPanelContainer.BeginAnimation(WidthProperty, null);
+                DetailPanelContainer.Width = 0;
+                DetailPanelSplitter.Visibility = Visibility.Collapsed;
+            };
+
             DetailPanelContainer.BeginAnimation(WidthProperty, animation);
             isDetailPanelOpen = false;
         }
