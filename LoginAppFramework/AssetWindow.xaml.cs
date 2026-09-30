@@ -313,11 +313,10 @@ namespace LoginAppFramework
         {
             if (!SessionManager.CanEdit())
             {
-                MessageBox.Show(
-                    "Bu əməliyyat üçün icazəniz yoxdur.",
+                DialogService.Warning(
+                    this,
                     "Giriş Qadağandır",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
+                    "Bu əməliyyat üçün icazəniz yoxdur.");
                 return;
             }
 
