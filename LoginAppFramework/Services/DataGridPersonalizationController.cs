@@ -229,7 +229,9 @@ namespace LoginAppFramework
                     double widthValue;
                     string widthUnit;
 
-                    if (useActualWidth && column.ActualWidth > 0)
+                    if (useActualWidth &&
+                        width.UnitType == DataGridLengthUnitType.Pixel &&
+                        column.ActualWidth > 0)
                     {
                         widthValue = column.ActualWidth;
                         widthUnit = DataGridLengthUnitType.Pixel.ToString();
