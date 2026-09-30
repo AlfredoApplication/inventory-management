@@ -11,6 +11,10 @@ namespace LoginAppFramework
         void ImportNewAssets(List<Asset> assets);
         void Delete(Asset asset);
         void DeleteMany(List<Asset> assets);
+        void Restore(Asset asset);
+        void RestoreMany(List<Asset> assets);
+        void PermanentlyDelete(Asset asset);
+        void PermanentlyDeleteMany(List<Asset> assets);
         void ApplyAssignment(Asset asset, Worker worker, string source);
         void ApplyUnassignment(Asset asset, string source, string nextStatus = "Anbarda");
         void Assign(Asset asset, Worker worker, string source);
@@ -72,15 +76,87 @@ namespace LoginAppFramework
         public void Delete(Asset asset)
         {
             _authorization.RequireDelete();
-            if (asset == null) return;
-            AppData.DeleteAndRefreshAsset(asset);
+            if (asset == null)
+                return;
+
+            AssetDeletionMetadata.MarkDeleted(
+                asset,
+                SessionManager.CurrentUser?.FullName ??
+                SessionManager.CurrentUser?.Username ??
+                "Sistem",
+                DateTime.UtcNow);
+
+            AppData.SaveAndRefreshAsset(asset);
         }
 
         public void DeleteMany(List<Asset> assets)
         {
             _authorization.RequireDelete();
-            if (assets == null || assets.Count == 0) return;
-            AppData.BulkDeleteAndRefreshAssets(assets);
+            if (assets == null || assets.Count == 0)
+                return;
+
+            string deletedBy =
+                SessionManager.CurrentUser?.FullName ??
+                SessionManager.CurrentUser?.Username ??
+                "Sistem";
+
+            DateTime nowUtc = DateTime.UtcNow;
+
+            foreach (var asset in assets.Where(asset => asset != null))
+            {
+                AssetDeletionMetadata.MarkDeleted(
+                    asset,
+                    deletedBy,
+                    nowUtc);
+            }
+
+            AppData.BulkSaveAndRefreshAssets(
+                assets.Where(asset => asset != null).ToList());
+        }
+
+        public void Restore(Asset asset)
+        {
+            _authorization.RequireDelete();
+            if (asset == null)
+                return;
+
+            AssetDeletionMetadata.Restore(asset);
+            AppData.SaveAndRefreshAsset(asset);
+        }
+
+        public void RestoreMany(List<Asset> assets)
+        {
+            _authorization.RequireDelete();
+            if (assets == null || assets.Count == 0)
+                return;
+
+            var validAssets = assets
+                .Where(asset => asset != null)
+                .ToList();
+
+            foreach (var asset in validAssets)
+                AssetDeletionMetadata.Restore(asset);
+
+            AppData.BulkSaveAndRefreshAssets(validAssets);
+        }
+
+        public void PermanentlyDelete(Asset asset)
+        {
+            _authorization.RequireDelete();
+            if (asset == null)
+                return;
+
+            AppData.DeleteAndRefreshAsset(asset);
+        }
+
+        public void PermanentlyDeleteMany(List<Asset> assets)
+        {
+            _authorization.RequireDelete();
+            if (assets == null || assets.Count == 0)
+                return;
+
+            AppData.BulkDeleteAndRefreshAssets(
+                assets.Where(asset => asset != null).ToList());
         }
 
         public void ApplyAssignment(Asset asset, Worker worker, string source)
