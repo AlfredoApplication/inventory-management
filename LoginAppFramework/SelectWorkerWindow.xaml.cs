@@ -57,7 +57,10 @@ namespace LoginAppFramework
             }
             else
             {
-                MessageBox.Show("Zəhmət olmasa siyahıdan bir işçi seçin.", "Seçim Edilməyib", MessageBoxButton.OK, MessageBoxImage.Information);
+                NotificationService.Info(
+                    this,
+                    "Zəhmət olmasa siyahıdan bir işçi seçin.",
+                    title: "Seçim Edilməyib");
             }
         }
 
