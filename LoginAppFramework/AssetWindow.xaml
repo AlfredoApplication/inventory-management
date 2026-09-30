@@ -270,6 +270,18 @@
                                 </DataGridTextColumn.Header>
                             </DataGridTextColumn>
 
+                            <DataGridTemplateColumn Header="Status"
+                                                    SortMemberPath="Status"
+                                                    MinWidth="115"
+                                                    Width="130">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <local:StatusBadgeControl Status="{Binding Status}"
+                                                                  VerticalAlignment="Center"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
                             <!-- Təhkim Olunan Əməkdaş with filter -->
                             <DataGridTextColumn Binding="{Binding Worker.per_adiper_soyadi, TargetNullValue='(Boşdur)'}" MinWidth="150" Width="165">
                                 <DataGridTextColumn.Header>
