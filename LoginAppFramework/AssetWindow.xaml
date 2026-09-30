@@ -16,20 +16,6 @@
         <local:InvertedBooleanConverter x:Key="InvertedBooleanConverter"/>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <Style TargetType="{x:Type DataGridRow}" BasedOn="{StaticResource {x:Type DataGridRow}}">
-            <Setter Property="ContextMenu">
-                <Setter.Value>
-                    <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
-                        <MenuItem Header="Detalları aç" Click="OpenAssetDetailsContext_Click"/>
-                        <MenuItem Header="Redaktə et" Click="EditAssetContext_Click"/>
-                        <Separator/>
-                        <MenuItem Header="Vəsait kodunu kopyala" Click="CopyAssetCodeContext_Click"/>
-                        <MenuItem Header="Seriya nömrəsini kopyala" Click="CopyAssetSerialContext_Click"/>
-                        <Separator/>
-                        <MenuItem Header="İşçiyə təhkim et..." Click="AssignAssetContext_Click"/>
-                        <MenuItem Header="Barkod çap et" Click="PrintAssetBarcodeContext_Click"/>
-                    </ContextMenu>
-                </Setter.Value>
-            </Setter>
             <Style.Triggers>
                 <Trigger Property="AlternationIndex" Value="1">
                     <Setter Property="Background" Value="{StaticResource RowAlternateBrush}" />
@@ -207,6 +193,7 @@
                               IsReadOnly="True"
                               SelectionMode="Extended"
                               SelectionChanged="AssetsDataGrid_SelectionChanged"
+                              LoadingRow="AssetsDataGrid_LoadingRow"
                               MouseDoubleClick="AssetsDataGrid_MouseDoubleClick"
                               FrozenColumnCount="1"
                               AlternationCount="2">

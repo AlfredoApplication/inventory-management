@@ -415,6 +415,62 @@ namespace LoginAppFramework
             return parent is T typed ? typed : FindParent<T>(parent);
         }
 
+        private void WorkersDataGrid_LoadingRow(
+            object sender,
+            DataGridRowEventArgs e)
+        {
+            var menu = new ContextMenu
+            {
+                DataContext = e.Row.Item
+            };
+
+            menu.Items.Add(CreateWorkerContextMenuItem(
+                "Detalları aç",
+                OpenWorkerDetailsContext_Click,
+                e.Row.Item));
+
+            menu.Items.Add(CreateWorkerContextMenuItem(
+                "Redaktə et",
+                EditWorkerContext_Click,
+                e.Row.Item));
+
+            menu.Items.Add(new Separator());
+
+            menu.Items.Add(CreateWorkerContextMenuItem(
+                "Adı kopyala",
+                CopyWorkerNameContext_Click,
+                e.Row.Item));
+
+            menu.Items.Add(CreateWorkerContextMenuItem(
+                "İşçi kodunu kopyala",
+                CopyWorkerCodeContext_Click,
+                e.Row.Item));
+
+            menu.Items.Add(new Separator());
+
+            menu.Items.Add(CreateWorkerContextMenuItem(
+                "Aktiv/Qeyri-aktiv et",
+                ToggleWorkerActiveContext_Click,
+                e.Row.Item));
+
+            e.Row.ContextMenu = menu;
+        }
+
+        private static MenuItem CreateWorkerContextMenuItem(
+            string header,
+            RoutedEventHandler handler,
+            object dataContext)
+        {
+            var item = new MenuItem
+            {
+                Header = header,
+                DataContext = dataContext
+            };
+
+            item.Click += handler;
+            return item;
+        }
+
         private WorkerViewModel GetWorkerFromContext(object sender)
             => (sender as FrameworkElement)?.DataContext as WorkerViewModel;
 

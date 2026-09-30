@@ -594,6 +594,67 @@ namespace LoginAppFramework
             e.Handled = true;
         }
 
+        private void AssetsDataGrid_LoadingRow(
+            object sender,
+            DataGridRowEventArgs e)
+        {
+            var menu = new ContextMenu
+            {
+                DataContext = e.Row.Item
+            };
+
+            menu.Items.Add(CreateAssetContextMenuItem(
+                "Detalları aç",
+                OpenAssetDetailsContext_Click,
+                e.Row.Item));
+
+            menu.Items.Add(CreateAssetContextMenuItem(
+                "Redaktə et",
+                EditAssetContext_Click,
+                e.Row.Item));
+
+            menu.Items.Add(new Separator());
+
+            menu.Items.Add(CreateAssetContextMenuItem(
+                "Vəsait kodunu kopyala",
+                CopyAssetCodeContext_Click,
+                e.Row.Item));
+
+            menu.Items.Add(CreateAssetContextMenuItem(
+                "Seriya nömrəsini kopyala",
+                CopyAssetSerialContext_Click,
+                e.Row.Item));
+
+            menu.Items.Add(new Separator());
+
+            menu.Items.Add(CreateAssetContextMenuItem(
+                "İşçiyə təhkim et...",
+                AssignAssetContext_Click,
+                e.Row.Item));
+
+            menu.Items.Add(CreateAssetContextMenuItem(
+                "Barkod çap et",
+                PrintAssetBarcodeContext_Click,
+                e.Row.Item));
+
+            e.Row.ContextMenu = menu;
+        }
+
+        private static MenuItem CreateAssetContextMenuItem(
+            string header,
+            RoutedEventHandler handler,
+            object dataContext)
+        {
+            var item = new MenuItem
+            {
+                Header = header,
+                DataContext = dataContext
+            };
+
+            item.Click += handler;
+            return item;
+        }
+
         private AssetCheckableViewModel GetAssetFromContext(object sender)
             => (sender as FrameworkElement)?.DataContext as AssetCheckableViewModel;
 
