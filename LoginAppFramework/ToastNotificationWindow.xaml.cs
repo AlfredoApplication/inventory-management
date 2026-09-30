@@ -9,6 +9,9 @@ namespace LoginAppFramework
     {
         private readonly DispatcherTimer _timer;
         private readonly Window _owner;
+        private int _stackIndex;
+
+        public event EventHandler ToastClosed;
 
         public ToastNotificationWindow(
             Window owner,
@@ -42,11 +45,14 @@ namespace LoginAppFramework
             Closed += (_, _) =>
             {
                 _timer.Stop();
+
                 if (_owner != null)
                 {
                     _owner.LocationChanged -= Owner_LocationChanged;
                     _owner.SizeChanged -= Owner_SizeChanged;
                 }
+
+                ToastClosed?.Invoke(this, EventArgs.Empty);
             };
         }
 
@@ -54,6 +60,13 @@ namespace LoginAppFramework
         {
             Show();
             _timer.Start();
+        }
+
+        public void SetStackIndex(int stackIndex)
+        {
+            _stackIndex = Math.Max(0, stackIndex);
+            if (IsLoaded)
+                PositionWindow();
         }
 
         private void ApplyType(ToastType type, string title)
@@ -107,10 +120,13 @@ namespace LoginAppFramework
 
         private void PositionWindow()
         {
+            const double gap = 8;
+            double offset = _stackIndex * (ActualHeight + gap);
+
             if (_owner == null)
             {
                 Left = SystemParameters.WorkArea.Right - ActualWidth - 20;
-                Top = SystemParameters.WorkArea.Bottom - ActualHeight - 20;
+                Top = SystemParameters.WorkArea.Bottom - ActualHeight - 20 - offset;
                 return;
             }
 
@@ -120,7 +136,7 @@ namespace LoginAppFramework
 
             Top = Math.Max(
                 _owner.Top + 16,
-                _owner.Top + _owner.ActualHeight - ActualHeight - 48);
+                _owner.Top + _owner.ActualHeight - ActualHeight - 48 - offset);
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
