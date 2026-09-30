@@ -22,6 +22,23 @@ namespace LoginAppFramework
         public static IReadOnlyList<Alert> Refresh(
             IEnumerable<Asset> assets)
         {
+            CurrentAlerts = BuildAlerts(
+                    assets,
+                    LoadRulesSafely(),
+                    DateTime.Today)
+                .ToList();
+
+            NotificationCenterService.SyncBusinessAlerts(
+                CurrentAlerts);
+
+            return CurrentAlerts;
+        }
+
+        public static IReadOnlyList<Alert> BuildAlerts(
+            IEnumerable<Asset> assets,
+            IEnumerable<AlertRule> rules,
+            DateTime today)
+        {
             var assetList = assets?
                 .Where(asset =>
                     asset != null &&
@@ -32,49 +49,45 @@ namespace LoginAppFramework
                 .ToList()
                 ?? new List<Asset>();
 
-            var rules = LoadRulesSafely();
+            var ruleList = rules?.ToList()
+                ?? new List<AlertRule>();
 
             int warrantyDays = ResolveThreshold(
-                rules,
+                ruleList,
                 DefaultWarrantyDays,
                 "warranty",
                 "zəmanət",
                 "zemanet");
 
             int maintenanceDays = ResolveThreshold(
-                rules,
+                ruleList,
                 DefaultMaintenanceDays,
                 "maintenance",
                 "texniki",
                 "service");
 
             var alerts = new List<Alert>();
-            DateTime today = DateTime.Today;
 
             foreach (var asset in assetList)
             {
                 AddWarrantyAlert(
                     alerts,
                     asset,
-                    today,
+                    today.Date,
                     warrantyDays);
 
                 AddMaintenanceAlert(
                     alerts,
                     asset,
-                    today,
+                    today.Date,
                     maintenanceDays);
             }
 
-            CurrentAlerts = alerts
-                .OrderBy(alert => alert.Type)
-                .ThenBy(alert => alert.Timestamp)
+            return alerts
+                .OrderByDescending(alert => alert.Type)
+                .ThenBy(alert => alert.Category)
+                .ThenBy(alert => alert.TargetId)
                 .ToList();
-
-            NotificationCenterService.SyncBusinessAlerts(
-                CurrentAlerts);
-
-            return CurrentAlerts;
         }
 
         public static IReadOnlyList<Asset> GetWarrantyAssets(
