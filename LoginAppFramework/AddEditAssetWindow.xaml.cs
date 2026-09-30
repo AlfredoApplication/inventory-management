@@ -84,6 +84,7 @@ namespace LoginAppFramework
 
             _initialFormFingerprint = BuildFormFingerprint();
             _isTrackingChanges = true;
+            RefreshDuplicateWarnings();
             UpdateDirtyState();
         }
 
@@ -257,6 +258,9 @@ namespace LoginAppFramework
                 return false;
             }
 
+            if (!ValidateDuplicateIdentity())
+                return false;
+
             if (!AssetFormValidator.TryParsePurchaseCost(
                     PurchaseCostTextBox.Text,
                     out decimal purchaseCost,
@@ -364,7 +368,9 @@ namespace LoginAppFramework
 
             foreach (Control control in new Control[]
             {
+                AssetCodeTextBox,
                 AssetNameTextBox,
+                SerialNumberTextBox,
                 UserComboBox,
                 PurchaseCostTextBox,
                 UsefulLifeTextBox,
@@ -388,6 +394,94 @@ namespace LoginAppFramework
                 (Brush)FindResource("DangerBrush");
             control.BorderThickness = new Thickness(2);
             control.Focus();
+        }
+
+        private void IdentityField_TextChanged(
+            object sender,
+            TextChangedEventArgs e)
+            => RefreshDuplicateWarnings();
+
+        private bool ValidateDuplicateIdentity()
+        {
+            var allAssets =
+                AppData.GetAssetsIncludingDeleted();
+
+            var codeConflict =
+                AssetDuplicateDetector.FindCodeConflict(
+                    allAssets,
+                    AssetCodeTextBox.Text,
+                    Asset.Id);
+
+            if (codeConflict != null)
+            {
+                ShowValidation(
+                    codeConflict.Message,
+                    AssetCodeTextBox);
+                return false;
+            }
+
+            var serialConflict =
+                AssetDuplicateDetector.FindSerialConflict(
+                    allAssets,
+                    SerialNumberTextBox.Text,
+                    Asset.Id);
+
+            if (serialConflict != null)
+            {
+                ShowValidation(
+                    serialConflict.Message,
+                    SerialNumberTextBox);
+                return false;
+            }
+
+            return true;
+        }
+
+        private void RefreshDuplicateWarnings()
+        {
+            if (AssetCodeDuplicateWarning == null ||
+                SerialDuplicateWarning == null ||
+                AssetCodeTextBox == null ||
+                SerialNumberTextBox == null)
+            {
+                return;
+            }
+
+            var allAssets =
+                AppData.GetAssetsIncludingDeleted();
+
+            var codeConflict =
+                AssetDuplicateDetector.FindCodeConflict(
+                    allAssets,
+                    AssetCodeTextBox.Text,
+                    Asset.Id);
+
+            var serialConflict =
+                AssetDuplicateDetector.FindSerialConflict(
+                    allAssets,
+                    SerialNumberTextBox.Text,
+                    Asset.Id);
+
+            SetDuplicateWarning(
+                AssetCodeDuplicateWarning,
+                codeConflict);
+
+            SetDuplicateWarning(
+                SerialDuplicateWarning,
+                serialConflict);
+        }
+
+        private static void SetDuplicateWarning(
+            TextBlock warningBlock,
+            AssetDuplicateConflict conflict)
+        {
+            warningBlock.Text =
+                conflict?.Message ?? string.Empty;
+
+            warningBlock.Visibility =
+                conflict == null
+                    ? Visibility.Collapsed
+                    : Visibility.Visible;
         }
 
         private void PurchaseCostTextBox_PreviewTextInput(
