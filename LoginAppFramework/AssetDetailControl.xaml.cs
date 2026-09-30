@@ -125,7 +125,16 @@ namespace LoginAppFramework
 
             PopulateCustomFields();
             PopulateUserInfo();
-            HistoryListView.ItemsSource = _currentAsset.History?.OrderByDescending(h => h.ChangeDate).ToList();
+            var historyItems = _currentAsset.History?
+                .OrderByDescending(h => h.ChangeDate)
+                .ToList() ?? new List<AssignmentHistoryEntry>();
+
+            HistoryListView.ItemsSource = historyItems;
+            HistoryListView.Visibility =
+                historyItems.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            HistoryEmptyState.Visibility =
+                historyItems.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+
             PopulateFinancialsAndMaintenance();
             ApplyReadOnlyPermissions();
         }
@@ -275,7 +284,15 @@ namespace LoginAppFramework
             AnnualDepreciationValue.Text = _currentAsset.AnnualDepreciation.ToString("C", cultureInfo);
             CurrentValueValue.Text = _currentAsset.CurrentValue.ToString("C", cultureInfo);
             CurrentValueValue.Foreground = _currentAsset.IsEndOfLife ? Brushes.IndianRed : Brushes.Black;
-            MaintenanceListView.ItemsSource = _currentAsset.MaintenanceHistory?.OrderByDescending(m => m.MaintenanceDate).ToList();
+            var maintenanceItems = _currentAsset.MaintenanceHistory?
+                .OrderByDescending(m => m.MaintenanceDate)
+                .ToList() ?? new List<MaintenanceRecord>();
+
+            MaintenanceListView.ItemsSource = maintenanceItems;
+            MaintenanceListView.Visibility =
+                maintenanceItems.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            MaintenanceEmptyState.Visibility =
+                maintenanceItems.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void PopulateCustomFields()
