@@ -222,14 +222,16 @@ namespace LoginAppFramework
 
             if (choice == UnsavedChangesChoice.Save)
             {
-                TrySaveAndClose();
+                Dispatcher.BeginInvoke(
+                    new Action(() => TrySaveAndClose()));
                 return;
             }
 
             if (choice == UnsavedChangesChoice.Discard)
             {
                 _allowClose = true;
-                Close();
+                Dispatcher.BeginInvoke(
+                    new Action(Close));
             }
         }
     }
