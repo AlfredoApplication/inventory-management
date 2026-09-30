@@ -118,7 +118,13 @@
                     </Grid.RowDefinitions>
 
                     <Label Grid.Row="0" Content="Alış Qiyməti:" VerticalAlignment="Center" Margin="0,0,10,10"/>
-                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding PurchaseCost, Mode=TwoWay}" Margin="0,0,0,10" Padding="10,7"/>
+                    <TextBox x:Name="PurchaseCostTextBox"
+                             Grid.Row="0"
+                             Grid.Column="1"
+                             Margin="0,0,0,10"
+                             Padding="10,7"
+                             PreviewTextInput="PurchaseCostTextBox_PreviewTextInput"
+                             DataObject.Pasting="PurchaseCostTextBox_Pasting"/>
 
                     <Label Grid.Row="1" Content="Alınma Tarixi:" VerticalAlignment="Center" Margin="0,0,10,10"/>
                     <local:DateSelectorControl x:Name="PurchaseDateSelector"
@@ -140,7 +146,13 @@
                                                DialogTitle="Zəmanət bitmə tarixini seçin"/>
 
                     <Label Grid.Row="4" Content="İstifadə müddəti (İl):" VerticalAlignment="Center" Margin="0,0,10,10"/>
-                    <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding UsefulLifeInYears, Mode=TwoWay}" Margin="0,0,0,10" Padding="10,7"/>
+                    <TextBox x:Name="UsefulLifeTextBox"
+                             Grid.Row="4"
+                             Grid.Column="1"
+                             Margin="0,0,0,10"
+                             Padding="10,7"
+                             PreviewTextInput="UsefulLifeTextBox_PreviewTextInput"
+                             DataObject.Pasting="UsefulLifeTextBox_Pasting"/>
                 </Grid>
 
                 <StackPanel x:Name="CustomFieldsSeparator" Visibility="Collapsed">
