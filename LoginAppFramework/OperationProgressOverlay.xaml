@@ -1,0 +1,40 @@
+<UserControl x:Class="LoginAppFramework.OperationProgressOverlay"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource GlassBackgroundBrush}">
+    <Grid>
+        <Border Style="{StaticResource SurfaceCardStyle}"
+                Width="440"
+                Padding="24"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center">
+            <StackPanel>
+                <TextBlock x:Name="TitleTextBlock"
+                           Text="Əməliyyat icra olunur..."
+                           Style="{StaticResource SectionTitleTextStyle}"
+                           TextAlignment="Center"/>
+                <TextBlock x:Name="DetailTextBlock"
+                           Text="Məlumatlar hazırlanır."
+                           Foreground="{StaticResource SubtleTextBrush}"
+                           Margin="0,5,0,16"
+                           TextAlignment="Center"
+                           TextWrapping="Wrap"/>
+                <ProgressBar x:Name="ProgressBar"
+                             Height="8"
+                             Minimum="0"
+                             Maximum="100"
+                             Value="0"/>
+                <Grid Margin="0,8,0,0">
+                    <TextBlock x:Name="CounterTextBlock"
+                               Text="0 / 0"
+                               Foreground="{StaticResource SubtleTextBrush}"/>
+                    <TextBlock x:Name="PercentTextBlock"
+                               Text="0%"
+                               Foreground="{StaticResource PrimaryTextBrush}"
+                               FontWeight="SemiBold"
+                               HorizontalAlignment="Right"/>
+                </Grid>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

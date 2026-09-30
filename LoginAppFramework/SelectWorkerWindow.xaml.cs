@@ -23,6 +23,7 @@ namespace LoginAppFramework
 
             // Initially, display the full, sorted list
             WorkersListView.ItemsSource = _availableWorkers;
+            UpdateEmptyState(_availableWorkers.Count);
         }
 
         // This method is called whenever the text in the search box changes
@@ -44,7 +45,17 @@ namespace LoginAppFramework
             }
 
             // Update the ListView with the filtered results
-            WorkersListView.ItemsSource = filteredView.ToList();
+            var results = filteredView.ToList();
+            WorkersListView.ItemsSource = results;
+            UpdateEmptyState(results.Count);
+        }
+
+        private void UpdateEmptyState(int count)
+        {
+            WorkersListView.Visibility =
+                count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            EmptyState.Visibility =
+                count == 0 ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void SelectButton_Click(object sender, RoutedEventArgs e)

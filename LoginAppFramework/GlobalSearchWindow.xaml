@@ -105,25 +105,10 @@
                     </ListView.ItemTemplate>
                 </ListView>
 
-                <StackPanel x:Name="EmptyStatePanel"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center">
-                    <local:AppIcon Icon="Search"
-                                   Size="38"
-                                   Foreground="{StaticResource SubtleTextBrush}"
-                                   HorizontalAlignment="Center"/>
-                    <TextBlock x:Name="EmptyTitleTextBlock"
-                               Text="Axtarışa başlayın"
-                               FontSize="17"
-                               FontWeight="SemiBold"
-                               Foreground="{StaticResource PrimaryTextBrush}"
-                               HorizontalAlignment="Center"
-                               Margin="0,12,0,4"/>
-                    <TextBlock x:Name="EmptyMessageTextBlock"
-                               Text="Yuxarıdakı sahəyə axtardığınız kodu və ya adı yazın."
-                               Foreground="{StaticResource SubtleTextBrush}"
-                               HorizontalAlignment="Center"/>
-                </StackPanel>
+                <local:EmptyStateControl x:Name="EmptyStatePanel"
+                                         Icon="Search"
+                                         Title="Axtarışa başlayın"
+                                         Message="Yuxarıdakı sahəyə axtardığınız kodu və ya adı yazın."/>
             </Grid>
 
             <Border Grid.Row="3"

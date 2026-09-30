@@ -221,17 +221,15 @@
                              <DataGridTextColumn Header="Vəsaitlər" Binding="{Binding AssignedAssetsCount}" Width="*"/>
                          </DataGrid.Columns>
                     </DataGrid>
-                    <Border Grid.Row="3"
-                            x:Name="NoResultsPanel"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            Background="{StaticResource PanelBackgroundBrush}"
-                            BorderBrush="{StaticResource ControlBorderBrush}"
-                            BorderThickness="1"
-                            CornerRadius="12"
-                            Padding="28,22">
-                        <Border.Style>
-                            <Style TargetType="Border">
+                    <local:EmptyStateControl Grid.Row="3"
+                                             x:Name="NoResultsPanel"
+                                             Icon="Workers"
+                                             Title="İşçi tapılmadı"
+                                             Message="Axtarış və ya filtrləri dəyişərək yenidən yoxlayın."
+                                             ActionText="Filtrləri təmizlə"
+                                             ActionClick="ClearFiltersButton_Click">
+                        <local:EmptyStateControl.Style>
+                            <Style TargetType="{x:Type local:EmptyStateControl}">
                                 <Setter Property="Visibility" Value="Visible"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding HasResults}" Value="True">
@@ -239,27 +237,8 @@
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
-                        </Border.Style>
-                        <StackPanel HorizontalAlignment="Center">
-                            <local:AppIcon Icon="Workers"
-                                           Size="34"
-                                           Foreground="{StaticResource SubtleTextBrush}"
-                                           HorizontalAlignment="Center"
-                                           Margin="0,0,0,10"/>
-                            <TextBlock Text="İşçi tapılmadı"
-                                       FontSize="17"
-                                       FontWeight="SemiBold"
-                                       Foreground="{StaticResource PrimaryTextBrush}"
-                                       HorizontalAlignment="Center"/>
-                            <TextBlock Text="Axtarış və ya filtrləri dəyişərək yenidən yoxlayın."
-                                       Foreground="{StaticResource SubtleTextBrush}"
-                                       Margin="0,5,0,14"
-                                       HorizontalAlignment="Center"/>
-                            <Button Content="Filtrləri təmizlə"
-                                    HorizontalAlignment="Center"
-                                    Click="ClearFiltersButton_Click"/>
-                        </StackPanel>
-                    </Border>
+                        </local:EmptyStateControl.Style>
+                    </local:EmptyStateControl>
                     <Border Grid.RowSpan="4" x:Name="DetailPanelContainer" HorizontalAlignment="Right" Width="0" Background="{StaticResource PanelBackgroundBrush}" BorderThickness="1,0,0,0" BorderBrush="{StaticResource ControlBorderBrush}">
                         <Border.Effect>
                             <DropShadowEffect ShadowDepth="0" BlurRadius="20" Opacity="0.1" Direction="-90"/>
@@ -270,12 +249,12 @@
             </Grid>
         </DockPanel>
         <local:MainNavigationMenu x:Name="SharedNavigationMenu" CurrentPage="Workers"/>
-        <Border x:Name="LoadingOverlay" Background="{StaticResource GlassBackgroundBrush}" Visibility="Collapsed">
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                <TextBlock x:Name="LoadingMessage" Text="İşçilər yüklənir..." FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}" HorizontalAlignment="Center"/>
-                <TextBlock Text="Məlumatlar hazırlanır." Foreground="{StaticResource SubtleTextBrush}" HorizontalAlignment="Center" Margin="0,4,0,12"/>
-                <ProgressBar Width="220" Height="4" IsIndeterminate="True"/>
-            </StackPanel>
+        <Border x:Name="LoadingOverlay"
+                Background="{StaticResource GlassBackgroundBrush}"
+                Visibility="Collapsed">
+            <local:LoadingSkeletonControl/>
         </Border>
+
+        <local:OperationProgressOverlay x:Name="OperationProgressOverlay"/>
     </Grid>
 </Window>

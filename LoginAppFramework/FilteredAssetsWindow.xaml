@@ -52,33 +52,40 @@
                     </StackPanel>
                     <TextBox x:Name="SearchBox" Grid.Column="1" Width="250" TextChanged="SearchBox_TextChanged" VerticalAlignment="Bottom" Tag="Axtarış..." ToolTip="Ad, kateqoriya, istifadəçi və ya seriya üzrə axtarış..."/>
                 </Grid>
-                <ListView x:Name="AssetsListView" BorderThickness="0" MouseDoubleClick="AssetsListView_MouseDoubleClick">
-                    <ListView.View>
-                        <GridView>
-                            <GridViewColumn Header="Vəsaitin Adı" DisplayMemberBinding="{Binding Name}" Width="180"/>
-                            <GridViewColumn Header="Kateqoriya" Width="240">
-                                <GridViewColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <TextBlock>
-                                            <TextBlock.Text>
-                                                <!-- THE FIX IS HERE: The invalid 'Converters.' part is removed -->
-                                                <MultiBinding StringFormat="{}{0}{1}{2}">
-                                                    <Binding Path="ParentCategory"/>
-                                                    <Binding Path="ParentCategory" Converter="{StaticResource IsNotNullOrEmptyToSeparatorConverter}"/>
-                                                    <Binding Path="Category"/>
-                                                </MultiBinding>
-                                            </TextBlock.Text>
-                                        </TextBlock>
-                                    </DataTemplate>
-                                </GridViewColumn.CellTemplate>
-                            </GridViewColumn>
-                            <GridViewColumn Header="Status" DisplayMemberBinding="{Binding Status}" Width="120"/>
-                            <GridViewColumn Header="Təhkim Olunmuş İstifadəçi" DisplayMemberBinding="{Binding AssignedUser, TargetNullValue=(Boşdur)}" Width="150"/>
-                            <GridViewColumn Header="Seriya Nömrəsi" DisplayMemberBinding="{Binding SerialNumber}" Width="150"/>
-                            <GridViewColumn Header="Alınma Tarixi" DisplayMemberBinding="{Binding PurchaseDate, StringFormat='yyyy-MM-dd'}"/>
-                        </GridView>
-                    </ListView.View>
-                </ListView>
+                <Grid>
+                    <ListView x:Name="AssetsListView" BorderThickness="0" MouseDoubleClick="AssetsListView_MouseDoubleClick">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Vəsaitin Adı" DisplayMemberBinding="{Binding Name}" Width="180"/>
+                                <GridViewColumn Header="Kateqoriya" Width="240">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock>
+                                                <TextBlock.Text>
+                                                    <!-- THE FIX IS HERE: The invalid 'Converters.' part is removed -->
+                                                    <MultiBinding StringFormat="{}{0}{1}{2}">
+                                                        <Binding Path="ParentCategory"/>
+                                                        <Binding Path="ParentCategory" Converter="{StaticResource IsNotNullOrEmptyToSeparatorConverter}"/>
+                                                        <Binding Path="Category"/>
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Header="Status" DisplayMemberBinding="{Binding Status}" Width="120"/>
+                                <GridViewColumn Header="Təhkim Olunmuş İstifadəçi" DisplayMemberBinding="{Binding AssignedUser, TargetNullValue=(Boşdur)}" Width="150"/>
+                                <GridViewColumn Header="Seriya Nömrəsi" DisplayMemberBinding="{Binding SerialNumber}" Width="150"/>
+                                <GridViewColumn Header="Alınma Tarixi" DisplayMemberBinding="{Binding PurchaseDate, StringFormat='yyyy-MM-dd'}"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                    <local:EmptyStateControl x:Name="EmptyState"
+                                             Visibility="Collapsed"
+                                             Icon="Assets"
+                                             Title="Vəsait tapılmadı"
+                                             Message="Axtarış sözünü dəyişərək yenidən yoxlayın."/>
+                </Grid>
             </DockPanel>
         </Border>
     </Grid>

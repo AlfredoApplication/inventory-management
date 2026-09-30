@@ -223,31 +223,11 @@
                             </ListView.View>
                         </ListView>
 
-                        <Border x:Name="NoResultsPanel"
-                                Visibility="Collapsed"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Background="{StaticResource PanelBackgroundBrush}"
-                                BorderBrush="{StaticResource ControlBorderBrush}"
-                                BorderThickness="1"
-                                CornerRadius="12"
-                                Padding="28,22">
-                            <StackPanel HorizontalAlignment="Center">
-                                <local:AppIcon Icon="Chart"
-                                               Size="34"
-                                               Foreground="{StaticResource SubtleTextBrush}"
-                                               Margin="0,0,0,10"/>
-                                <TextBlock Text="Hesabat nəticəsi tapılmadı"
-                                           FontSize="17"
-                                           FontWeight="SemiBold"
-                                           Foreground="{StaticResource PrimaryTextBrush}"
-                                           HorizontalAlignment="Center"/>
-                                <TextBlock Text="Axtarışı və ya həyat dövrü filtrini dəyişin."
-                                           Foreground="{StaticResource SubtleTextBrush}"
-                                           Margin="0,5,0,0"
-                                           HorizontalAlignment="Center"/>
-                            </StackPanel>
-                        </Border>
+                        <local:EmptyStateControl x:Name="NoResultsPanel"
+                                                 Visibility="Collapsed"
+                                                 Icon="Chart"
+                                                 Title="Hesabat nəticəsi tapılmadı"
+                                                 Message="Axtarışı və ya həyat dövrü filtrini dəyişin."/>
                     </Grid>
                 </DockPanel>
             </Border>
@@ -259,21 +239,9 @@
         <Border x:Name="LoadingOverlay"
                 Background="{StaticResource GlassBackgroundBrush}"
                 Visibility="Collapsed">
-            <StackPanel HorizontalAlignment="Center"
-                        VerticalAlignment="Center">
-                <TextBlock Text="Həyat dövrü hesabatı yüklənir..."
-                           FontSize="22"
-                           FontWeight="SemiBold"
-                           Foreground="{StaticResource PrimaryTextBrush}"
-                           HorizontalAlignment="Center"/>
-                <TextBlock Text="Məlumatlar hazırlanır."
-                           Foreground="{StaticResource BodyTextBrush}"
-                           HorizontalAlignment="Center"
-                           Margin="0,4,0,12"/>
-                <ProgressBar Width="220"
-                             Height="4"
-                             IsIndeterminate="True"/>
-            </StackPanel>
+            <local:LoadingSkeletonControl/>
         </Border>
+
+        <local:OperationProgressOverlay x:Name="OperationProgressOverlay"/>
     </Grid>
 </Window>

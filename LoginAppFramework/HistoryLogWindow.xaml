@@ -132,45 +132,64 @@
                             </Grid>
                         </Border>
 
-                        <ListView x:Name="HistoryListView" ItemsSource="{Binding PagedEntries}" 
-                                  MouseDoubleClick="HistoryListView_MouseDoubleClick"
-                                  HorizontalContentAlignment="Stretch" BorderThickness="0" Background="Transparent"
-                                  AlternationCount="2">
-                            <ListView.ItemTemplate>
-                                <DataTemplate DataType="{x:Type local:HistoryLogViewModel}">
-                                    <Border BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="0,0,0,1" Padding="10,12" Cursor="Hand">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <!-- Checkbox column (only for Silinən) -->
-                                                <ColumnDefinition Width="36"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
+                        <Grid>
+                            <ListView x:Name="HistoryListView" ItemsSource="{Binding PagedEntries}" 
+                                      MouseDoubleClick="HistoryListView_MouseDoubleClick"
+                                      HorizontalContentAlignment="Stretch" BorderThickness="0" Background="Transparent"
+                                      AlternationCount="2">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type local:HistoryLogViewModel}">
+                                        <Border BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="0,0,0,1" Padding="10,12" Cursor="Hand">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <!-- Checkbox column (only for Silinən) -->
+                                                    <ColumnDefinition Width="36"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
 
-                                            <!-- Checkbox — only visible for deleted rows -->
-                                            <CheckBox Grid.Column="0"
-                                                      IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                                      Visibility="{Binding CanRestore, Converter={StaticResource BoolToVis}}"
-                                                      VerticalAlignment="Center"/>
+                                                <!-- Checkbox — only visible for deleted rows -->
+                                                <CheckBox Grid.Column="0"
+                                                          IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                          Visibility="{Binding CanRestore, Converter={StaticResource BoolToVis}}"
+                                                          VerticalAlignment="Center"/>
 
-                                            <local:AppIcon Grid.Column="1"
-                                                           Icon="{Binding Icon}"
-                                                           Size="24"
-                                                           VerticalAlignment="Center"
-                                                           Margin="5,0,20,0"/>
-                                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
-                                                <TextBlock FontWeight="SemiBold" Text="{Binding Description}" TextWrapping="Wrap" Foreground="{StaticResource BodyTextBrush}" FontSize="14"/>
-                                            </StackPanel>
-                                            <StackPanel Grid.Column="3" VerticalAlignment="Center" Margin="20,0,5,0" TextBlock.TextAlignment="Right">
-                                                <TextBlock Foreground="{StaticResource BodyTextBrush}"><Run Text="tərəfindən: "/><Run Text="{Binding ChangedBy}"/></TextBlock>
-                                                <TextBlock Foreground="{StaticResource SubtleTextBrush}" Text="{Binding Timestamp, StringFormat='yyyy-MM-dd HH:mm:ss'}"/>
-                                            </StackPanel>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
-                        </ListView>
+                                                <local:AppIcon Grid.Column="1"
+                                                               Icon="{Binding Icon}"
+                                                               Size="24"
+                                                               VerticalAlignment="Center"
+                                                               Margin="5,0,20,0"/>
+                                                <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                                    <TextBlock FontWeight="SemiBold" Text="{Binding Description}" TextWrapping="Wrap" Foreground="{StaticResource BodyTextBrush}" FontSize="14"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="3" VerticalAlignment="Center" Margin="20,0,5,0" TextBlock.TextAlignment="Right">
+                                                    <TextBlock Foreground="{StaticResource BodyTextBrush}"><Run Text="tərəfindən: "/><Run Text="{Binding ChangedBy}"/></TextBlock>
+                                                    <TextBlock Foreground="{StaticResource SubtleTextBrush}" Text="{Binding Timestamp, StringFormat='yyyy-MM-dd HH:mm:ss'}"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+
+                            <local:EmptyStateControl Icon="History"
+                                                     Title="Tarixçə qeydi tapılmadı"
+                                                     Message="Axtarış, əməliyyat növü və ya tarix filtrini dəyişərək yenidən yoxlayın."
+                                                     ActionText="Filtrləri təmizlə"
+                                                     ActionClick="ClearFiltersButton_Click">
+                                <local:EmptyStateControl.Style>
+                                    <Style TargetType="{x:Type local:EmptyStateControl}">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasResults}" Value="False">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </local:EmptyStateControl.Style>
+                            </local:EmptyStateControl>
+                        </Grid>
                     </DockPanel>
                 </Border>
 
@@ -186,18 +205,7 @@
         <Border x:Name="LoadingOverlay"
                 Background="{StaticResource GlassBackgroundBrush}"
                 Visibility="Collapsed">
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                <TextBlock Text="Tarixçə yüklənir..."
-                           FontSize="22"
-                           FontWeight="SemiBold"
-                           Foreground="{StaticResource PrimaryTextBrush}"
-                           HorizontalAlignment="Center"/>
-                <TextBlock Text="Qeydlər hazırlanır."
-                           Foreground="{StaticResource BodyTextBrush}"
-                           HorizontalAlignment="Center"
-                           Margin="0,4,0,12"/>
-                <ProgressBar Width="220" Height="4" IsIndeterminate="True"/>
-            </StackPanel>
+            <local:LoadingSkeletonControl/>
         </Border>
     </Grid>
 </Window>

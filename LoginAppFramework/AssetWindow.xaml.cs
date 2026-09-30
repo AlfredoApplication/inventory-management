@@ -142,7 +142,7 @@ namespace LoginAppFramework
             printWindow.ShowDialog();
         }
 
-        private void ExportButton_Click(object sender, RoutedEventArgs e)
+        private async void ExportButton_Click(object sender, RoutedEventArgs e)
         {
             var assetsToExport = _viewModel.VisibleAssets
                 .Select(vm => vm.Asset)
@@ -166,10 +166,24 @@ namespace LoginAppFramework
 
             if (saveFileDialog.ShowDialog() != true) return;
 
+            ExportButton.IsEnabled = false;
+            OperationProgressOverlay.Show(
+                "Excel faylı yaradılır...",
+                $"{assetsToExport.Count} vəsait export üçün hazırlanır.");
+
+            var progress = new Progress<OperationProgressInfo>(
+                value => OperationProgressOverlay.Report(value));
+
             try
             {
-                _viewModel.Export(saveFileDialog.FileName);
-                NotificationService.Success(this, "Məlumatlar Excel faylına export edildi.");
+                await Task.Run(
+                    () => _viewModel.Export(
+                        saveFileDialog.FileName,
+                        progress));
+
+                NotificationService.Success(
+                    this,
+                    $"{assetsToExport.Count} vəsait Excel faylına export edildi.");
             }
             catch (Exception ex)
             {
@@ -177,9 +191,14 @@ namespace LoginAppFramework
                     this,
                     $"Export zamanı xəta baş verdi: {ex.Message}");
             }
+            finally
+            {
+                OperationProgressOverlay.Hide();
+                ExportButton.IsEnabled = true;
+            }
         }
 
-        private void ImportButton_Click(object sender, RoutedEventArgs e)
+        private async void ImportButton_Click(object sender, RoutedEventArgs e)
         {
             if (!SessionManager.CanEdit())
             {
@@ -199,9 +218,20 @@ namespace LoginAppFramework
             if (openFileDialog.ShowDialog() != true) return;
 
             AssetImportBatch batch;
+            ImportButton.IsEnabled = false;
+            OperationProgressOverlay.Show(
+                "Excel faylı oxunur...",
+                "Import məlumatları yoxlanılır.");
+
+            var parseProgress = new Progress<OperationProgressInfo>(
+                value => OperationProgressOverlay.Report(value));
+
             try
             {
-                batch = _viewModel.ParseImport(openFileDialog.FileName);
+                batch = await Task.Run(
+                    () => _viewModel.ParseImport(
+                        openFileDialog.FileName,
+                        parseProgress));
             }
             catch (Exception ex)
             {
@@ -210,6 +240,11 @@ namespace LoginAppFramework
                     "Import Xətası",
                     $"Excel faylı oxunarkən xəta baş verdi:\n\n{ex.Message}");
                 return;
+            }
+            finally
+            {
+                OperationProgressOverlay.Hide();
+                ImportButton.IsEnabled = true;
             }
 
             if (batch.Assets.Count == 0)
@@ -283,10 +318,32 @@ namespace LoginAppFramework
                     "Ləğv et"))
                 return;
 
+            ImportButton.IsEnabled = false;
+            OperationProgressOverlay.Show(
+                "Vəsaitlər import edilir...",
+                $"{batch.Assets.Count} vəsait verilənlər bazasına yazılır.");
+
+            OperationProgressOverlay.Report(
+                new OperationProgressInfo(
+                    "Vəsaitlər import edilir...",
+                    0,
+                    batch.Assets.Count,
+                    "Verilənlər bazasına yazılır."));
+
             try
             {
-                _viewModel.ImportAssets(batch.Assets);
-                NotificationService.Success(this, $"{batch.Assets.Count} vəsait import edildi.");
+                await Task.Run(() => _viewModel.ImportAssets(batch.Assets));
+
+                OperationProgressOverlay.Report(
+                    new OperationProgressInfo(
+                        "Import tamamlandı",
+                        batch.Assets.Count,
+                        batch.Assets.Count,
+                        $"{batch.Assets.Count} vəsait yadda saxlanıldı."));
+
+                NotificationService.Success(
+                    this,
+                    $"{batch.Assets.Count} vəsait import edildi.");
             }
             catch (Exception ex)
             {
@@ -297,6 +354,8 @@ namespace LoginAppFramework
             }
             finally
             {
+                OperationProgressOverlay.Hide();
+                ImportButton.IsEnabled = true;
                 RefreshDataAndSelection();
             }
         }

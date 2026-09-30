@@ -122,8 +122,8 @@ namespace LoginAppFramework
                 ResultsListView.ItemsSource = null;
                 ResultCountTextBlock.Text = string.Empty;
                 EmptyStatePanel.Visibility = Visibility.Visible;
-                EmptyTitleTextBlock.Text = "Axtarışa başlayın";
-                EmptyMessageTextBlock.Text =
+                EmptyStatePanel.Title = "Axtarışa başlayın";
+                EmptyStatePanel.Message =
                     "Yuxarıdakı sahəyə axtardığınız kodu və ya adı yazın.";
                 return;
             }
@@ -159,8 +159,8 @@ namespace LoginAppFramework
 
             if (results.Count == 0)
             {
-                EmptyTitleTextBlock.Text = "Nəticə tapılmadı";
-                EmptyMessageTextBlock.Text =
+                EmptyStatePanel.Title = "Nəticə tapılmadı";
+                EmptyStatePanel.Message =
                     "Başqa kod, ad və ya açar sözlə yenidən yoxlayın.";
             }
 

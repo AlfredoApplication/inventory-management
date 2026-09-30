@@ -56,8 +56,11 @@ namespace LoginAppFramework
 
             var results = filteredView.ToList();
             AssetsListView.ItemsSource = results;
+            AssetsListView.Visibility =
+                results.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            EmptyState.Visibility =
+                results.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
 
-            // --- THE FIX IS HERE ---
             CountTextBlock.Text = $"{results.Count} element tapıldı";
         }
 

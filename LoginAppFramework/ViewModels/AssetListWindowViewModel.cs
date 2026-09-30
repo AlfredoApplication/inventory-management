@@ -89,13 +89,18 @@ namespace LoginAppFramework
         public void ClearFilters()
             => Filters?.Clear();
 
-        public AssetImportBatch ParseImport(string filePath)
-            => _excelService.ParseImport(filePath);
+        public AssetImportBatch ParseImport(
+            string filePath,
+            IProgress<OperationProgressInfo> progress = null)
+            => _excelService.ParseImport(filePath, progress);
 
-        public void Export(string filePath)
+        public void Export(
+            string filePath,
+            IProgress<OperationProgressInfo> progress = null)
             => _excelService.Export(
                 filePath,
-                VisibleAssets.Select(vm => vm.Asset));
+                VisibleAssets.Select(vm => vm.Asset),
+                progress);
 
         public void ImportAssets(List<Asset> assets)
             => _assetService.ImportNewAssets(assets);
