@@ -36,24 +36,37 @@ namespace LoginAppFramework
             LoadingOverlay.Visibility = Visibility.Visible;
             await Task.Delay(20);
 
-            if (string.IsNullOrEmpty(SessionManager.CurrentUserConnectionString))
+            try
+            {
+                if (string.IsNullOrEmpty(SessionManager.CurrentUserConnectionString))
+                {
+                    MessageBox.Show(
+                        "Aktiv istifadəçi sessiyası tapılmadı. Giriş ekranına qaytarılırsınız.",
+                        "Sessiya Xətası",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+
+                    NavigationManager.RestartApplication();
+                    return;
+                }
+
+                _viewModel.Refresh();
+                WorkerAssetManager.OnDetailPanelClosed += DetailControl_PanelClosed;
+                WorkerAssetManager.OnAssetDoubleClicked += Manager_AssetDoubleClicked;
+            }
+            catch (Exception ex)
             {
                 MessageBox.Show(
-                    "FATAL ERROR: No user session found. Returning to login.",
-                    "Session Error",
+                    $"İşçilər yüklənərkən xəta baş verdi:\n\n{ex.Message}",
+                    "Yükləmə Xətası",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
-
-                NavigationManager.RestartApplication();
-                return;
             }
-
-            _viewModel.Refresh();
-            WorkerAssetManager.OnDetailPanelClosed += DetailControl_PanelClosed;
-            WorkerAssetManager.OnAssetDoubleClicked += Manager_AssetDoubleClicked;
-
-            LoadingOverlay.Visibility = Visibility.Collapsed;
-            ApplyRoleBasedPermissions();
+            finally
+            {
+                LoadingOverlay.Visibility = Visibility.Collapsed;
+                ApplyRoleBasedPermissions();
+            }
         }
 
         private async void Manager_AssetDoubleClicked(object sender, Asset asset)
@@ -356,15 +369,39 @@ namespace LoginAppFramework
         private void ToggleFilterPanelButton_Click(object sender, RoutedEventArgs e)
         {
             bool isVisible = FilterSidebar.Visibility == Visibility.Visible;
+            SetFilterPanelVisibility(!isVisible);
+        }
 
+        private void SetFilterPanelVisibility(bool isVisible)
+        {
             FilterSidebar.Visibility =
-                isVisible ? Visibility.Collapsed : Visibility.Visible;
+                isVisible ? Visibility.Visible : Visibility.Collapsed;
 
             FilterColumn.Width =
-                isVisible ? new GridLength(0) : new GridLength(240);
+                isVisible ? new GridLength(260) : new GridLength(0);
 
             FilterPanelToggleButton.Content =
-                isVisible ? "Filtrləri Göstər" : "Filtrləri Gizlət";
+                isVisible ? "Filtrləri Gizlət" : "Filtrləri Göstər";
+        }
+
+        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.F)
+            {
+                SetFilterPanelVisibility(true);
+                SearchBox.Focus();
+                SearchBox.SelectAll();
+                e.Handled = true;
+                return;
+            }
+
+            if (e.Key == Key.Escape && isDetailPanelOpen)
+            {
+                WorkersDataGrid.SelectedItems.Clear();
+                _selectedWorker = null;
+                CloseDetailPanel();
+                e.Handled = true;
+            }
         }
 
         private void MenuButton_Click(object _, RoutedEventArgs e)
