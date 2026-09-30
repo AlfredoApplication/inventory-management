@@ -127,6 +127,13 @@
                                     </DataTemplate>
                                 </ListView.ItemTemplate>
                             </ListView>
+                            <local:EmptyStateControl x:Name="HistoryEmptyState"
+                                                     Visibility="Collapsed"
+                                                     Icon="History"
+                                                     Title="Təhkimat tarixçəsi yoxdur"
+                                                     Message="Bu vəsait üçün hələ təhkimat əməliyyatı qeydə alınmayıb."
+                                                     Margin="0,8,0,0"/>
+
                         </StackPanel>
                     </ScrollViewer>
                 </TabItem>
@@ -177,6 +184,15 @@
                                     </GridView>
                                 </ListView.View>
                             </ListView>
+                            <local:EmptyStateControl x:Name="MaintenanceEmptyState"
+                                                     Visibility="Collapsed"
+                                                     Icon="Maintenance"
+                                                     Title="Texniki xidmət qeydi yoxdur"
+                                                     Message="Bu vəsait üçün hələ texniki xidmət qeydi əlavə edilməyib."
+                                                     ActionText="Qeyd əlavə et"
+                                                     ActionClick="AddMaintenanceButton_Click"
+                                                     Margin="0,8,0,0"/>
+
                         </StackPanel>
                     </ScrollViewer>
                 </TabItem>
