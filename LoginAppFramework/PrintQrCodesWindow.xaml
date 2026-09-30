@@ -2,20 +2,23 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Barkodları Çap Et" Height="800" Width="900"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource AppBackgroundBrush}"
+        FontFamily="Segoe UI">
     <Grid>
-        <DockPanel Margin="10">
+        <Border Style="{StaticResource SurfaceCardStyle}" Margin="20" Padding="20">
+        <DockPanel>
 
             <!-- Üst Panel: Düymələr və Tənzimləmələr -->
             <StackPanel DockPanel.Dock="Top" Margin="0,0,0,10">
 
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                    <Button x:Name="PrintButton" Content="Çap Et" Padding="15,5" Click="PrintButton_Click" Background="#4CAF50" Foreground="White" FontWeight="Bold"/>
+                    <Button x:Name="PrintButton" Content="Çap Et" Padding="15,5" Click="PrintButton_Click" Background="{StaticResource SuccessBrush}" Foreground="{StaticResource PrimaryForegroundBrush}" FontWeight="SemiBold"/>
                     <TextBlock x:Name="CountTextBlock" VerticalAlignment="Center" Margin="20,0,0,0" FontWeight="SemiBold"/>
                 </StackPanel>
 
                 <!-- Ölçü Tənzimləmə Paneli (XƏTANI HƏLL EDƏN HİSSƏ BURADIR) -->
-                <Border Background="#F0F0F0" CornerRadius="5" Padding="10" Margin="0,0,0,10">
+                <Border Background="{StaticResource SurfaceMutedBrush}" CornerRadius="10" Padding="10" Margin="0,0,0,10">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="Kağız Eni (mm):" VerticalAlignment="Center" Margin="0,0,5,0" FontWeight="SemiBold"/>
                         <!-- WidthTextBox buradadır -->
@@ -28,7 +31,7 @@
                         <Button Content="Yenilə (Bax)" Margin="20,0,0,0" Padding="15,2" Click="RefreshButton_Click"/>
 
                         <TextBlock Text="* Rəqəmləri dəyişib 'Yenilə' basın. Millimetr (mm) ilə yazın." 
-                                   VerticalAlignment="Center" Margin="15,0,0,0" Foreground="Gray" FontStyle="Italic"/>
+                                   VerticalAlignment="Center" Margin="15,0,0,0" Foreground="{StaticResource SubtleTextBrush}" FontStyle="Italic"/>
                     </StackPanel>
                 </Border>
 
@@ -40,5 +43,6 @@
                 </Border>
             </ScrollViewer>
         </DockPanel>
+        </Border>
     </Grid>
 </Window>
