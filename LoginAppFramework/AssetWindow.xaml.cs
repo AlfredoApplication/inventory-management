@@ -971,11 +971,69 @@ namespace LoginAppFramework
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.F)
+            bool control =
+                (Keyboard.Modifiers & ModifierKeys.Control) != 0;
+
+            if (control && e.Key == Key.F)
             {
                 SetFilterPanelVisibility(true);
                 SearchBox.Focus();
                 SearchBox.SelectAll();
+                e.Handled = true;
+                return;
+            }
+
+            if (control && e.Key == Key.K)
+            {
+                NavigationManager.GoToGlobalSearch(this);
+                e.Handled = true;
+                return;
+            }
+
+            if (control && e.Key == Key.N)
+            {
+                AddAssetButton_Click(this, new RoutedEventArgs());
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.FocusedElement is TextBoxBase)
+                return;
+
+            var selected =
+                AssetsDataGrid.SelectedItem as AssetCheckableViewModel;
+
+            if (control && e.Key == Key.E && selected != null)
+            {
+                EditSelectedAsset(selected);
+                e.Handled = true;
+                return;
+            }
+
+            if (control && e.Key == Key.P && selected != null)
+            {
+                PrintSelectedAsset(selected);
+                e.Handled = true;
+                return;
+            }
+
+            if (e.Key == Key.Space && selected != null)
+            {
+                selected.IsChecked = !selected.IsChecked;
+                e.Handled = true;
+                return;
+            }
+
+            if (e.Key == Key.Enter && selected != null)
+            {
+                ShowAssetDetails(selected);
+                e.Handled = true;
+                return;
+            }
+
+            if (e.Key == Key.Delete && selected != null)
+            {
+                DeleteSelectedAsset(selected);
                 e.Handled = true;
                 return;
             }
@@ -987,6 +1045,72 @@ namespace LoginAppFramework
                 CloseDetailPanel();
                 e.Handled = true;
             }
+        }
+
+        private void EditSelectedAsset(
+            AssetCheckableViewModel selected)
+        {
+            if (selected == null)
+                return;
+
+            if (!SessionManager.CanEdit())
+            {
+                DialogService.Warning(
+                    this,
+                    "Giriş Qadağandır",
+                    "Bu əməliyyat üçün icazəniz yoxdur.");
+                return;
+            }
+
+            DetailControl_EditAsset(this, selected);
+        }
+
+        private void PrintSelectedAsset(
+            AssetCheckableViewModel selected)
+        {
+            if (selected?.Asset == null)
+                return;
+
+            if (string.IsNullOrWhiteSpace(
+                    selected.Asset.VesaitinKodu))
+            {
+                NotificationService.Warning(
+                    this,
+                    "Barkod çapı üçün vəsait kodu tələb olunur.",
+                    title: "Çap");
+                return;
+            }
+
+            var window = new PrintQrCodesWindow(
+                new List<Asset>
+                {
+                    selected.Asset
+                })
+            {
+                Owner = this
+            };
+
+            window.ShowDialog();
+        }
+
+        private void DeleteSelectedAsset(
+            AssetCheckableViewModel selected)
+        {
+            if (selected == null)
+                return;
+
+            if (!SessionManager.CanDelete())
+            {
+                DialogService.Warning(
+                    this,
+                    "Giriş Qadağandır",
+                    "Bu əməliyyat üçün icazəniz yoxdur.");
+                return;
+            }
+
+            DetailControl_DeleteAsset(
+                this,
+                selected);
         }
 
 
