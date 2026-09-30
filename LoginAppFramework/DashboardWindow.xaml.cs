@@ -284,7 +284,7 @@ namespace LoginAppFramework
                 KpiGrid.Margin = new Thickness(0);
 
                 KpiGrid.ColumnDefinitions[0].Width =
-                    new GridLength(0);
+                    new GridLength(1, GridUnitType.Star);
 
                 KpiGrid.ColumnDefinitions[1].Width =
                     new GridLength(0);
