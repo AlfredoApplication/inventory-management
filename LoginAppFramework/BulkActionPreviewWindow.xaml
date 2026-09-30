@@ -1,0 +1,186 @@
+<Window x:Class="LoginAppFramework.BulkActionPreviewWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:LoginAppFramework"
+        Title="Toplu Əməliyyat Preview"
+        Width="650"
+        Height="650"
+        MinWidth="540"
+        MinHeight="460"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResizeWithGrip"
+        Background="{StaticResource AppBackgroundBrush}"
+        FontFamily="Segoe UI">
+    <Border Style="{StaticResource SurfaceCardStyle}"
+            Margin="22"
+            Padding="0">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0"
+                    Padding="20,18"
+                    BorderBrush="{StaticResource ControlBorderBrush}"
+                    BorderThickness="0,0,0,1">
+                <StackPanel>
+                    <TextBlock Text="{Binding Title}"
+                               Style="{StaticResource PageTitleTextStyle}"/>
+                    <TextBlock Text="{Binding Description}"
+                               Style="{StaticResource PageSubtitleTextStyle}"
+                               TextWrapping="Wrap"
+                               Margin="0,4,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="1"
+                    Background="{StaticResource SurfaceMutedBrush}"
+                    BorderBrush="{StaticResource ControlBorderBrush}"
+                    BorderThickness="0,0,0,1"
+                    Padding="16,12">
+                <UniformGrid Columns="3">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="{Binding SelectedCountText}"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource PrimaryTextBrush}"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="Seçilmiş"
+                                   FontSize="11"
+                                   Foreground="{StaticResource SubtleTextBrush}"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="{Binding UpdatedCountText}"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource SuccessTextBrush}"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="Təxmini nəticə"
+                                   FontSize="11"
+                                   Foreground="{StaticResource SubtleTextBrush}"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="{Binding SkippedCountText}"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource WarningTextBrush}"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="Status skip"
+                                   FontSize="11"
+                                   Foreground="{StaticResource SubtleTextBrush}"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </UniformGrid>
+            </Border>
+
+            <ScrollViewer Grid.Row="2"
+                          VerticalScrollBarVisibility="Auto"
+                          Padding="20,16">
+                <StackPanel>
+                    <TextBlock Text="Tətbiq ediləcək dəyişikliklər"
+                               Style="{StaticResource SectionTitleTextStyle}"
+                               Margin="0,0,0,10"/>
+                    <ItemsControl ItemsSource="{Binding Changes}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{StaticResource SurfaceMutedBrush}"
+                                        CornerRadius="9"
+                                        Padding="11,8"
+                                        Margin="0,0,0,7">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="190"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding Field}"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{StaticResource PrimaryTextBrush}"/>
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding Value}"
+                                                   Foreground="{StaticResource BodyTextBrush}"
+                                                   TextWrapping="Wrap"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <Border Background="{StaticResource WarningSurfaceBrush}"
+                            BorderBrush="{StaticResource WarningBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Padding="12"
+                            Margin="0,10,0,12">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasSkippedItems}" Value="False">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <StackPanel>
+                            <TextBlock Text="Status dəyişikliyi skip ediləcək"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource WarningTextBrush}"/>
+                            <TextBlock Text="İşçiyə təhkim olunmuş vəsaitlər 'İstifadədədir' statusunda qalmalıdır."
+                                       Foreground="{StaticResource BodyTextBrush}"
+                                       TextWrapping="Wrap"
+                                       Margin="0,3,0,7"/>
+                            <ItemsControl ItemsSource="{Binding SkippedStatusAssets}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Foreground="{StaticResource BodyTextBrush}">
+                                            <Run Text="• "/>
+                                            <Run Text="{Binding VesaitinKodu}"/>
+                                            <Run Text=" — "/>
+                                            <Run Text="{Binding VesaitinAdi}"/>
+                                        </TextBlock>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="Seçilmiş vəsaitlərdən nümunə"
+                               Style="{StaticResource SectionTitleTextStyle}"
+                               Margin="0,8,0,8"/>
+                    <ItemsControl ItemsSource="{Binding SampleAssets}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}"
+                                           Foreground="{StaticResource SubtleTextBrush}"
+                                           Margin="0,0,0,4"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+
+            <Border Grid.Row="3"
+                    BorderBrush="{StaticResource ControlBorderBrush}"
+                    BorderThickness="0,1,0,0"
+                    Padding="16,12">
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Right">
+                    <Button Content="Geri qayıt"
+                            MinWidth="100"
+                            Margin="0,0,10,0"
+                            IsCancel="True"/>
+                    <Button Content="{Binding ConfirmText}"
+                            MinWidth="140"
+                            IsDefault="True"
+                            Style="{StaticResource PrimaryActionButton}"
+                            Click="ConfirmButton_Click"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Border>
+</Window>
