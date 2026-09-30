@@ -3,9 +3,18 @@ using System.Windows.Media;
 
 namespace LoginAppFramework
 {
+    public enum AppDialogAction
+    {
+        None,
+        Primary,
+        Secondary,
+        Tertiary
+    }
+
     public partial class AppDialogWindow : Window
     {
         public bool Confirmed { get; private set; }
+        public AppDialogAction SelectedAction { get; private set; }
 
         public AppDialogWindow(
             Window owner,
@@ -15,7 +24,9 @@ namespace LoginAppFramework
             bool showCancel,
             string primaryText,
             string secondaryText,
-            bool destructive)
+            bool destructive,
+            bool showTertiary = false,
+            string tertiaryText = null)
         {
             InitializeComponent();
 
@@ -33,6 +44,15 @@ namespace LoginAppFramework
                 : secondaryText;
             SecondaryButton.Visibility =
                 showCancel ? Visibility.Visible : Visibility.Collapsed;
+
+            TertiaryButton.Content = string.IsNullOrWhiteSpace(tertiaryText)
+                ? "Geri qayıt"
+                : tertiaryText;
+            TertiaryButton.Visibility =
+                showTertiary ? Visibility.Visible : Visibility.Collapsed;
+
+            SecondaryButton.IsCancel = !showTertiary;
+            TertiaryButton.IsCancel = showTertiary;
 
             ApplyType(type);
 
@@ -88,6 +108,7 @@ namespace LoginAppFramework
         private void PrimaryButton_Click(object sender, RoutedEventArgs e)
         {
             Confirmed = true;
+            SelectedAction = AppDialogAction.Primary;
             DialogResult = true;
             Close();
         }
@@ -95,6 +116,15 @@ namespace LoginAppFramework
         private void SecondaryButton_Click(object sender, RoutedEventArgs e)
         {
             Confirmed = false;
+            SelectedAction = AppDialogAction.Secondary;
+            DialogResult = false;
+            Close();
+        }
+
+        private void TertiaryButton_Click(object sender, RoutedEventArgs e)
+        {
+            Confirmed = false;
+            SelectedAction = AppDialogAction.Tertiary;
             DialogResult = false;
             Close();
         }
