@@ -41,7 +41,10 @@ namespace LoginAppFramework
         {
             if (!SessionManager.CanEdit())
             {
-                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                DialogService.Warning(
+                    this,
+                    "Giriş Qadağandır",
+                    "Bu əməliyyat üçün icazəniz yoxdur.");
                 Close();
                 return;
             }
@@ -169,13 +172,15 @@ namespace LoginAppFramework
 
         private void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
-            var confirmResult = MessageBox.Show(
-                "Bu texniki xidmət qeydini həmişəlik silmək istədiyinizə əminsinizmi?",
+            bool confirmResult = DialogService.Confirm(
+                this,
                 "Silməni Təsdiq Et",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning);
+                "Bu texniki xidmət qeydini həmişəlik silmək istədiyinizə əminsinizmi?",
+                "Qeydi sil",
+                "Ləğv et",
+                destructive: true);
 
-            if (confirmResult == MessageBoxResult.Yes)
+            if (confirmResult)
             {
                 Result = MaintenanceEditResult.Deleted;
                 DialogResult = true;
