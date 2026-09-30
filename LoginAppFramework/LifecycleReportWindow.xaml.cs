@@ -96,7 +96,7 @@ namespace LoginAppFramework
         private void Filter_Changed(object sender, RoutedEventArgs e)
             => ApplyFilters();
 
-        private void ExportExcelButton_Click(object sender, RoutedEventArgs e)
+        private async void ExportExcelButton_Click(object sender, RoutedEventArgs e)
         {
             var currentItems = AssetReportListView.ItemsSource as IEnumerable<Asset>;
             if (currentItems == null || !currentItems.Any())
@@ -117,9 +117,23 @@ namespace LoginAppFramework
             if (saveDialog.ShowDialog() != true)
                 return;
 
+            var exportItems = currentItems.ToList();
+            ExportExcelButton.IsEnabled = false;
+            OperationProgressOverlay.Show(
+                "Həyat dövrü hesabatı yaradılır...",
+                $"{exportItems.Count} vəsait hazırlanır.");
+
+            var progress = new Progress<OperationProgressInfo>(
+                value => OperationProgressOverlay.Report(value));
+
             try
             {
-                ExportToExcel(currentItems.ToList(), saveDialog.FileName);
+                await Task.Run(
+                    () => ExportToExcel(
+                        exportItems,
+                        saveDialog.FileName,
+                        progress));
+
                 NotificationService.Success(
                     this,
                     "Excel hesabatı uğurla yadda saxlanıldı.");
@@ -147,9 +161,17 @@ namespace LoginAppFramework
                     "İxrac Xətası",
                     $"Excel hesabatı yaradılarkən xəta baş verdi:\n\n{ex.Message}");
             }
+            finally
+            {
+                OperationProgressOverlay.Hide();
+                ExportExcelButton.IsEnabled = true;
+            }
         }
 
-        private static void ExportToExcel(List<Asset> assets, string filePath)
+        private static void ExportToExcel(
+            List<Asset> assets,
+            string filePath,
+            IProgress<OperationProgressInfo> progress)
         {
             using var wb = new XLWorkbook();
             var ws = wb.Worksheets.Add("Vəsait Hesabatı");
@@ -179,6 +201,12 @@ namespace LoginAppFramework
                 cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 cell.Style.Border.BottomBorder = XLBorderStyleValues.Medium;
             }
+
+            progress?.Report(new OperationProgressInfo(
+                "Həyat dövrü hesabatı yaradılır...",
+                0,
+                assets.Count,
+                "Vəsaitlər Excel səhifəsinə yazılır."));
 
             for (int r = 0; r < assets.Count; r++)
             {
@@ -219,6 +247,12 @@ namespace LoginAppFramework
 
                 if (a.IsEndOfLife)
                     ws.Row(row).Style.Fill.BackgroundColor = XLColor.FromHtml("#FEE2E2");
+
+                progress?.Report(new OperationProgressInfo(
+                    "Həyat dövrü hesabatı yaradılır...",
+                    r + 1,
+                    assets.Count,
+                    $"{r + 1} / {assets.Count} vəsait yazıldı"));
             }
 
             int totalRow = assets.Count + 2;
@@ -250,6 +284,13 @@ namespace LoginAppFramework
 
             ws.SheetView.FreezeRows(1);
             ws.RangeUsed().SetAutoFilter();
+
+            progress?.Report(new OperationProgressInfo(
+                "Hesabat saxlanılır...",
+                assets.Count,
+                assets.Count,
+                "Excel faylı diskə yazılır."));
+
             wb.SaveAs(filePath);
         }
 
