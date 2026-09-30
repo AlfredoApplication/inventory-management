@@ -110,6 +110,16 @@
                         </StackPanel>
                     </Button>
 
+                    <Button x:Name="RecycleBinButton"
+                            Style="{StaticResource SharedNavButtonStyle}"
+                            Visibility="Collapsed"
+                            Click="RecycleBinButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <local:AppIcon Icon="Delete" Size="18"/>
+                            <TextBlock Text="Silinənlər" Margin="15,0,0,0"/>
+                        </StackPanel>
+                    </Button>
+
                     <Button x:Name="HistoryButton"
                             Style="{StaticResource SharedNavButtonStyle}"
                             Click="HistoryButton_Click">
