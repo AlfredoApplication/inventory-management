@@ -131,8 +131,13 @@ namespace LoginAppFramework
 
         private void ChangeServerSettings_Click(object sender, RoutedEventArgs e)
         {
-            var result = MessageBox.Show("Verilənlər bazası qoşulma ayarlarını dəyişmək istədiyinizə əminsinizmi?", "Dəyişikliyi Təsdiq Et", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-            if (result == MessageBoxResult.Yes)
+            bool result = DialogService.Confirm(
+                this,
+                "Dəyişikliyi Təsdiq Et",
+                "Verilənlər bazası qoşulma ayarlarını dəyişmək istədiyinizə əminsinizmi?",
+                "Dəyiş",
+                "Ləğv et");
+            if (result)
             {
                 ConnectionManager.BeginReconfiguration();
                 UpdateUiState();
