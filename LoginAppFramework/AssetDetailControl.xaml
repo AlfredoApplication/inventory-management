@@ -232,22 +232,22 @@
 
                                         </Grid>
                                         <DataTemplate.Triggers>
-                                            <DataTrigger Binding="{Binding Kind}" Value="Assigned">
+                                            <DataTrigger Binding="{Binding Kind}" Value="{x:Static local:AssetActivityKind.Assigned}">
                                                 <Setter TargetName="ActivityIconBorder" Property="Background" Value="{StaticResource SuccessSurfaceBrush}"/>
                                                 <Setter TargetName="ActivityIconBorder" Property="BorderBrush" Value="{StaticResource SuccessBorderBrush}"/>
                                                 <Setter TargetName="ActivityIcon" Property="Foreground" Value="{StaticResource SuccessTextBrush}"/>
                                             </DataTrigger>
-                                            <DataTrigger Binding="{Binding Kind}" Value="Unassigned">
+                                            <DataTrigger Binding="{Binding Kind}" Value="{x:Static local:AssetActivityKind.Unassigned}">
                                                 <Setter TargetName="ActivityIconBorder" Property="Background" Value="{StaticResource WarningSurfaceBrush}"/>
                                                 <Setter TargetName="ActivityIconBorder" Property="BorderBrush" Value="{StaticResource WarningBorderBrush}"/>
                                                 <Setter TargetName="ActivityIcon" Property="Foreground" Value="{StaticResource WarningTextBrush}"/>
                                             </DataTrigger>
-                                            <DataTrigger Binding="{Binding Kind}" Value="Reassigned">
+                                            <DataTrigger Binding="{Binding Kind}" Value="{x:Static local:AssetActivityKind.Reassigned}">
                                                 <Setter TargetName="ActivityIconBorder" Property="Background" Value="{StaticResource InfoSurfaceBrush}"/>
                                                 <Setter TargetName="ActivityIconBorder" Property="BorderBrush" Value="{StaticResource InfoBorderBrush}"/>
                                                 <Setter TargetName="ActivityIcon" Property="Foreground" Value="{StaticResource InfoTextBrush}"/>
                                             </DataTrigger>
-                                            <DataTrigger Binding="{Binding Kind}" Value="Maintenance">
+                                            <DataTrigger Binding="{Binding Kind}" Value="{x:Static local:AssetActivityKind.Maintenance}">
                                                 <Setter TargetName="ActivityIconBorder" Property="Background" Value="{StaticResource WarningSurfaceBrush}"/>
                                                 <Setter TargetName="ActivityIconBorder" Property="BorderBrush" Value="{StaticResource WarningBorderBrush}"/>
                                                 <Setter TargetName="ActivityIcon" Property="Foreground" Value="{StaticResource WarningTextBrush}"/>
