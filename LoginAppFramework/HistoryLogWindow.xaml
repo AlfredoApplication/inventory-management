@@ -161,7 +161,66 @@
                                                                VerticalAlignment="Center"
                                                                Margin="5,0,20,0"/>
                                                 <StackPanel Grid.Column="2" VerticalAlignment="Center">
-                                                    <TextBlock FontWeight="SemiBold" Text="{Binding Description}" TextWrapping="Wrap" Foreground="{StaticResource BodyTextBrush}" FontSize="14"/>
+                                                    <TextBlock FontWeight="SemiBold"
+                                                               Text="{Binding Description}"
+                                                               TextWrapping="Wrap"
+                                                               Foreground="{StaticResource BodyTextBrush}"
+                                                               FontSize="14"/>
+
+                                                    <ItemsControl ItemsSource="{Binding Changes}"
+                                                                  Visibility="{Binding HasChanges, Converter={StaticResource BoolToVis}}"
+                                                                  Margin="0,9,0,0">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate DataType="{x:Type local:AuditDiffItem}">
+                                                                <Grid Margin="0,0,0,6">
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="155"/>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="30"/>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                    </Grid.ColumnDefinitions>
+
+                                                                    <TextBlock Text="{Binding Field}"
+                                                                               FontSize="11"
+                                                                               FontWeight="SemiBold"
+                                                                               Foreground="{StaticResource SubtleTextBrush}"
+                                                                               VerticalAlignment="Center"
+                                                                               Margin="0,0,10,0"/>
+
+                                                                    <Border Grid.Column="1"
+                                                                            Background="{StaticResource DangerSurfaceBrush}"
+                                                                            BorderBrush="{StaticResource DangerBorderBrush}"
+                                                                            BorderThickness="1"
+                                                                            CornerRadius="7"
+                                                                            Padding="8,4">
+                                                                        <TextBlock Text="{Binding OldValue}"
+                                                                                   FontSize="11"
+                                                                                   Foreground="{StaticResource DangerTextBrush}"
+                                                                                   TextWrapping="Wrap"/>
+                                                                    </Border>
+
+                                                                    <TextBlock Grid.Column="2"
+                                                                               Text="→"
+                                                                               HorizontalAlignment="Center"
+                                                                               VerticalAlignment="Center"
+                                                                               FontWeight="Bold"
+                                                                               Foreground="{StaticResource SubtleTextBrush}"/>
+
+                                                                    <Border Grid.Column="3"
+                                                                            Background="{StaticResource SuccessSurfaceBrush}"
+                                                                            BorderBrush="{StaticResource SuccessBorderBrush}"
+                                                                            BorderThickness="1"
+                                                                            CornerRadius="7"
+                                                                            Padding="8,4">
+                                                                        <TextBlock Text="{Binding NewValue}"
+                                                                                   FontSize="11"
+                                                                                   Foreground="{StaticResource SuccessTextBrush}"
+                                                                                   TextWrapping="Wrap"/>
+                                                                    </Border>
+                                                                </Grid>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
                                                 </StackPanel>
                                                 <StackPanel Grid.Column="3" VerticalAlignment="Center" Margin="20,0,5,0" TextBlock.TextAlignment="Right">
                                                     <TextBlock Foreground="{StaticResource BodyTextBrush}"><Run Text="tərəfindən: "/><Run Text="{Binding ChangedBy}"/></TextBlock>
