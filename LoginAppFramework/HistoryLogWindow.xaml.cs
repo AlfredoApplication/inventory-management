@@ -157,7 +157,7 @@ namespace LoginAppFramework
 
             if (confirm != MessageBoxResult.Yes) return;
 
-            RestoreSelectedButton.IsEnabled = false;
+            RestoreSelectedButton.SetCurrentValue(UIElement.IsEnabledProperty, false);
 
             try
             {
@@ -182,6 +182,19 @@ namespace LoginAppFramework
             finally
             {
                 SelectAllDeletedCheckBox.IsChecked = false;
+                RestoreSelectedButton.SetCurrentValue(
+                    UIElement.IsEnabledProperty,
+                    _viewModel.CanRestoreSelected);
+            }
+        }
+
+        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.F)
+            {
+                SearchBox.Focus();
+                SearchBox.SelectAll();
+                e.Handled = true;
             }
         }
 
