@@ -9,7 +9,10 @@ namespace LoginAppFramework
     {
         public List<Asset> Assets { get; } = new();
         public Dictionary<Asset, string> RequestedWorkerNames { get; } = new();
+        public Dictionary<Asset, int> SourceRows { get; } = new();
         public List<string> Errors { get; } = new();
+        public List<string> Warnings { get; } = new();
+        public int TotalRows { get; set; }
     }
 
     public interface IAssetExcelService
@@ -63,6 +66,7 @@ namespace LoginAppFramework
 
             var categoryDefaultLifecycles = AppData.GetCategoryDefaultLifecycles();
             var dataRows = worksheet.RowsUsed().Skip(1).ToList();
+            result.TotalRows = dataRows.Count;
             int processedRows = 0;
 
             progress?.Report(new OperationProgressInfo(
@@ -83,7 +87,12 @@ namespace LoginAppFramework
                 try
                 {
                     string assetName = row.Cell(nameColumn).GetString().Trim();
-                    if (string.IsNullOrWhiteSpace(assetName)) continue;
+                    if (string.IsNullOrWhiteSpace(assetName))
+                    {
+                        result.Errors.Add(
+                            $"Sətir {row.RowNumber()}: Vəsaitin adı boşdur.");
+                        continue;
+                    }
 
                     var asset = new Asset
                     {
@@ -116,10 +125,21 @@ namespace LoginAppFramework
                     if (TryResolveColumn(columnMap, out int areaColumn, "Ərazi"))
                         asset.Erazi = row.Cell(areaColumn).GetString().Trim();
 
-                    if (TryResolveColumn(columnMap, out int costColumn, "Alış qiyməti") &&
-                        row.Cell(costColumn).TryGetValue(out decimal cost))
+                    if (TryResolveColumn(
+                        columnMap,
+                        out int costColumn,
+                        "Alış qiyməti"))
                     {
-                        asset.PurchaseCost = cost;
+                        string rawCost = row.Cell(costColumn).GetString().Trim();
+                        if (row.Cell(costColumn).TryGetValue(out decimal cost))
+                        {
+                            asset.PurchaseCost = cost;
+                        }
+                        else if (!string.IsNullOrWhiteSpace(rawCost))
+                        {
+                            result.Warnings.Add(
+                                $"Sətir {row.RowNumber()}: Alış qiyməti '{rawCost}' rəqəm kimi oxunmadı və 0 qəbul edildi.");
+                        }
                     }
 
                     if (TryResolveColumn(
@@ -127,11 +147,22 @@ namespace LoginAppFramework
                         out int purchaseDateColumn,
                         "Alış tarixi",
                         "Alınma tarixi",
-                        "Alış vaxtı") &&
-                        row.Cell(purchaseDateColumn).TryGetValue(out DateTime purchaseDate) &&
-                        purchaseDate > DateTime.MinValue)
+                        "Alış vaxtı"))
                     {
-                        asset.PurchaseDate = purchaseDate;
+                        string rawPurchaseDate =
+                            row.Cell(purchaseDateColumn).GetString().Trim();
+
+                        if (row.Cell(purchaseDateColumn)
+                                .TryGetValue(out DateTime purchaseDate) &&
+                            purchaseDate > DateTime.MinValue)
+                        {
+                            asset.PurchaseDate = purchaseDate;
+                        }
+                        else if (!string.IsNullOrWhiteSpace(rawPurchaseDate))
+                        {
+                            result.Warnings.Add(
+                                $"Sətir {row.RowNumber()}: Alınma tarixi '{rawPurchaseDate}' tarix kimi oxunmadı və bu gün qəbul edildi.");
+                        }
                     }
 
                     if (TryResolveColumn(
@@ -139,10 +170,21 @@ namespace LoginAppFramework
                         out int lifeColumn,
                         "Faydalı ömür",
                         "Faydalı ömrü",
-                        "İstifadə müddəti (İl)") &&
-                        row.Cell(lifeColumn).TryGetValue(out int usefulLife))
+                        "İstifadə müddəti (İl)"))
                     {
-                        asset.UsefulLifeInYears = usefulLife;
+                        string rawUsefulLife =
+                            row.Cell(lifeColumn).GetString().Trim();
+
+                        if (row.Cell(lifeColumn)
+                                .TryGetValue(out int usefulLife))
+                        {
+                            asset.UsefulLifeInYears = usefulLife;
+                        }
+                        else if (!string.IsNullOrWhiteSpace(rawUsefulLife))
+                        {
+                            result.Warnings.Add(
+                                $"Sətir {row.RowNumber()}: İstifadə müddəti '{rawUsefulLife}' tam ədəd kimi oxunmadı.");
+                        }
                     }
 
                     if (TryResolveColumn(
@@ -159,10 +201,21 @@ namespace LoginAppFramework
                         out int warrantyColumn,
                         "Zəmanət Müddəti",
                         "Zəmanət bitmə tarixi",
-                        "WarrantyExpirationDate") &&
-                        row.Cell(warrantyColumn).TryGetValue(out DateTime warrantyDate))
+                        "WarrantyExpirationDate"))
                     {
-                        asset.WarrantyExpirationDate = warrantyDate;
+                        string rawWarranty =
+                            row.Cell(warrantyColumn).GetString().Trim();
+
+                        if (row.Cell(warrantyColumn)
+                                .TryGetValue(out DateTime warrantyDate))
+                        {
+                            asset.WarrantyExpirationDate = warrantyDate;
+                        }
+                        else if (!string.IsNullOrWhiteSpace(rawWarranty))
+                        {
+                            result.Warnings.Add(
+                                $"Sətir {row.RowNumber()}: Zəmanət tarixi '{rawWarranty}' tarix kimi oxunmadı.");
+                        }
                     }
 
                     if (TryResolveColumn(columnMap, out int workerColumn, "Təhkim Olunan Əməkdaş"))
@@ -181,6 +234,7 @@ namespace LoginAppFramework
                     }
 
                     result.Assets.Add(asset);
+                    result.SourceRows[asset] = row.RowNumber();
                 }
                 catch (Exception ex)
                 {
