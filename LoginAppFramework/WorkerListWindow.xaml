@@ -72,6 +72,9 @@
                 </Grid>
             </Border>
             <Grid>
+
+            <local:ConnectionStatusBannerControl DockPanel.Dock="Top"/>
+
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition x:Name="FilterColumn" Width="260"/>
                     <ColumnDefinition Width="*"/>
