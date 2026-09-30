@@ -211,7 +211,17 @@ namespace LoginAppFramework
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.F)
+            bool control =
+                (Keyboard.Modifiers & ModifierKeys.Control) != 0;
+
+            if (control && e.Key == Key.K)
+            {
+                NavigationManager.GoToGlobalSearch(this);
+                e.Handled = true;
+                return;
+            }
+
+            if (control && e.Key == Key.F)
             {
                 SearchBox.Focus();
                 SearchBox.SelectAll();
