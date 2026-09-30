@@ -160,8 +160,7 @@
                         <Button x:Name="DeleteButton"
                                 Content="İstifadəçini Sil"
                                 Click="DeleteButton_Click"
-                                Background="{StaticResource DangerBrush}"
-                                Foreground="{StaticResource PrimaryForegroundBrush}"
+                                Style="{StaticResource DangerActionButton}"
                                 Margin="10,0,0,0"/>
                     </StackPanel>
                 </Grid>
