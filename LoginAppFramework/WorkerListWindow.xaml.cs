@@ -395,12 +395,26 @@ namespace LoginAppFramework
 
             if (!result) return;
 
+            var originalStates = selected
+                .Select(vm => vm.GetModel())
+                .ToDictionary(worker => worker.Id, worker => worker.IsActive);
+
             int count = _viewModel.SetActiveState(
-                selected.Select(vm => vm.GetModel().Id),
+                originalStates.Keys,
                 false);
 
             RefreshViewModelPreservingSelection();
-            NotificationService.Success(this, $"{count} işçi qeyri-aktiv edildi.");
+
+            NotificationService.Undo(
+                this,
+                $"{count} işçi qeyri-aktiv edildi.",
+                () =>
+                {
+                    RestoreWorkerActiveStates(originalStates);
+                    NotificationService.Success(
+                        this,
+                        "İşçi statusları geri qaytarıldı.");
+                });
         }
 
         private void BulkActivateButton_Click(object sender, RoutedEventArgs e)
@@ -429,12 +443,51 @@ namespace LoginAppFramework
 
             if (!result) return;
 
+            var originalStates = selected
+                .Select(vm => vm.GetModel())
+                .ToDictionary(worker => worker.Id, worker => worker.IsActive);
+
             int count = _viewModel.SetActiveState(
-                selected.Select(vm => vm.GetModel().Id),
+                originalStates.Keys,
                 true);
 
             RefreshViewModelPreservingSelection();
-            NotificationService.Success(this, $"{count} işçi aktiv edildi.");
+
+            NotificationService.Undo(
+                this,
+                $"{count} işçi aktiv edildi.",
+                () =>
+                {
+                    RestoreWorkerActiveStates(originalStates);
+                    NotificationService.Success(
+                        this,
+                        "İşçi statusları geri qaytarıldı.");
+                });
+        }
+
+        private void RestoreWorkerActiveStates(
+            IReadOnlyDictionary<int, bool> originalStates)
+        {
+            if (originalStates == null || originalStates.Count == 0)
+                return;
+
+            var activeIds = originalStates
+                .Where(pair => pair.Value)
+                .Select(pair => pair.Key)
+                .ToList();
+
+            var inactiveIds = originalStates
+                .Where(pair => !pair.Value)
+                .Select(pair => pair.Key)
+                .ToList();
+
+            if (activeIds.Count > 0)
+                _viewModel.SetActiveState(activeIds, true);
+
+            if (inactiveIds.Count > 0)
+                _viewModel.SetActiveState(inactiveIds, false);
+
+            RefreshViewModelPreservingSelection();
         }
 
         private void UpdateDetailView()
