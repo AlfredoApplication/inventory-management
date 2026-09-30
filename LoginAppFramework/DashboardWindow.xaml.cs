@@ -14,6 +14,7 @@ namespace LoginAppFramework
     public partial class DashboardWindow : Window, INavigationRefreshable
     {
         private List<Asset> _allAssets;
+        private List<Asset> _dashboardAssets = new();
         private List<Worker> _allWorkers;
         private readonly DashboardViewModel _viewModel;
 
@@ -133,8 +134,10 @@ namespace LoginAppFramework
                 _ => _allAssets.ToList()
             };
 
+            _dashboardAssets = filtered;
+
             _viewModel.LoadAllData(
-                filtered,
+                _dashboardAssets,
                 _allWorkers);
 
             if (DashboardPeriodSummaryText != null)
@@ -440,7 +443,7 @@ namespace LoginAppFramework
 
         private void ShowFilteredAssetsByParentCategory(string mainCategoryName)
         {
-            if (string.IsNullOrEmpty(mainCategoryName) || _allAssets == null) return;
+            if (string.IsNullOrEmpty(mainCategoryName) || _dashboardAssets == null) return;
 
             var categoryTree = AppData.GetHierarchicalCategories();
             List<string> categoriesToFilter = new List<string>();
@@ -489,9 +492,9 @@ namespace LoginAppFramework
 
         private void ShowFilteredAssetsByDepartment(string departmentName)
         {
-            if (string.IsNullOrEmpty(departmentName) || _allAssets == null) return;
+            if (string.IsNullOrEmpty(departmentName) || _dashboardAssets == null) return;
 
-            var filteredAssets = _allAssets
+            var filteredAssets = _dashboardAssets
                 .Where(asset => asset.Department != null && asset.Department.Equals(departmentName, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
