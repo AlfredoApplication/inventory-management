@@ -579,12 +579,33 @@ namespace LoginAppFramework
         #region Menu Handlers
         private void OpenDetailPanel()
         {
-            var animation = new DoubleAnimation(0, 450, TimeSpan.FromMilliseconds(250))
+            double targetWidth = GetResponsiveDetailPanelWidth();
+
+            var animation = new DoubleAnimation(
+                DetailPanelContainer.ActualWidth,
+                targetWidth,
+                TimeSpan.FromMilliseconds(250))
             {
                 EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
             };
+
             DetailPanelContainer.BeginAnimation(WidthProperty, animation);
             isDetailPanelOpen = true;
+        }
+
+        private double GetResponsiveDetailPanelWidth()
+        {
+            double available = Math.Max(ActualWidth, 900);
+            return Math.Clamp(available * 0.36, 380, 540);
+        }
+
+        private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (!isDetailPanelOpen)
+                return;
+
+            DetailPanelContainer.BeginAnimation(WidthProperty, null);
+            DetailPanelContainer.Width = GetResponsiveDetailPanelWidth();
         }
 
         private void CloseDetailPanel()
