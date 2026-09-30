@@ -10,6 +10,7 @@
         Background="{StaticResource AppBackgroundBrush}"
         FontFamily="Segoe UI">
 
+    <Grid>
     <Border Style="{StaticResource SurfaceCardStyle}" Margin="24" Padding="24">
         <Grid>
         <Grid.RowDefinitions>
@@ -141,4 +142,6 @@
                 Click="GenerateButton_Click"/>
         </Grid>
     </Border>
+    <local:OperationProgressOverlay x:Name="OperationProgressOverlay"/>
+    </Grid>
 </Window>
