@@ -519,6 +519,195 @@ public class Phase10RecycleBinRegressionTests
     }
 }
 
+public class Phase10PrintReportRegressionTests
+{
+    [Fact]
+    public void A4ThreeByEightPreset_FitsAndCalculatesPages()
+    {
+        var preset = BarcodePrintLayout.Presets
+            .First(item => item.Name.Contains("3 × 8"));
+
+        var settings = new BarcodePrintSettings
+        {
+            PaperMode = preset.PaperMode,
+            Format = BarcodeCodeFormat.Code128,
+            LabelWidthMm = preset.WidthMm,
+            LabelHeightMm = preset.HeightMm,
+            Columns = preset.Columns,
+            Rows = preset.Rows,
+            PageMarginMm = preset.MarginMm,
+            GapMm = preset.GapMm,
+            FontSize = 7,
+            CodeAreaPercent = 68
+        };
+
+        Assert.True(
+            BarcodePrintLayout.Validate(
+                settings,
+                out string error),
+            error);
+
+        Assert.Equal(24, settings.PageCapacity);
+        Assert.Equal(
+            2,
+            BarcodePrintLayout.GetPageCount(
+                25,
+                settings));
+    }
+
+    [Fact]
+    public void A4Layout_RejectsOverflowingLabels()
+    {
+        var settings = new BarcodePrintSettings
+        {
+            PaperMode = BarcodePrintPaperMode.A4,
+            Format = BarcodeCodeFormat.Code128,
+            LabelWidthMm = 70,
+            LabelHeightMm = 40,
+            Columns = 3,
+            Rows = 8,
+            PageMarginMm = 10,
+            GapMm = 3,
+            FontSize = 7,
+            CodeAreaPercent = 68
+        };
+
+        Assert.False(
+            BarcodePrintLayout.Validate(
+                settings,
+                out string error));
+
+        Assert.Contains("sığmır", error);
+    }
+
+    [Fact]
+    public void ReportCenter_AppliesDateDepartmentAndCategoryFilters()
+    {
+        var assets = new[]
+        {
+            new Asset
+            {
+                Id = 31,
+                VesaitinAdi = "Laptop A",
+                Kateqoriya = "Laptop",
+                PurchaseDate = new DateTime(2026, 9, 10),
+                Worker = new Worker
+                {
+                    Id = 1,
+                    pdp_adi = "IT"
+                }
+            },
+            new Asset
+            {
+                Id = 32,
+                VesaitinAdi = "Laptop B",
+                Kateqoriya = "Laptop",
+                PurchaseDate = new DateTime(2026, 8, 10),
+                Worker = new Worker
+                {
+                    Id = 2,
+                    pdp_adi = "Finance"
+                }
+            },
+            new Asset
+            {
+                Id = 33,
+                VesaitinAdi = "Monitor",
+                Kateqoriya = "Monitor",
+                PurchaseDate = new DateTime(2026, 9, 15),
+                Worker = new Worker
+                {
+                    Id = 3,
+                    pdp_adi = "IT"
+                }
+            }
+        };
+
+        var query = new ReportQuery
+        {
+            Kind = ReportKind.Inventory,
+            PurchaseDateFrom = new DateTime(2026, 9, 1),
+            PurchaseDateTo = new DateTime(2026, 9, 30),
+            Department = "IT",
+            Category = "Laptop"
+        };
+
+        var results = ReportCenterService.FilterAssets(
+            assets,
+            query);
+
+        var result = Assert.Single(results);
+        Assert.Equal(31, result.Id);
+    }
+
+    [Fact]
+    public void ReportCenter_WarrantyUsesCurrentAlertTargets()
+    {
+        var assets = new[]
+        {
+            new Asset
+            {
+                Id = 34,
+                VesaitinAdi = "Alerted"
+            },
+            new Asset
+            {
+                Id = 35,
+                VesaitinAdi = "Not alerted"
+            }
+        };
+
+        var alerts = new[]
+        {
+            new Alert
+            {
+                Category = AlertCategory.Warranty,
+                TargetType = NavigationTargetType.Asset,
+                TargetId = 34
+            }
+        };
+
+        var results = ReportCenterService.FilterAssets(
+            assets,
+            new ReportQuery
+            {
+                Kind = ReportKind.Warranty
+            },
+            alerts);
+
+        var result = Assert.Single(results);
+        Assert.Equal(34, result.Id);
+    }
+
+    [Fact]
+    public void ReportCenter_UnassignedReturnsOnlyAssetsWithoutWorker()
+    {
+        var assets = new[]
+        {
+            new Asset
+            {
+                Id = 36,
+                WorkerId = null
+            },
+            new Asset
+            {
+                Id = 37,
+                WorkerId = 10
+            }
+        };
+
+        var results = ReportCenterService.FilterAssets(
+            assets,
+            new ReportQuery
+            {
+                Kind = ReportKind.Unassigned
+            });
+
+        var result = Assert.Single(results);
+        Assert.Equal(36, result.Id);
+    }
+}
+
 [CollectionDefinition("WPF smoke tests", DisableParallelization = true)]
 public sealed class WpfSmokeTestCollection
 {
@@ -585,7 +774,16 @@ public class WpfXamlSmokeTests
                             TotalRows = 1
                         }),
                     new NotificationCenterWindow(),
-                    new RecycleBinWindow()
+                    new RecycleBinWindow(),
+                    new PrintQrCodesWindow(
+                        new List<Asset>
+                        {
+                            new()
+                            {
+                                VesaitinKodu = "SMOKE-001",
+                                VesaitinAdi = "Smoke Asset"
+                            }
+                        })
                 };
 
                 var controls = new object[]
