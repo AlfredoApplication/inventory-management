@@ -32,17 +32,24 @@
                      Tag="Axtarış..." ToolTip="Ad, vəzifə və ya departament üzrə axtarış..."/>
         </Grid>
 
-        <ListView Grid.Row="1" x:Name="WorkersListView" 
-                  MouseDoubleClick="WorkersListView_MouseDoubleClick">
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn Header="Personal Kodu" DisplayMemberBinding="{Binding per_kod}" Width="120"/>
-                    <GridViewColumn Header="Tam Ad" DisplayMemberBinding="{Binding per_adiper_soyadi}" Width="200"/>
-                    <GridViewColumn Header="Vəzifə" DisplayMemberBinding="{Binding pgk_gorev_adi}" Width="200"/>
-                    <GridViewColumn Header="Departament" DisplayMemberBinding="{Binding pdp_adi}" Width="200"/>
-                </GridView>
-            </ListView.View>
-        </ListView>
+        <Grid Grid.Row="1">
+            <ListView x:Name="WorkersListView" 
+                      MouseDoubleClick="WorkersListView_MouseDoubleClick">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Personal Kodu" DisplayMemberBinding="{Binding per_kod}" Width="120"/>
+                        <GridViewColumn Header="Tam Ad" DisplayMemberBinding="{Binding per_adiper_soyadi}" Width="200"/>
+                        <GridViewColumn Header="Vəzifə" DisplayMemberBinding="{Binding pgk_gorev_adi}" Width="200"/>
+                        <GridViewColumn Header="Departament" DisplayMemberBinding="{Binding pdp_adi}" Width="200"/>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+            <local:EmptyStateControl x:Name="EmptyState"
+                                     Visibility="Collapsed"
+                                     Icon="Workers"
+                                     Title="Uyğun işçi tapılmadı"
+                                     Message="Axtarış sözünü dəyişərək yenidən yoxlayın."/>
+        </Grid>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
             <Button x:Name="SelectButton" Content="Seç" Width="90" IsDefault="True" Style="{StaticResource PrimaryActionButton}" Click="SelectButton_Click"/>
