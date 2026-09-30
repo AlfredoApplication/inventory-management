@@ -265,19 +265,6 @@ namespace LoginAppFramework
                 ImportButton.IsEnabled = true;
             }
 
-            if (batch.Assets.Count == 0)
-            {
-                string message = batch.Errors.Count > 0
-                    ? $"İmport üçün etibarlı vəsait tapılmadı.\n\n{string.Join("\n", batch.Errors.Take(10))}"
-                    : "İmport üçün etibarlı vəsait tapılmadı.";
-
-                DialogService.Info(
-                    this,
-                    "Import Başa Çatdı",
-                    message);
-                return;
-            }
-
             var dbWorkers = AppData.GetWorkers();
             var confirmedMappings = new Dictionary<string, Worker>(StringComparer.OrdinalIgnoreCase);
             var requestedNames = batch.RequestedWorkerNames.Values
@@ -310,10 +297,29 @@ namespace LoginAppFramework
                 }
             }
 
-            foreach (var asset in batch.Assets)
+            var dryRun = AssetImportPreviewBuilder.Build(
+                batch,
+                AppData.GetAssets(),
+                confirmedMappings);
+
+            var previewWindow = new AssetImportPreviewWindow(dryRun)
             {
-                if (batch.RequestedWorkerNames.TryGetValue(asset, out string workerName) &&
-                    confirmedMappings.TryGetValue(workerName, out Worker worker))
+                Owner = this
+            };
+
+            if (previewWindow.ShowDialog() != true)
+                return;
+
+            var assetsToImport = previewWindow.AssetsToImport;
+
+            foreach (var asset in assetsToImport)
+            {
+                if (batch.RequestedWorkerNames.TryGetValue(
+                        asset,
+                        out string workerName) &&
+                    confirmedMappings.TryGetValue(
+                        workerName,
+                        out Worker worker))
                 {
                     asset.AssignWorker(worker);
                 }
@@ -323,45 +329,33 @@ namespace LoginAppFramework
                 }
             }
 
-            string summary = $"{batch.Assets.Count} yeni vəsait importa hazırdır.";
-            if (batch.Errors.Count > 0)
-                summary += $"\n\n{batch.Errors.Count} sətir xətaya görə ötürüldü.";
-            summary += "\n\nBu vəsaitləri verilənlər bazasında yadda saxlamaq istəyirsiniz?";
-
-            if (!DialogService.Confirm(
-                    this,
-                    "Importu Təsdiq Et",
-                    summary,
-                    "Import et",
-                    "Ləğv et"))
-                return;
-
             ImportButton.IsEnabled = false;
             OperationProgressOverlay.Show(
                 "Vəsaitlər import edilir...",
-                $"{batch.Assets.Count} vəsait verilənlər bazasına yazılır.");
+                $"{assetsToImport.Count} vəsait verilənlər bazasına yazılır.");
 
             OperationProgressOverlay.Report(
                 new OperationProgressInfo(
                     "Vəsaitlər import edilir...",
                     0,
-                    batch.Assets.Count,
+                    assetsToImport.Count,
                     "Verilənlər bazasına yazılır."));
 
             try
             {
-                await Task.Run(() => _viewModel.ImportAssets(batch.Assets));
+                await Task.Run(
+                    () => _viewModel.ImportAssets(assetsToImport));
 
                 OperationProgressOverlay.Report(
                     new OperationProgressInfo(
                         "Import tamamlandı",
-                        batch.Assets.Count,
-                        batch.Assets.Count,
-                        $"{batch.Assets.Count} vəsait yadda saxlanıldı."));
+                        assetsToImport.Count,
+                        assetsToImport.Count,
+                        $"{assetsToImport.Count} vəsait yadda saxlanıldı."));
 
                 NotificationService.Success(
                     this,
-                    $"{batch.Assets.Count} vəsait import edildi.");
+                    $"{assetsToImport.Count} vəsait import edildi.");
             }
             catch (Exception ex)
             {
