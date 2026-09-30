@@ -6,7 +6,8 @@
         WindowStartupLocation="CenterOwner"
         WindowStyle="ToolWindow"
         Background="{StaticResource AppBackgroundBrush}" FontFamily="Segoe UI">
-    <Grid Margin="15">
+    <Border Style="{StaticResource SurfaceCardStyle}" Margin="15" Padding="18">
+        <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -21,14 +22,14 @@
             </Grid.ColumnDefinitions>
 
             <TextBlock Grid.Column="0" Text="Siyahıdan aktiv bir işçi seçin:" 
-                       FontSize="16" FontWeight="SemiBold"
+                       Style="{StaticResource SectionTitleTextStyle}"
                        VerticalAlignment="Center"
                        Foreground="{StaticResource PrimaryTextBrush}"/>
 
             <TextBox x:Name="SearchBox" Grid.Column="1" Width="250"
                      TextChanged="SearchBox_TextChanged"
                      VerticalAlignment="Center"
-                     ToolTip="Ad, Vəzifə və ya Departament üzrə axtarış..."/>
+                     Tag="Axtarış..." ToolTip="Ad, vəzifə və ya departament üzrə axtarış..."/>
         </Grid>
 
         <ListView Grid.Row="1" x:Name="WorkersListView" 
@@ -47,5 +48,6 @@
             <Button x:Name="SelectButton" Content="Seç" Width="90" IsDefault="True" Style="{StaticResource PrimaryActionButton}" Click="SelectButton_Click"/>
             <Button Content="Ləğv et" Width="90" Margin="10,0,0,0" IsCancel="True"/>
         </StackPanel>
-    </Grid>
+        </Grid>
+    </Border>
 </Window>
