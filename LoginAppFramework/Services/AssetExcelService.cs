@@ -14,18 +14,28 @@ namespace LoginAppFramework
 
     public interface IAssetExcelService
     {
-        AssetImportBatch ParseImport(string filePath);
-        void Export(string filePath, IEnumerable<Asset> assets);
+        AssetImportBatch ParseImport(
+            string filePath,
+            IProgress<OperationProgressInfo> progress = null);
+
+        void Export(
+            string filePath,
+            IEnumerable<Asset> assets,
+            IProgress<OperationProgressInfo> progress = null);
+
         int ExportPurchaseDateReport(
             string filePath,
             IEnumerable<Asset> assets,
             DateTime? purchaseDateFrom,
-            DateTime? purchaseDateTo);
+            DateTime? purchaseDateTo,
+            IProgress<OperationProgressInfo> progress = null);
     }
 
     public sealed class AssetExcelService : IAssetExcelService
     {
-        public AssetImportBatch ParseImport(string filePath)
+        public AssetImportBatch ParseImport(
+            string filePath,
+            IProgress<OperationProgressInfo> progress = null)
         {
             if (string.IsNullOrWhiteSpace(filePath))
                 throw new ArgumentException("Excel faylı göstərilməyib.", nameof(filePath));
@@ -52,9 +62,24 @@ namespace LoginAppFramework
                 "Vəsait adı");
 
             var categoryDefaultLifecycles = AppData.GetCategoryDefaultLifecycles();
+            var dataRows = worksheet.RowsUsed().Skip(1).ToList();
+            int processedRows = 0;
 
-            foreach (var row in worksheet.RowsUsed().Skip(1))
+            progress?.Report(new OperationProgressInfo(
+                "Excel faylı oxunur...",
+                0,
+                dataRows.Count,
+                "Sətirlər yoxlanılır."));
+
+            foreach (var row in dataRows)
             {
+                processedRows++;
+                progress?.Report(new OperationProgressInfo(
+                    "Excel faylı oxunur...",
+                    processedRows,
+                    dataRows.Count,
+                    $"Sətir {processedRows} / {dataRows.Count}"));
+
                 try
                 {
                     string assetName = row.Cell(nameColumn).GetString().Trim();
@@ -167,7 +192,10 @@ namespace LoginAppFramework
             return result;
         }
 
-        public void Export(string filePath, IEnumerable<Asset> assets)
+        public void Export(
+            string filePath,
+            IEnumerable<Asset> assets,
+            IProgress<OperationProgressInfo> progress = null)
         {
             if (string.IsNullOrWhiteSpace(filePath))
                 throw new ArgumentException("Export faylı göstərilməyib.", nameof(filePath));
@@ -203,6 +231,14 @@ namespace LoginAppFramework
             worksheet.Row(1).Style.Font.Bold = true;
 
             int row = 2;
+            int exportedAssets = 0;
+
+            progress?.Report(new OperationProgressInfo(
+                "Excel faylı yaradılır...",
+                0,
+                assetList.Count,
+                "Vəsaitlər yazılır."));
+
             foreach (var asset in assetList)
             {
                 worksheet.Cell(row, 1).Value = asset.VesaitinKodu;
@@ -223,9 +259,22 @@ namespace LoginAppFramework
                 worksheet.Cell(row, 13).Value = asset.UsefulLifeInYears;
                 worksheet.Cell(row, 14).Value = asset.MonthlyDepreciation;
                 row++;
+
+                exportedAssets++;
+                progress?.Report(new OperationProgressInfo(
+                    "Excel faylı yaradılır...",
+                    exportedAssets,
+                    assetList.Count,
+                    $"{exportedAssets} / {assetList.Count} vəsait yazıldı"));
             }
 
             worksheet.Columns().AdjustToContents();
+
+            progress?.Report(new OperationProgressInfo(
+                "Tarixçə əlavə olunur...",
+                assetList.Count,
+                assetList.Count,
+                "Təhkimat tarixçəsi hazırlanır."));
 
             var historySheet = workbook.Worksheets.Add("Vəsait Tarixçəsi");
             string[] historyHeaders =
@@ -272,6 +321,13 @@ namespace LoginAppFramework
             }
 
             historySheet.Columns().AdjustToContents();
+
+            progress?.Report(new OperationProgressInfo(
+                "Excel faylı saxlanılır...",
+                assetList.Count,
+                assetList.Count,
+                "Fayl diskə yazılır."));
+
             workbook.SaveAs(filePath);
         }
 
@@ -279,7 +335,8 @@ namespace LoginAppFramework
             string filePath,
             IEnumerable<Asset> assets,
             DateTime? purchaseDateFrom,
-            DateTime? purchaseDateTo)
+            DateTime? purchaseDateTo,
+            IProgress<OperationProgressInfo> progress = null)
         {
             if (string.IsNullOrWhiteSpace(filePath))
                 throw new ArgumentException("Export faylı göstərilməyib.", nameof(filePath));
@@ -319,17 +376,46 @@ namespace LoginAppFramework
                 .OrderBy(name => name)
                 .ToList();
 
+            int progressTotal = filteredAssets.Count * 3 + 1;
+
             using var workbook = new XLWorkbook();
             WriteComprehensiveAssetsSheet(
                 workbook,
                 filteredAssets,
                 customFieldNames,
                 from,
-                to);
-            WriteAssignmentHistorySheet(workbook, filteredAssets);
-            WriteMaintenanceSheet(workbook, filteredAssets);
+                to,
+                progress,
+                0,
+                progressTotal);
+
+            WriteAssignmentHistorySheet(
+                workbook,
+                filteredAssets,
+                progress,
+                filteredAssets.Count,
+                progressTotal);
+
+            WriteMaintenanceSheet(
+                workbook,
+                filteredAssets,
+                progress,
+                filteredAssets.Count * 2,
+                progressTotal);
+
+            progress?.Report(new OperationProgressInfo(
+                "Hesabat saxlanılır...",
+                progressTotal - 1,
+                progressTotal,
+                "Excel faylı diskə yazılır."));
 
             workbook.SaveAs(filePath);
+
+            progress?.Report(new OperationProgressInfo(
+                "Hesabat hazırdır",
+                progressTotal,
+                progressTotal,
+                $"{filteredAssets.Count} vəsait ixrac edildi."));
             return filteredAssets.Count;
         }
 
@@ -338,7 +424,10 @@ namespace LoginAppFramework
             IReadOnlyList<Asset> assets,
             IReadOnlyList<string> customFieldNames,
             DateTime? from,
-            DateTime? to)
+            DateTime? to,
+            IProgress<OperationProgressInfo> progress,
+            int progressOffset,
+            int progressTotal)
         {
             var worksheet = workbook.Worksheets.Add("Vəsaitlər");
 
@@ -405,6 +494,8 @@ namespace LoginAppFramework
             headerRange.Style.Alignment.WrapText = true;
 
             int row = headerRow + 1;
+            int processedAssets = 0;
+
             foreach (var asset in assets)
             {
                 int column = 1;
@@ -481,6 +572,13 @@ namespace LoginAppFramework
                 }
 
                 row++;
+                processedAssets++;
+
+                progress?.Report(new OperationProgressInfo(
+                    "Hesabat hazırlanır...",
+                    progressOffset + processedAssets,
+                    progressTotal,
+                    $"{processedAssets} / {assets.Count} vəsait əsas hesabat səhifəsinə yazıldı"));
             }
 
             int lastRow = row - 1;
@@ -506,7 +604,10 @@ namespace LoginAppFramework
 
         private static void WriteAssignmentHistorySheet(
             XLWorkbook workbook,
-            IReadOnlyList<Asset> assets)
+            IReadOnlyList<Asset> assets,
+            IProgress<OperationProgressInfo> progress,
+            int progressOffset,
+            int progressTotal)
         {
             var worksheet = workbook.Worksheets.Add("Təhkim Tarixçəsi");
             string[] headers =
@@ -528,6 +629,8 @@ namespace LoginAppFramework
             StyleDetailSheetHeader(worksheet, headers.Length);
 
             int row = 2;
+            int processedAssets = 0;
+
             foreach (var asset in assets)
             {
                 foreach (var entry in asset.History?
@@ -552,6 +655,13 @@ namespace LoginAppFramework
                     worksheet.Cell(row, 9).Style.DateFormat.Format = "dd.MM.yyyy HH:mm";
                     row++;
                 }
+
+                processedAssets++;
+                progress?.Report(new OperationProgressInfo(
+                    "Təhkimat tarixçəsi hazırlanır...",
+                    progressOffset + processedAssets,
+                    progressTotal,
+                    $"{processedAssets} / {assets.Count} vəsait yoxlanıldı"));
             }
 
             FinalizeDetailSheet(worksheet);
@@ -559,7 +669,10 @@ namespace LoginAppFramework
 
         private static void WriteMaintenanceSheet(
             XLWorkbook workbook,
-            IReadOnlyList<Asset> assets)
+            IReadOnlyList<Asset> assets,
+            IProgress<OperationProgressInfo> progress,
+            int progressOffset,
+            int progressTotal)
         {
             var worksheet = workbook.Worksheets.Add("Texniki Xidmət");
             string[] headers =
@@ -581,6 +694,8 @@ namespace LoginAppFramework
             StyleDetailSheetHeader(worksheet, headers.Length);
 
             int row = 2;
+            int processedAssets = 0;
+
             foreach (var asset in assets)
             {
                 foreach (var record in asset.MaintenanceHistory?
@@ -600,6 +715,13 @@ namespace LoginAppFramework
                     worksheet.Cell(row, 9).Value = record.PerformedBy ?? string.Empty;
                     row++;
                 }
+
+                processedAssets++;
+                progress?.Report(new OperationProgressInfo(
+                    "Texniki xidmət tarixçəsi hazırlanır...",
+                    progressOffset + processedAssets,
+                    progressTotal,
+                    $"{processedAssets} / {assets.Count} vəsait yoxlanıldı"));
             }
 
             FinalizeDetailSheet(worksheet);
