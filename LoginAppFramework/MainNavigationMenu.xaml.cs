@@ -158,6 +158,13 @@ namespace LoginAppFramework
                 "Dashboard",
                 window => NavigationManager.GoToDashboard(window));
 
+        private void GlobalSearchButton_Click(object sender, RoutedEventArgs e)
+        {
+            var owner = OwnerWindow;
+            Close();
+            NavigationManager.GoToGlobalSearch(owner);
+        }
+
         private async void WorkersButton_Click(object sender, RoutedEventArgs e)
             => await NavigateAsync(
                 "Workers",
