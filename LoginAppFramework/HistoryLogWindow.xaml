@@ -171,6 +171,23 @@
                                 </DataTemplate>
                             </ListView.ItemTemplate>
                         </ListView>
+
+                        <local:EmptyStateControl Icon="History"
+                                                 Title="Tarixçə qeydi tapılmadı"
+                                                 Message="Axtarış, əməliyyat növü və ya tarix filtrini dəyişərək yenidən yoxlayın."
+                                                 ActionText="Filtrləri təmizlə"
+                                                 ActionClick="ClearFiltersButton_Click">
+                            <local:EmptyStateControl.Style>
+                                <Style TargetType="{x:Type local:EmptyStateControl}">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasResults}" Value="False">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </local:EmptyStateControl.Style>
+                        </local:EmptyStateControl>
                     </DockPanel>
                 </Border>
 
@@ -186,18 +203,7 @@
         <Border x:Name="LoadingOverlay"
                 Background="{StaticResource GlassBackgroundBrush}"
                 Visibility="Collapsed">
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                <TextBlock Text="Tarixçə yüklənir..."
-                           FontSize="22"
-                           FontWeight="SemiBold"
-                           Foreground="{StaticResource PrimaryTextBrush}"
-                           HorizontalAlignment="Center"/>
-                <TextBlock Text="Qeydlər hazırlanır."
-                           Foreground="{StaticResource BodyTextBrush}"
-                           HorizontalAlignment="Center"
-                           Margin="0,4,0,12"/>
-                <ProgressBar Width="220" Height="4" IsIndeterminate="True"/>
-            </StackPanel>
+            <local:LoadingSkeletonControl/>
         </Border>
     </Grid>
 </Window>
