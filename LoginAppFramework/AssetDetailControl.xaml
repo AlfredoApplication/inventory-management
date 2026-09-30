@@ -11,7 +11,7 @@
         <DockPanel x:Name="DetailViewPanel" Margin="20" Visibility="Collapsed">
             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,15">
                 <Button x:Name="EditAssetButton" Content="Vəsaiti Dəyiş" Click="EditAssetButton_Click"/>
-                <Button x:Name="DeleteAssetButton" Content="Sil" Click="DeleteAssetButton_Click" Background="{StaticResource DangerBrush}" Foreground="{StaticResource PrimaryForegroundBrush}" Margin="10,0,0,0" ToolTip="Bu vəsait qeydini həmişəlik silin."/>
+                <Button x:Name="DeleteAssetButton" Content="Sil" Click="DeleteAssetButton_Click" Style="{StaticResource DangerActionButton}" Margin="10,0,0,0" ToolTip="Bu vəsait qeydini həmişəlik silin."/>
                 <Button x:Name="CloseDetailPanelButton"
         Click="CloseDetailPanelButton_Click"
         ToolTip="Detallı Görünüşü Bağla"
@@ -106,14 +106,14 @@
                                     </StackPanel>
                                     <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
                                         <Button x:Name="ReassignButton" Content="Yenidən Təhkim et" Click="ReassignButton_Click"/>
-                                        <Button x:Name="UnassignButton" Content="Təhkimi Ləğv et" Click="UnassignButton_Click" Background="{StaticResource WarningBrush}" Foreground="{StaticResource PrimaryForegroundBrush}" Margin="10,0,0,0"/>
+                                        <Button x:Name="UnassignButton" Content="Təhkimi Ləğv et" Click="UnassignButton_Click" Style="{StaticResource WarningActionButton}" Margin="10,0,0,0"/>
                                     </StackPanel>
                                 </Grid>
                             </Border>
                             <Border x:Name="UnassignedUserPanel" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="25" Background="{StaticResource SurfaceMutedBrush}" Visibility="Collapsed">
                                 <StackPanel>
                                     <TextBlock Text="Bu vəsait hazırda heç kimə təhkim olunmayıb." TextAlignment="Center" Foreground="{StaticResource SubtleTextBrush}"/>
-                                    <Button x:Name="AssignButton" Content="İstifadəçiyə Təhkim et..." Click="AssignOrReassignButton_Click" Background="{StaticResource SuccessBrush}" Foreground="{StaticResource PrimaryForegroundBrush}" HorizontalAlignment="Center" Margin="0,15,0,0"/>
+                                    <Button x:Name="AssignButton" Content="İstifadəçiyə Təhkim et..." Click="AssignOrReassignButton_Click" Style="{StaticResource SuccessActionButton}" HorizontalAlignment="Center" Margin="0,15,0,0"/>
                                 </StackPanel>
                             </Border>
                             <TextBlock Text="Təhkimat Tarixçəsi" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}" Margin="0,20,0,10"/>
