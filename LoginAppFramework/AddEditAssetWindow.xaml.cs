@@ -448,6 +448,8 @@ namespace LoginAppFramework
                         out int defaultYears))
                     {
                         Asset.UsefulLifeInYears = defaultYears;
+                        UsefulLifeTextBox.Text =
+                            defaultYears.ToString(CultureInfo.InvariantCulture);
                     }
                 }
             }
