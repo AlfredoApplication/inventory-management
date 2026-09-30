@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
@@ -18,7 +19,12 @@ namespace LoginAppFramework
         private WorkerViewModel _selectedWorker;
         private int? _workerIdToSelectOnLoad;
         private DataGridPersonalizationController _gridPersonalization;
+        private const string WorkerDetailWidthPreferenceKey = "workers-detail-panel-width";
+        private const double WorkerDetailMinimumWidth = 420;
+        private const double WorkerListMinimumWidth = 420;
+
         private bool isDetailPanelOpen;
+        private double? _preferredDetailPanelWidth;
 
         private static readonly IReadOnlyDictionary<string, string> WorkerColumnLabels =
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -117,7 +123,9 @@ namespace LoginAppFramework
 
         private void OpenDetailPanel()
         {
-            double targetWidth = GetResponsiveDetailPanelWidth();
+            double targetWidth = GetPreferredDetailPanelWidth();
+
+            DetailPanelSplitter.Visibility = Visibility.Visible;
 
             var animation = new DoubleAnimation(
                 DetailPanelContainer.ActualWidth,
@@ -134,10 +142,77 @@ namespace LoginAppFramework
             isDetailPanelOpen = true;
         }
 
+        private double GetPreferredDetailPanelWidth()
+        {
+            _preferredDetailPanelWidth ??=
+                UiPreferenceStore.LoadScalar(WorkerDetailWidthPreferenceKey);
+
+            double fallback = GetResponsiveDetailPanelWidth();
+            double preferred = _preferredDetailPanelWidth ?? fallback;
+
+            return ClampDetailPanelWidth(preferred);
+        }
+
         private double GetResponsiveDetailPanelWidth()
         {
-            double available = Math.Max(ActualWidth, 1000);
-            return Math.Clamp(available * 0.42, 480, 680);
+            double available =
+                (DetailPanelContainer.Parent as FrameworkElement)?.ActualWidth
+                ?? Math.Max(ActualWidth, 1000);
+
+            return Math.Clamp(
+                available * 0.44,
+                WorkerDetailMinimumWidth,
+                Math.Max(WorkerDetailMinimumWidth, Math.Min(680, available - WorkerListMinimumWidth)));
+        }
+
+        private double ClampDetailPanelWidth(double width)
+        {
+            double available =
+                (DetailPanelContainer.Parent as FrameworkElement)?.ActualWidth
+                ?? ActualWidth;
+
+            double maximum = Math.Max(
+                WorkerDetailMinimumWidth,
+                Math.Min(780, available - WorkerListMinimumWidth - 7));
+
+            return Math.Clamp(
+                width,
+                WorkerDetailMinimumWidth,
+                maximum);
+        }
+
+        private void DetailPanelSplitter_DragDelta(
+            object sender,
+            DragDeltaEventArgs e)
+        {
+            if (!isDetailPanelOpen)
+                return;
+
+            DetailPanelContainer.BeginAnimation(WidthProperty, null);
+
+            double current =
+                double.IsNaN(DetailPanelContainer.Width)
+                    ? DetailPanelContainer.ActualWidth
+                    : DetailPanelContainer.Width;
+
+            double next = ClampDetailPanelWidth(
+                current - e.HorizontalChange);
+
+            DetailPanelContainer.Width = next;
+            _preferredDetailPanelWidth = next;
+            e.Handled = true;
+        }
+
+        private void DetailPanelSplitter_DragCompleted(
+            object sender,
+            DragCompletedEventArgs e)
+        {
+            if (!_preferredDetailPanelWidth.HasValue)
+                return;
+
+            UiPreferenceStore.SaveScalar(
+                WorkerDetailWidthPreferenceKey,
+                _preferredDetailPanelWidth.Value);
         }
 
         private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -146,12 +221,15 @@ namespace LoginAppFramework
                 return;
 
             DetailPanelContainer.BeginAnimation(WidthProperty, null);
-            DetailPanelContainer.Width = GetResponsiveDetailPanelWidth();
+            DetailPanelContainer.Width = GetPreferredDetailPanelWidth();
         }
 
         private void CloseDetailPanel()
         {
+            DetailPanelContainer.BeginAnimation(WidthProperty, null);
+
             var animation = new DoubleAnimation(
+                DetailPanelContainer.ActualWidth,
                 0,
                 TimeSpan.FromMilliseconds(200))
             {
@@ -159,6 +237,13 @@ namespace LoginAppFramework
                 {
                     EasingMode = EasingMode.EaseIn
                 }
+            };
+
+            animation.Completed += (_, _) =>
+            {
+                DetailPanelContainer.BeginAnimation(WidthProperty, null);
+                DetailPanelContainer.Width = 0;
+                DetailPanelSplitter.Visibility = Visibility.Collapsed;
             };
 
             DetailPanelContainer.BeginAnimation(WidthProperty, animation);
@@ -310,12 +395,26 @@ namespace LoginAppFramework
 
             if (!result) return;
 
+            var originalStates = selected
+                .Select(vm => vm.GetModel())
+                .ToDictionary(worker => worker.Id, worker => worker.IsActive);
+
             int count = _viewModel.SetActiveState(
-                selected.Select(vm => vm.GetModel().Id),
+                originalStates.Keys,
                 false);
 
             RefreshViewModelPreservingSelection();
-            NotificationService.Success(this, $"{count} işçi qeyri-aktiv edildi.");
+
+            NotificationService.Undo(
+                this,
+                $"{count} işçi qeyri-aktiv edildi.",
+                () =>
+                {
+                    RestoreWorkerActiveStates(originalStates);
+                    NotificationService.Success(
+                        this,
+                        "İşçi statusları geri qaytarıldı.");
+                });
         }
 
         private void BulkActivateButton_Click(object sender, RoutedEventArgs e)
@@ -344,12 +443,51 @@ namespace LoginAppFramework
 
             if (!result) return;
 
+            var originalStates = selected
+                .Select(vm => vm.GetModel())
+                .ToDictionary(worker => worker.Id, worker => worker.IsActive);
+
             int count = _viewModel.SetActiveState(
-                selected.Select(vm => vm.GetModel().Id),
+                originalStates.Keys,
                 true);
 
             RefreshViewModelPreservingSelection();
-            NotificationService.Success(this, $"{count} işçi aktiv edildi.");
+
+            NotificationService.Undo(
+                this,
+                $"{count} işçi aktiv edildi.",
+                () =>
+                {
+                    RestoreWorkerActiveStates(originalStates);
+                    NotificationService.Success(
+                        this,
+                        "İşçi statusları geri qaytarıldı.");
+                });
+        }
+
+        private void RestoreWorkerActiveStates(
+            IReadOnlyDictionary<int, bool> originalStates)
+        {
+            if (originalStates == null || originalStates.Count == 0)
+                return;
+
+            var activeIds = originalStates
+                .Where(pair => pair.Value)
+                .Select(pair => pair.Key)
+                .ToList();
+
+            var inactiveIds = originalStates
+                .Where(pair => !pair.Value)
+                .Select(pair => pair.Key)
+                .ToList();
+
+            if (activeIds.Count > 0)
+                _viewModel.SetActiveState(activeIds, true);
+
+            if (inactiveIds.Count > 0)
+                _viewModel.SetActiveState(inactiveIds, false);
+
+            RefreshViewModelPreservingSelection();
         }
 
         private void UpdateDetailView()
@@ -576,15 +714,32 @@ namespace LoginAppFramework
             }
 
             var worker = workerVm.GetModel();
-            bool nextState = !worker.IsActive;
-            _viewModel.SetActiveState(new[] { worker.Id }, nextState);
+            bool previousState = worker.IsActive;
+            bool nextState = !previousState;
+
+            _viewModel.SetActiveState(
+                new[] { worker.Id },
+                nextState);
+
             RefreshViewModelPreservingSelection();
 
-            NotificationService.Success(
+            NotificationService.Undo(
                 this,
                 nextState
                     ? "İşçi aktiv edildi."
-                    : "İşçi qeyri-aktiv edildi.");
+                    : "İşçi qeyri-aktiv edildi.",
+                () =>
+                {
+                    _viewModel.SetActiveState(
+                        new[] { worker.Id },
+                        previousState);
+
+                    RefreshViewModelPreservingSelection();
+
+                    NotificationService.Success(
+                        this,
+                        "İşçi statusu geri qaytarıldı.");
+                });
         }
 
         public void NavigateToWorker(int workerId)

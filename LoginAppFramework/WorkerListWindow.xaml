@@ -107,6 +107,11 @@
                     </DockPanel>
                 </Border>
                 <Grid Grid.Column="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
@@ -196,7 +201,25 @@
                             </Style>
                         </local:EmptyStateControl.Style>
                     </local:EmptyStateControl>
-                    <Border Grid.RowSpan="4" x:Name="DetailPanelContainer" HorizontalAlignment="Right" Width="0" Background="{StaticResource PanelBackgroundBrush}" BorderThickness="1,0,0,0" BorderBrush="{StaticResource ControlBorderBrush}">
+                    <Thumb x:Name="DetailPanelSplitter"
+                           Grid.Column="1"
+                           Grid.RowSpan="4"
+                           Width="7"
+                           Cursor="SizeWE"
+                           Visibility="Collapsed"
+                           Background="{StaticResource ControlBorderBrush}"
+                           ToolTip="Detallar panelinin enini dəyişin"
+                           DragDelta="DetailPanelSplitter_DragDelta"
+                           DragCompleted="DetailPanelSplitter_DragCompleted"/>
+
+                    <Border Grid.Column="2"
+                            Grid.RowSpan="4"
+                            x:Name="DetailPanelContainer"
+                            HorizontalAlignment="Stretch"
+                            Width="0"
+                            Background="{StaticResource PanelBackgroundBrush}"
+                            BorderThickness="1,0,0,0"
+                            BorderBrush="{StaticResource ControlBorderBrush}">
                         <Border.Effect>
                             <DropShadowEffect ShadowDepth="0" BlurRadius="20" Opacity="0.1" Direction="-90"/>
                         </Border.Effect>

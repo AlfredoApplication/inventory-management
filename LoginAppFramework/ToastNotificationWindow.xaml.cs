@@ -9,6 +9,8 @@ namespace LoginAppFramework
     {
         private readonly DispatcherTimer _timer;
         private readonly Window _owner;
+        private readonly Action _action;
+        private bool _actionInvoked;
         private int _stackIndex;
 
         public event EventHandler ToastClosed;
@@ -18,7 +20,9 @@ namespace LoginAppFramework
             string message,
             ToastType type,
             TimeSpan duration,
-            string title = null)
+            string title = null,
+            string actionText = null,
+            Action action = null)
         {
             InitializeComponent();
 
@@ -27,6 +31,15 @@ namespace LoginAppFramework
                 Owner = owner;
 
             MessageTextBlock.Text = message ?? string.Empty;
+            _action = action;
+
+            if (_action != null &&
+                !string.IsNullOrWhiteSpace(actionText))
+            {
+                ActionButton.Content = actionText;
+                ActionButton.Visibility = Visibility.Visible;
+            }
+
             ApplyType(type, title);
 
             Loaded += (_, _) => PositionWindow();
@@ -137,6 +150,28 @@ namespace LoginAppFramework
             Top = Math.Max(
                 _owner.Top + 16,
                 _owner.Top + _owner.ActualHeight - ActualHeight - 48 - offset);
+        }
+
+        private void ActionButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_actionInvoked || _action == null)
+                return;
+
+            _actionInvoked = true;
+            _timer.Stop();
+            Close();
+
+            try
+            {
+                _action();
+            }
+            catch (Exception ex)
+            {
+                NotificationService.Error(
+                    _owner,
+                    $"Əməliyyatı geri qaytarmaq mümkün olmadı: {ex.Message}",
+                    title: "Geri qaytarma xətası");
+            }
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)

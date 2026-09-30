@@ -39,12 +39,43 @@ namespace LoginAppFramework
             string title = null)
             => Enqueue(owner, message, ToastType.Info, milliseconds, title);
 
+        public static void SuccessWithAction(
+            Window owner,
+            string message,
+            string actionText,
+            Action action,
+            int milliseconds = 7000,
+            string title = null)
+            => Enqueue(
+                owner,
+                message,
+                ToastType.Success,
+                milliseconds,
+                title,
+                actionText,
+                action);
+
+        public static void Undo(
+            Window owner,
+            string message,
+            Action undoAction,
+            int milliseconds = 7000)
+            => SuccessWithAction(
+                owner,
+                message,
+                "Geri al",
+                undoAction,
+                milliseconds,
+                "Dəyişiklik yadda saxlanıldı");
+
         private static void Enqueue(
             Window owner,
             string message,
             ToastType type,
             int milliseconds,
-            string title)
+            string title,
+            string actionText = null,
+            Action action = null)
         {
             Window resolvedOwner =
                 owner ??
@@ -57,7 +88,13 @@ namespace LoginAppFramework
             {
                 var standalone = CreateToast(
                     null,
-                    new ToastRequest(message, type, milliseconds, title));
+                    new ToastRequest(
+                        message,
+                        type,
+                        milliseconds,
+                        title,
+                        actionText,
+                        action));
                 standalone.Start();
                 return;
             }
@@ -84,7 +121,13 @@ namespace LoginAppFramework
             }
 
             state.Pending.Enqueue(
-                new ToastRequest(message, type, milliseconds, title));
+                new ToastRequest(
+                    message,
+                    type,
+                    milliseconds,
+                    title,
+                    actionText,
+                    action));
 
             PumpQueue(resolvedOwner, state);
         }
@@ -122,7 +165,9 @@ namespace LoginAppFramework
                 request.Message,
                 request.Type,
                 TimeSpan.FromMilliseconds(request.Milliseconds),
-                request.Title);
+                request.Title,
+                request.ActionText,
+                request.Action);
 
         private static void Reposition(ToastQueueState state)
         {
@@ -140,6 +185,8 @@ namespace LoginAppFramework
             string Message,
             ToastType Type,
             int Milliseconds,
-            string Title);
+            string Title,
+            string ActionText,
+            Action Action);
     }
 }

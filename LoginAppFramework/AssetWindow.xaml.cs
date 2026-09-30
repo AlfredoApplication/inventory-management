@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -264,19 +265,6 @@ namespace LoginAppFramework
                 ImportButton.IsEnabled = true;
             }
 
-            if (batch.Assets.Count == 0)
-            {
-                string message = batch.Errors.Count > 0
-                    ? $"İmport üçün etibarlı vəsait tapılmadı.\n\n{string.Join("\n", batch.Errors.Take(10))}"
-                    : "İmport üçün etibarlı vəsait tapılmadı.";
-
-                DialogService.Info(
-                    this,
-                    "Import Başa Çatdı",
-                    message);
-                return;
-            }
-
             var dbWorkers = AppData.GetWorkers();
             var confirmedMappings = new Dictionary<string, Worker>(StringComparer.OrdinalIgnoreCase);
             var requestedNames = batch.RequestedWorkerNames.Values
@@ -309,10 +297,29 @@ namespace LoginAppFramework
                 }
             }
 
-            foreach (var asset in batch.Assets)
+            var dryRun = AssetImportPreviewBuilder.Build(
+                batch,
+                AppData.GetAssets(),
+                confirmedMappings);
+
+            var previewWindow = new AssetImportPreviewWindow(dryRun)
             {
-                if (batch.RequestedWorkerNames.TryGetValue(asset, out string workerName) &&
-                    confirmedMappings.TryGetValue(workerName, out Worker worker))
+                Owner = this
+            };
+
+            if (previewWindow.ShowDialog() != true)
+                return;
+
+            var assetsToImport = previewWindow.AssetsToImport;
+
+            foreach (var asset in assetsToImport)
+            {
+                if (batch.RequestedWorkerNames.TryGetValue(
+                        asset,
+                        out string workerName) &&
+                    confirmedMappings.TryGetValue(
+                        workerName,
+                        out Worker worker))
                 {
                     asset.AssignWorker(worker);
                 }
@@ -322,45 +329,33 @@ namespace LoginAppFramework
                 }
             }
 
-            string summary = $"{batch.Assets.Count} yeni vəsait importa hazırdır.";
-            if (batch.Errors.Count > 0)
-                summary += $"\n\n{batch.Errors.Count} sətir xətaya görə ötürüldü.";
-            summary += "\n\nBu vəsaitləri verilənlər bazasında yadda saxlamaq istəyirsiniz?";
-
-            if (!DialogService.Confirm(
-                    this,
-                    "Importu Təsdiq Et",
-                    summary,
-                    "Import et",
-                    "Ləğv et"))
-                return;
-
             ImportButton.IsEnabled = false;
             OperationProgressOverlay.Show(
                 "Vəsaitlər import edilir...",
-                $"{batch.Assets.Count} vəsait verilənlər bazasına yazılır.");
+                $"{assetsToImport.Count} vəsait verilənlər bazasına yazılır.");
 
             OperationProgressOverlay.Report(
                 new OperationProgressInfo(
                     "Vəsaitlər import edilir...",
                     0,
-                    batch.Assets.Count,
+                    assetsToImport.Count,
                     "Verilənlər bazasına yazılır."));
 
             try
             {
-                await Task.Run(() => _viewModel.ImportAssets(batch.Assets));
+                await Task.Run(
+                    () => _viewModel.ImportAssets(assetsToImport));
 
                 OperationProgressOverlay.Report(
                     new OperationProgressInfo(
                         "Import tamamlandı",
-                        batch.Assets.Count,
-                        batch.Assets.Count,
-                        $"{batch.Assets.Count} vəsait yadda saxlanıldı."));
+                        assetsToImport.Count,
+                        assetsToImport.Count,
+                        $"{assetsToImport.Count} vəsait yadda saxlanıldı."));
 
                 NotificationService.Success(
                     this,
-                    $"{batch.Assets.Count} vəsait import edildi.");
+                    $"{assetsToImport.Count} vəsait import edildi.");
             }
             catch (Exception ex)
             {
@@ -430,7 +425,34 @@ namespace LoginAppFramework
                 Owner = this
             };
 
-            if (editWindow.ShowDialog() != true) return;
+            if (editWindow.ShowDialog() != true)
+                return;
+
+            var preview =
+                BulkActionPreviewBuilder.ForEdit(
+                    checkedAssets,
+                    editWindow.Changes);
+
+            if (preview.Changes.Count == 0)
+            {
+                NotificationService.Info(
+                    this,
+                    "Dəyişiklik üçün yeni dəyər seçilməyib.",
+                    title: "Toplu Redaktə");
+                return;
+            }
+
+            var previewWindow = new BulkActionPreviewWindow(preview)
+            {
+                Owner = this
+            };
+
+            if (previewWindow.ShowDialog() != true)
+                return;
+
+            var snapshots = checkedAssets
+                .Select(asset => asset.Clone())
+                .ToList();
 
             try
             {
@@ -440,29 +462,26 @@ namespace LoginAppFramework
 
                 if (result.UpdatedCount > 0)
                 {
-                    NotificationService.Success(
+                    NotificationService.Undo(
                         this,
-                        $"{result.UpdatedCount} vəsait dəyişdirildi.");
+                        $"{result.UpdatedCount} vəsait dəyişdirildi.",
+                        () => RestoreAssetSnapshots(
+                            snapshots,
+                            "Toplu dəyişiklik geri qaytarıldı."));
                 }
 
                 if (result.SkippedStatusAssets.Count > 0)
                 {
                     string skippedNames = string.Join(
                         "\n",
-                        result.SkippedStatusAssets.Select(a => $"- {a.VesaitinAdi}"));
+                        result.SkippedStatusAssets
+                            .Take(15)
+                            .Select(a => $"- {a.VesaitinAdi}"));
 
                     DialogService.Warning(
                         this,
                         "Status Dəyişikliyi Ötürüldü",
                         $"{result.SkippedStatusAssets.Count} vəsaitin statusu dəyişdirilmədi, çünki onlar işçiyə təhkim olunub və 'İstifadədədir' statusunda qalmalıdırlar:\n\n{skippedNames}");
-                }
-
-                if (result.UpdatedCount == 0 &&
-                    result.SkippedStatusAssets.Count == 0)
-                {
-                    NotificationService.Success(
-                        this,
-                        "Dəyişiklik üçün yeni dəyər seçilməyib.");
                 }
             }
             catch (Exception ex)
@@ -495,34 +514,83 @@ namespace LoginAppFramework
                 return;
             }
 
-            var selectWindow = new SelectWorkerWindow(_viewModel.Workers.ToList()) { Owner = this };
-            if (selectWindow.ShowDialog() == true)
+            var selectWindow =
+                new SelectWorkerWindow(_viewModel.Workers.ToList())
+                {
+                    Owner = this
+                };
+
+            if (selectWindow.ShowDialog() != true ||
+                selectWindow.SelectedWorker == null)
             {
-                Worker newWorker = selectWindow.SelectedWorker;
+                return;
+            }
 
-                try
-                {
-                    _viewModel.AssignCheckedAssets(newWorker);
-                    RefreshDataAndSelection();
+            Worker newWorker = selectWindow.SelectedWorker;
 
-                    NotificationService.Success(
-                        this,
-                        $"{checkedAssets.Count} vəsait {newWorker.per_adiper_soyadi} adlı işçiyə təhkim edildi.");
-                }
-                catch (Exception ex)
-                {
-                    DialogService.Error(
-                        this,
-                        "Xəta",
-                        $"Toplu təhkim zamanı xəta baş verdi:\n\n{ex.Message}");
-                }
+            var preview = BulkActionPreviewBuilder.ForAssignment(
+                checkedAssets,
+                newWorker);
+
+            var previewWindow = new BulkActionPreviewWindow(preview)
+            {
+                Owner = this
+            };
+
+            if (previewWindow.ShowDialog() != true)
+                return;
+
+            var snapshots = checkedAssets
+                .Select(asset => asset.Clone())
+                .ToList();
+
+            try
+            {
+                _viewModel.AssignCheckedAssets(newWorker);
+                RefreshDataAndSelection();
+
+                NotificationService.Undo(
+                    this,
+                    $"{checkedAssets.Count} vəsait {newWorker.per_adiper_soyadi} adlı işçiyə təhkim edildi.",
+                    () => RestoreAssetSnapshots(
+                        snapshots,
+                        "Toplu təhkimat geri qaytarıldı."));
+            }
+            catch (Exception ex)
+            {
+                DialogService.Error(
+                    this,
+                    "Xəta",
+                    $"Toplu təhkim zamanı xəta baş verdi:\n\n{ex.Message}");
             }
         }
+        private void RestoreAssetSnapshots(
+            IReadOnlyList<Asset> snapshots,
+            string successMessage)
+        {
+            if (snapshots == null || snapshots.Count == 0)
+                return;
+
+            foreach (var snapshot in snapshots)
+                AppServices.Assets.Save(snapshot);
+
+            RefreshDataAndSelection();
+
+            NotificationService.Success(
+                this,
+                successMessage);
+        }
+
         #endregion
 
         #region Filtering and Data Logic
 
+        private const string AssetDetailWidthPreferenceKey = "assets-detail-panel-width";
+        private const double AssetDetailMinimumWidth = 340;
+        private const double AssetListMinimumWidth = 360;
+
         private bool isDetailPanelOpen = false;
+        private double? _preferredDetailPanelWidth;
 
         private void RefreshDataAndSelection(int? assetIdToSelect = null)
         {
@@ -772,15 +840,27 @@ namespace LoginAppFramework
                 return;
             }
 
+            var snapshot = assetVm.Asset.Clone();
+            int assetId = assetVm.Asset.Id;
+
             AppServices.Assets.Assign(
                 assetVm.Asset,
                 selectWindow.SelectedWorker,
                 "Vəsait siyahısı");
 
-            RefreshDataAndSelection(assetVm.Asset.Id);
-            NotificationService.Success(
+            RefreshDataAndSelection(assetId);
+
+            NotificationService.Undo(
                 this,
-                $"Vəsait {selectWindow.SelectedWorker.per_adiper_soyadi} adlı işçiyə təhkim edildi.");
+                $"Vəsait {selectWindow.SelectedWorker.per_adiper_soyadi} adlı işçiyə təhkim edildi.",
+                () =>
+                {
+                    AppServices.Assets.Save(snapshot);
+                    RefreshDataAndSelection(assetId);
+                    NotificationService.Success(
+                        this,
+                        "Təhkimat geri qaytarıldı.");
+                });
         }
 
         private void PrintAssetBarcodeContext_Click(object sender, RoutedEventArgs e)
@@ -953,24 +1033,96 @@ namespace LoginAppFramework
         #region Menu Handlers
         private void OpenDetailPanel()
         {
-            double targetWidth = GetResponsiveDetailPanelWidth();
+            double targetWidth = GetPreferredDetailPanelWidth();
+
+            DetailPanelSplitter.Visibility = Visibility.Visible;
 
             var animation = new DoubleAnimation(
                 DetailPanelContainer.ActualWidth,
                 targetWidth,
                 TimeSpan.FromMilliseconds(250))
             {
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+                EasingFunction = new CubicEase
+                {
+                    EasingMode = EasingMode.EaseOut
+                }
             };
 
             DetailPanelContainer.BeginAnimation(WidthProperty, animation);
             isDetailPanelOpen = true;
         }
 
+        private double GetPreferredDetailPanelWidth()
+        {
+            _preferredDetailPanelWidth ??=
+                UiPreferenceStore.LoadScalar(AssetDetailWidthPreferenceKey);
+
+            double fallback = GetResponsiveDetailPanelWidth();
+            double preferred = _preferredDetailPanelWidth ?? fallback;
+
+            return ClampDetailPanelWidth(preferred);
+        }
+
         private double GetResponsiveDetailPanelWidth()
         {
-            double available = Math.Max(ActualWidth, 900);
-            return Math.Clamp(available * 0.36, 380, 540);
+            double available =
+                (DetailPanelContainer.Parent as FrameworkElement)?.ActualWidth
+                ?? Math.Max(ActualWidth, 900);
+
+            return Math.Clamp(
+                available * 0.38,
+                AssetDetailMinimumWidth,
+                Math.Max(AssetDetailMinimumWidth, Math.Min(560, available - AssetListMinimumWidth)));
+        }
+
+        private double ClampDetailPanelWidth(double width)
+        {
+            double available =
+                (DetailPanelContainer.Parent as FrameworkElement)?.ActualWidth
+                ?? ActualWidth;
+
+            double maximum = Math.Max(
+                AssetDetailMinimumWidth,
+                Math.Min(720, available - AssetListMinimumWidth - 7));
+
+            return Math.Clamp(
+                width,
+                AssetDetailMinimumWidth,
+                maximum);
+        }
+
+        private void DetailPanelSplitter_DragDelta(
+            object sender,
+            DragDeltaEventArgs e)
+        {
+            if (!isDetailPanelOpen)
+                return;
+
+            DetailPanelContainer.BeginAnimation(WidthProperty, null);
+
+            double current =
+                double.IsNaN(DetailPanelContainer.Width)
+                    ? DetailPanelContainer.ActualWidth
+                    : DetailPanelContainer.Width;
+
+            double next = ClampDetailPanelWidth(
+                current - e.HorizontalChange);
+
+            DetailPanelContainer.Width = next;
+            _preferredDetailPanelWidth = next;
+            e.Handled = true;
+        }
+
+        private void DetailPanelSplitter_DragCompleted(
+            object sender,
+            DragCompletedEventArgs e)
+        {
+            if (!_preferredDetailPanelWidth.HasValue)
+                return;
+
+            UiPreferenceStore.SaveScalar(
+                AssetDetailWidthPreferenceKey,
+                _preferredDetailPanelWidth.Value);
         }
 
         private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -979,15 +1131,31 @@ namespace LoginAppFramework
                 return;
 
             DetailPanelContainer.BeginAnimation(WidthProperty, null);
-            DetailPanelContainer.Width = GetResponsiveDetailPanelWidth();
+            DetailPanelContainer.Width = GetPreferredDetailPanelWidth();
         }
 
         private void CloseDetailPanel()
         {
-            var animation = new DoubleAnimation(0, TimeSpan.FromMilliseconds(200))
+            DetailPanelContainer.BeginAnimation(WidthProperty, null);
+
+            var animation = new DoubleAnimation(
+                DetailPanelContainer.ActualWidth,
+                0,
+                TimeSpan.FromMilliseconds(200))
             {
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
+                EasingFunction = new CubicEase
+                {
+                    EasingMode = EasingMode.EaseIn
+                }
             };
+
+            animation.Completed += (_, _) =>
+            {
+                DetailPanelContainer.BeginAnimation(WidthProperty, null);
+                DetailPanelContainer.Width = 0;
+                DetailPanelSplitter.Visibility = Visibility.Collapsed;
+            };
+
             DetailPanelContainer.BeginAnimation(WidthProperty, animation);
             isDetailPanelOpen = false;
         }
