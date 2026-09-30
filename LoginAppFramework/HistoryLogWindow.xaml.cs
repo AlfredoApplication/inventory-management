@@ -10,7 +10,7 @@ using System.Windows.Media.Animation;
 
 namespace LoginAppFramework
 {
-    public partial class HistoryLogWindow : Window
+    public partial class HistoryLogWindow : Window, INavigationRefreshable
     {
         private readonly HistoryLogWindowViewModel _viewModel;
 
@@ -44,6 +44,12 @@ namespace LoginAppFramework
             {
                 LoadingOverlay.Visibility = Visibility.Collapsed;
             }
+        }
+
+        public async Task RefreshForNavigationAsync()
+        {
+            await _viewModel.LoadAsync();
+            GeneratePageButtons();
         }
 
         private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
