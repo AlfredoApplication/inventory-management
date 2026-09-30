@@ -96,14 +96,26 @@ namespace LoginAppFramework
         {
             if (_isReadOnlyMode)
             {
-                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                DialogService.Warning(
+                    Window.GetWindow(this),
+                    "Giriş Qadağandır",
+                    "Bu əməliyyat üçün icazəniz yoxdur.");
                 return;
             }
 
             if (sender is FrameworkElement { DataContext: Asset assetToUnassign } &&
-                _currentWorker != null &&
-                MessageBox.Show($"'{_currentWorker.Name}' adlı işçidən təhkimi ləğv etməyə əminsinizmi?", "Təsdiq", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                _currentWorker != null)
             {
+                bool confirm = DialogService.Confirm(
+                    Window.GetWindow(this),
+                    "Təhkimatı Ləğv Et",
+                    $"'{_currentWorker.Name}' adlı işçidən təhkimi ləğv etməyə əminsinizmi?",
+                    "Təhkimatı ləğv et",
+                    "Geri qayıt");
+
+                if (!confirm)
+                    return;
+
                 AppServices.Assets.Unassign(assetToUnassign, "İşçi detalları");
                 AssetAssignmentChanged?.Invoke(this, EventArgs.Empty);
             }
@@ -113,7 +125,10 @@ namespace LoginAppFramework
         {
             if (_isReadOnlyMode)
             {
-                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                DialogService.Warning(
+                    Window.GetWindow(this),
+                    "Giriş Qadağandır",
+                    "Bu əməliyyat üçün icazəniz yoxdur.");
                 return;
             }
 
@@ -125,7 +140,10 @@ namespace LoginAppFramework
 
             if (!availableAssets.Any())
             {
-                MessageBox.Show("Təhkim ediləcək boş vəsait yoxdur.", "Vəsait Yoxdur");
+                NotificationService.Info(
+                    Window.GetWindow(this),
+                    "Təhkim ediləcək boş vəsait yoxdur.",
+                    title: "Vəsait Yoxdur");
                 return;
             }
 
