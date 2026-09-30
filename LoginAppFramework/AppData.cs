@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -8,6 +9,7 @@ namespace LoginAppFramework
         private static readonly object CacheLock = new();
 
         private static List<Asset> _assets;
+        private static List<Asset> _deletedAssets;
         private static List<Worker> _workers;
         private static List<string> _assetStatuses;
         private static List<string> _workerDepartments;
@@ -22,7 +24,47 @@ namespace LoginAppFramework
         {
             if (string.IsNullOrEmpty(SessionManager.CurrentUserConnectionString)) return;
 
-            var assets = DataAccess.GetAllAssets();
+            var allAssets = DataAccess.GetAllAssets();
+
+            if (SessionManager.CanDelete())
+            {
+                var expiredDeletedAssets = allAssets
+                    .Where(asset =>
+                        AssetDeletionMetadata.ShouldPurge(
+                            asset,
+                            DateTime.UtcNow))
+                    .ToList();
+
+                if (expiredDeletedAssets.Count > 0)
+                {
+                    try
+                    {
+                        DataAccess.BulkDeleteAssets(expiredDeletedAssets);
+
+                        var expiredIds = expiredDeletedAssets
+                            .Select(asset => asset.Id)
+                            .ToHashSet();
+
+                        allAssets.RemoveAll(asset =>
+                            expiredIds.Contains(asset.Id));
+                    }
+                    catch
+                    {
+                        // Automatic cleanup is best-effort. Recycle Bin
+                        // remains available for manual permanent deletion.
+                    }
+                }
+            }
+
+            var deletedAssets = allAssets
+                .Where(AssetDeletionMetadata.IsDeleted)
+                .ToList();
+
+            var assets = allAssets
+                .Where(asset =>
+                    !AssetDeletionMetadata.IsDeleted(asset))
+                .ToList();
+
             var workers = DataAccess.GetAllWorkers();
             var assetStatuses = DataAccess.GetAssetStatuses();
             var allCategories = DataAccess.GetDeviceCategories();
@@ -71,6 +113,7 @@ namespace LoginAppFramework
             lock (CacheLock)
             {
                 _assets = assets;
+                _deletedAssets = deletedAssets;
                 _workers = workers;
                 _assetStatuses = assetStatuses;
                 _categoryCustomFields = categoryCustomFields;
@@ -117,6 +160,7 @@ namespace LoginAppFramework
             lock (CacheLock)
             {
                 _assets = null;
+                _deletedAssets = null;
                 _workers = null;
                 _assetStatuses = null;
                 _workerDepartments = null;
@@ -130,7 +174,25 @@ namespace LoginAppFramework
 
         public static List<Asset> GetAssets()
         {
-            lock (CacheLock) return _assets?.ToList() ?? new List<Asset>();
+            lock (CacheLock)
+                return _assets?.ToList() ?? new List<Asset>();
+        }
+
+        public static List<Asset> GetDeletedAssets()
+        {
+            lock (CacheLock)
+                return _deletedAssets?.ToList() ?? new List<Asset>();
+        }
+
+        public static List<Asset> GetAssetsIncludingDeleted()
+        {
+            lock (CacheLock)
+            {
+                return (_assets ?? new List<Asset>())
+                    .Concat(_deletedAssets ?? new List<Asset>())
+                    .OrderBy(asset => asset.Id)
+                    .ToList();
+            }
         }
 
         public static List<Worker> GetWorkers()
@@ -289,33 +351,46 @@ namespace LoginAppFramework
             lock (CacheLock)
             {
                 _assets?.RemoveAll(a => idSet.Contains(a.Id));
+                _deletedAssets?.RemoveAll(a => idSet.Contains(a.Id));
             }
         }
 
         private static void UpsertAssetsUnsafe(IEnumerable<Asset> assets)
         {
             _assets ??= new List<Asset>();
-            var indexById = _assets
-                .Select((asset, index) => new { asset.Id, index })
-                .Where(x => x.Id > 0)
-                .ToDictionary(x => x.Id, x => x.index);
+            _deletedAssets ??= new List<Asset>();
 
-            foreach (var asset in assets)
+            foreach (var asset in assets ?? Enumerable.Empty<Asset>())
             {
+                if (asset == null)
+                    continue;
+
                 RelinkAssetWorkerUnsafe(asset);
 
-                if (asset.Id > 0 && indexById.TryGetValue(asset.Id, out int index))
+                if (asset.Id > 0)
                 {
-                    _assets[index] = asset;
+                    _assets.RemoveAll(existing =>
+                        existing.Id == asset.Id);
+
+                    _deletedAssets.RemoveAll(existing =>
+                        existing.Id == asset.Id);
                 }
+
+                if (AssetDeletionMetadata.IsDeleted(asset))
+                    _deletedAssets.Add(asset);
                 else
-                {
                     _assets.Add(asset);
-                    if (asset.Id > 0) indexById[asset.Id] = _assets.Count - 1;
-                }
             }
 
-            _assets = _assets.OrderBy(a => a.Id).ToList();
+            _assets = _assets
+                .OrderBy(asset => asset.Id)
+                .ToList();
+
+            _deletedAssets = _deletedAssets
+                .OrderByDescending(asset =>
+                    AssetDeletionMetadata.GetDeletedAtUtc(asset))
+                .ThenBy(asset => asset.Id)
+                .ToList();
         }
 
         private static void RebuildWorkerDepartmentsUnsafe()
@@ -330,14 +405,23 @@ namespace LoginAppFramework
 
         private static void RelinkAllAssetWorkersUnsafe()
         {
-            if (_assets == null) return;
-            foreach (var asset in _assets) RelinkAssetWorkerUnsafe(asset);
+            foreach (var asset in _assets ?? Enumerable.Empty<Asset>())
+                RelinkAssetWorkerUnsafe(asset);
+
+            foreach (var asset in _deletedAssets ?? Enumerable.Empty<Asset>())
+                RelinkAssetWorkerUnsafe(asset);
         }
 
         private static void RelinkAssetsForWorkerUnsafe(int workerId)
         {
-            if (_assets == null) return;
-            foreach (var asset in _assets.Where(a => a.WorkerId == workerId))
+            foreach (var asset in (_assets ?? Enumerable.Empty<Asset>())
+                .Where(asset => asset.WorkerId == workerId))
+            {
+                RelinkAssetWorkerUnsafe(asset);
+            }
+
+            foreach (var asset in (_deletedAssets ?? Enumerable.Empty<Asset>())
+                .Where(asset => asset.WorkerId == workerId))
             {
                 RelinkAssetWorkerUnsafe(asset);
             }
