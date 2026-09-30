@@ -230,33 +230,29 @@
                                                 </StackPanel>
                                             </Border>
 
-                                            <Grid.Style>
-                                                <Style TargetType="Grid">
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Kind}" Value="Assigned">
-                                                            <Setter TargetName="ActivityIconBorder" Property="Background" Value="{StaticResource SuccessSurfaceBrush}"/>
-                                                            <Setter TargetName="ActivityIconBorder" Property="BorderBrush" Value="{StaticResource SuccessBorderBrush}"/>
-                                                            <Setter TargetName="ActivityIcon" Property="Foreground" Value="{StaticResource SuccessTextBrush}"/>
-                                                        </DataTrigger>
-                                                        <DataTrigger Binding="{Binding Kind}" Value="Unassigned">
-                                                            <Setter TargetName="ActivityIconBorder" Property="Background" Value="{StaticResource WarningSurfaceBrush}"/>
-                                                            <Setter TargetName="ActivityIconBorder" Property="BorderBrush" Value="{StaticResource WarningBorderBrush}"/>
-                                                            <Setter TargetName="ActivityIcon" Property="Foreground" Value="{StaticResource WarningTextBrush}"/>
-                                                        </DataTrigger>
-                                                        <DataTrigger Binding="{Binding Kind}" Value="Reassigned">
-                                                            <Setter TargetName="ActivityIconBorder" Property="Background" Value="{StaticResource InfoSurfaceBrush}"/>
-                                                            <Setter TargetName="ActivityIconBorder" Property="BorderBrush" Value="{StaticResource InfoBorderBrush}"/>
-                                                            <Setter TargetName="ActivityIcon" Property="Foreground" Value="{StaticResource InfoTextBrush}"/>
-                                                        </DataTrigger>
-                                                        <DataTrigger Binding="{Binding Kind}" Value="Maintenance">
-                                                            <Setter TargetName="ActivityIconBorder" Property="Background" Value="{StaticResource WarningSurfaceBrush}"/>
-                                                            <Setter TargetName="ActivityIconBorder" Property="BorderBrush" Value="{StaticResource WarningBorderBrush}"/>
-                                                            <Setter TargetName="ActivityIcon" Property="Foreground" Value="{StaticResource WarningTextBrush}"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Grid.Style>
                                         </Grid>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding Kind}" Value="Assigned">
+                                                <Setter TargetName="ActivityIconBorder" Property="Background" Value="{StaticResource SuccessSurfaceBrush}"/>
+                                                <Setter TargetName="ActivityIconBorder" Property="BorderBrush" Value="{StaticResource SuccessBorderBrush}"/>
+                                                <Setter TargetName="ActivityIcon" Property="Foreground" Value="{StaticResource SuccessTextBrush}"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Kind}" Value="Unassigned">
+                                                <Setter TargetName="ActivityIconBorder" Property="Background" Value="{StaticResource WarningSurfaceBrush}"/>
+                                                <Setter TargetName="ActivityIconBorder" Property="BorderBrush" Value="{StaticResource WarningBorderBrush}"/>
+                                                <Setter TargetName="ActivityIcon" Property="Foreground" Value="{StaticResource WarningTextBrush}"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Kind}" Value="Reassigned">
+                                                <Setter TargetName="ActivityIconBorder" Property="Background" Value="{StaticResource InfoSurfaceBrush}"/>
+                                                <Setter TargetName="ActivityIconBorder" Property="BorderBrush" Value="{StaticResource InfoBorderBrush}"/>
+                                                <Setter TargetName="ActivityIcon" Property="Foreground" Value="{StaticResource InfoTextBrush}"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Kind}" Value="Maintenance">
+                                                <Setter TargetName="ActivityIconBorder" Property="Background" Value="{StaticResource WarningSurfaceBrush}"/>
+                                                <Setter TargetName="ActivityIconBorder" Property="BorderBrush" Value="{StaticResource WarningBorderBrush}"/>
+                                                <Setter TargetName="ActivityIcon" Property="Foreground" Value="{StaticResource WarningTextBrush}"/>
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
