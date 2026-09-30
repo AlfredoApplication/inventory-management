@@ -334,7 +334,7 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        x:Name="DirtyStateTextBlock"
+                        <TextBlock x:Name="DirtyStateTextBlock"
                                    Grid.Column="0"
                                    Text="Yadda saxlanılmamış dəyişikliklər var"
                                    Foreground="{StaticResource WarningTextBrush}"
