@@ -406,11 +406,13 @@ namespace LoginAppFramework
             var allAssets =
                 AppData.GetAssetsIncludingDeleted();
 
+            int currentAssetId = Asset?.Id ?? 0;
+
             var codeConflict =
                 AssetDuplicateDetector.FindCodeConflict(
                     allAssets,
                     AssetCodeTextBox.Text,
-                    Asset.Id);
+                    currentAssetId);
 
             if (codeConflict != null)
             {
@@ -424,7 +426,7 @@ namespace LoginAppFramework
                 AssetDuplicateDetector.FindSerialConflict(
                     allAssets,
                     SerialNumberTextBox.Text,
-                    Asset.Id);
+                    currentAssetId);
 
             if (serialConflict != null)
             {
@@ -450,17 +452,19 @@ namespace LoginAppFramework
             var allAssets =
                 AppData.GetAssetsIncludingDeleted();
 
+            int currentAssetId = Asset?.Id ?? 0;
+
             var codeConflict =
                 AssetDuplicateDetector.FindCodeConflict(
                     allAssets,
                     AssetCodeTextBox.Text,
-                    Asset.Id);
+                    currentAssetId);
 
             var serialConflict =
                 AssetDuplicateDetector.FindSerialConflict(
                     allAssets,
                     SerialNumberTextBox.Text,
-                    Asset.Id);
+                    currentAssetId);
 
             SetDuplicateWarning(
                 AssetCodeDuplicateWarning,
