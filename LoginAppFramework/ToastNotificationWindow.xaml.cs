@@ -1,5 +1,6 @@
 using System;
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Threading;
 
 namespace LoginAppFramework
@@ -7,36 +8,45 @@ namespace LoginAppFramework
     public partial class ToastNotificationWindow : Window
     {
         private readonly DispatcherTimer _timer;
+        private readonly Window _owner;
 
         public ToastNotificationWindow(
             Window owner,
             string message,
-            TimeSpan duration)
+            ToastType type,
+            TimeSpan duration,
+            string title = null)
         {
             InitializeComponent();
 
-            Owner = owner;
+            _owner = owner;
+            if (owner != null)
+                Owner = owner;
+
             MessageTextBlock.Text = message ?? string.Empty;
+            ApplyType(type, title);
 
             Loaded += (_, _) => PositionWindow();
             if (owner != null)
+            {
                 owner.LocationChanged += Owner_LocationChanged;
+                owner.SizeChanged += Owner_SizeChanged;
+            }
 
             _timer = new DispatcherTimer
             {
                 Interval = duration
             };
-            _timer.Tick += (_, _) =>
-            {
-                _timer.Stop();
-                Close();
-            };
+            _timer.Tick += (_, _) => CloseToast();
 
             Closed += (_, _) =>
             {
                 _timer.Stop();
-                if (owner != null)
-                    owner.LocationChanged -= Owner_LocationChanged;
+                if (_owner != null)
+                {
+                    _owner.LocationChanged -= Owner_LocationChanged;
+                    _owner.SizeChanged -= Owner_SizeChanged;
+                }
             };
         }
 
@@ -46,21 +56,80 @@ namespace LoginAppFramework
             _timer.Start();
         }
 
+        private void ApplyType(ToastType type, string title)
+        {
+            string surfaceKey;
+            string borderKey;
+            string textKey;
+
+            switch (type)
+            {
+                case ToastType.Success:
+                    IconVisual.Icon = AppIconKind.Success;
+                    TitleTextBlock.Text = title ?? "Uğurlu";
+                    surfaceKey = "SuccessSurfaceBrush";
+                    borderKey = "SuccessBorderBrush";
+                    textKey = "SuccessTextBrush";
+                    break;
+                case ToastType.Error:
+                    IconVisual.Icon = AppIconKind.Error;
+                    TitleTextBlock.Text = title ?? "Xəta";
+                    surfaceKey = "DangerSurfaceBrush";
+                    borderKey = "DangerBorderBrush";
+                    textKey = "DangerTextBrush";
+                    break;
+                case ToastType.Warning:
+                    IconVisual.Icon = AppIconKind.Warning;
+                    TitleTextBlock.Text = title ?? "Diqqət";
+                    surfaceKey = "WarningSurfaceBrush";
+                    borderKey = "WarningBorderBrush";
+                    textKey = "WarningTextBrush";
+                    break;
+                default:
+                    IconVisual.Icon = AppIconKind.Info;
+                    TitleTextBlock.Text = title ?? "Məlumat";
+                    surfaceKey = "InfoSurfaceBrush";
+                    borderKey = "InfoBorderBrush";
+                    textKey = "InfoTextBrush";
+                    break;
+            }
+
+            ToastBorder.Background = (Brush)FindResource(surfaceKey);
+            ToastBorder.BorderBrush = (Brush)FindResource(borderKey);
+            IconVisual.Foreground = (Brush)FindResource(textKey);
+        }
+
         private void Owner_LocationChanged(object sender, EventArgs e)
+            => PositionWindow();
+
+        private void Owner_SizeChanged(object sender, SizeChangedEventArgs e)
             => PositionWindow();
 
         private void PositionWindow()
         {
-            var owner = Owner;
-            if (owner == null)
+            if (_owner == null)
             {
                 Left = SystemParameters.WorkArea.Right - ActualWidth - 20;
                 Top = SystemParameters.WorkArea.Bottom - ActualHeight - 20;
                 return;
             }
 
-            Left = owner.Left + owner.ActualWidth - ActualWidth - 24;
-            Top = owner.Top + owner.ActualHeight - ActualHeight - 48;
+            Left = Math.Max(
+                _owner.Left + 16,
+                _owner.Left + _owner.ActualWidth - ActualWidth - 24);
+
+            Top = Math.Max(
+                _owner.Top + 16,
+                _owner.Top + _owner.ActualHeight - ActualHeight - 48);
+        }
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+            => CloseToast();
+
+        private void CloseToast()
+        {
+            _timer.Stop();
+            Close();
         }
     }
 }
