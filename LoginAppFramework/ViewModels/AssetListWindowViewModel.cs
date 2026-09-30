@@ -62,7 +62,17 @@ namespace LoginAppFramework
         }
 
         public void Refresh()
+            => RefreshCore(preserveFilters: false);
+
+        public void RefreshPreservingFilters()
+            => RefreshCore(preserveFilters: true);
+
+        private void RefreshCore(bool preserveFilters)
         {
+            var filterState = preserveFilters
+                ? AssetFilterState.Capture(Filters)
+                : null;
+
             foreach (var item in _allAssets)
                 item.PropertyChanged -= AssetCheckable_PropertyChanged;
 
@@ -79,6 +89,7 @@ namespace LoginAppFramework
 
             Filters = new AssetFilterViewModel();
             BuildColumnFilters();
+            filterState?.Restore(Filters);
             ApplyFilters();
 
             OnPropertyChanged(nameof(AllAssets));
@@ -349,6 +360,136 @@ namespace LoginAppFramework
             CompareOptions options)
             => !string.IsNullOrEmpty(value) &&
                compareInfo.IndexOf(value, search, options) >= 0;
+
+        private sealed class AssetFilterState
+        {
+            public string SearchText { get; init; }
+            public bool ShowOnlyUncategorized { get; init; }
+            public DateTime? PurchaseDateStart { get; init; }
+            public DateTime? PurchaseDateEnd { get; init; }
+            public HashSet<string> SelectedStatuses { get; init; }
+            public HashSet<string> SelectedDepartments { get; init; }
+            public List<string> SelectedCategoryPaths { get; init; }
+            public Dictionary<string, ColumnFilterSnapshot> ColumnFilters { get; init; }
+
+            public static AssetFilterState Capture(AssetFilterViewModel filters)
+            {
+                if (filters == null)
+                    return null;
+
+                var categoryPaths = new List<string>();
+                CaptureSelectedCategoryPaths(
+                    filters.CategoryTree,
+                    Array.Empty<string>(),
+                    categoryPaths);
+
+                return new AssetFilterState
+                {
+                    SearchText = filters.SearchText,
+                    ShowOnlyUncategorized = filters.ShowOnlyUncategorized,
+                    PurchaseDateStart = filters.PurchaseDateStart,
+                    PurchaseDateEnd = filters.PurchaseDateEnd,
+                    SelectedStatuses = filters.StatusOptions
+                        .Where(option => option.IsChecked)
+                        .Select(option => option.Value)
+                        .ToHashSet(StringComparer.OrdinalIgnoreCase),
+                    SelectedDepartments = filters.DepartmentOptions
+                        .Where(option => option.IsChecked)
+                        .Select(option => option.Value)
+                        .ToHashSet(StringComparer.OrdinalIgnoreCase),
+                    SelectedCategoryPaths = categoryPaths,
+                    ColumnFilters = filters.ColumnFilters
+                        .ToDictionary(
+                            pair => pair.Key,
+                            pair => pair.Value.CreateSnapshot(),
+                            StringComparer.OrdinalIgnoreCase)
+                };
+            }
+
+            public void Restore(AssetFilterViewModel filters)
+            {
+                if (filters == null)
+                    return;
+
+                filters.SearchText = SearchText ?? string.Empty;
+                filters.ShowOnlyUncategorized = ShowOnlyUncategorized;
+                filters.PurchaseDateStart = PurchaseDateStart;
+                filters.PurchaseDateEnd = PurchaseDateEnd;
+
+                foreach (var option in filters.StatusOptions)
+                    option.IsChecked = SelectedStatuses?.Contains(option.Value) == true;
+
+                foreach (var option in filters.DepartmentOptions)
+                    option.IsChecked = SelectedDepartments?.Contains(option.Value) == true;
+
+                foreach (string path in SelectedCategoryPaths ?? new List<string>())
+                    RestoreCategoryPath(filters.CategoryTree, path);
+
+                foreach (var pair in ColumnFilters ??
+                    new Dictionary<string, ColumnFilterSnapshot>())
+                {
+                    if (filters.ColumnFilters.TryGetValue(pair.Key, out var filter))
+                        filter.RestoreSnapshot(pair.Value);
+                }
+            }
+
+            private static void CaptureSelectedCategoryPaths(
+                IEnumerable<CategoryFilterNodeViewModel> nodes,
+                IReadOnlyList<string> prefix,
+                ICollection<string> result)
+            {
+                foreach (var node in nodes)
+                {
+                    var currentPath = prefix
+                        .Concat(new[] { node.Name })
+                        .ToList();
+
+                    if (node.IsChecked == true)
+                    {
+                        result.Add(string.Join("\u001F", currentPath));
+                        continue;
+                    }
+
+                    if (node.IsChecked == null)
+                    {
+                        CaptureSelectedCategoryPaths(
+                            node.Subcategories,
+                            currentPath,
+                            result);
+                    }
+                }
+            }
+
+            private static void RestoreCategoryPath(
+                IEnumerable<CategoryFilterNodeViewModel> roots,
+                string path)
+            {
+                if (string.IsNullOrWhiteSpace(path))
+                    return;
+
+                var parts = path.Split('\u001F');
+                IEnumerable<CategoryFilterNodeViewModel> currentLevel = roots;
+                CategoryFilterNodeViewModel current = null;
+
+                foreach (string part in parts)
+                {
+                    current = currentLevel.FirstOrDefault(node =>
+                        string.Equals(
+                            node.Name,
+                            part,
+                            StringComparison.OrdinalIgnoreCase));
+
+                    if (current == null)
+                        return;
+
+                    currentLevel = current.Subcategories;
+                }
+
+                if (current != null)
+                    current.IsChecked = true;
+            }
+        }
+
 
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
