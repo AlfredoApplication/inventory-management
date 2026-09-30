@@ -10,7 +10,8 @@
         Background="{StaticResource AppBackgroundBrush}"
         FontFamily="Segoe UI">
 
-    <Grid Margin="25">
+    <Border Style="{StaticResource SurfaceCardStyle}" Margin="24" Padding="24">
+        <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -21,8 +22,7 @@
 
         <TextBlock Grid.Row="0"
                    Text="Alış Tarixinə Görə Excel Hesabatı"
-                   FontSize="22"
-                   FontWeight="SemiBold"
+                   Style="{StaticResource PageTitleTextStyle}"
                    Foreground="{StaticResource PrimaryTextBrush}"
                    Margin="0,0,0,8"/>
 
@@ -34,10 +34,10 @@
 
         <Border Grid.Row="2"
                 Padding="16"
-                Background="#F7F9FC"
+                Background="{StaticResource SurfaceMutedBrush}"
                 BorderBrush="{StaticResource ControlBorderBrush}"
                 BorderThickness="1"
-                CornerRadius="8">
+                CornerRadius="10">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -139,5 +139,6 @@
                 Style="{StaticResource PrimaryActionButton}"
                 Padding="10"
                 Click="GenerateButton_Click"/>
-    </Grid>
+        </Grid>
+    </Border>
 </Window>
