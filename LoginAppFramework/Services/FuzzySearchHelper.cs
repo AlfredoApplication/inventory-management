@@ -67,7 +67,7 @@ namespace LoginAppFramework
                     if (lengthDelta > allowed)
                         continue;
 
-                    int distance = LevenshteinDistance(
+                    int distance = DamerauLevenshteinDistance(
                         term,
                         word,
                         allowed);
@@ -118,7 +118,7 @@ namespace LoginAppFramework
                 .Trim()
                 .ToLowerInvariant();
 
-        private static int LevenshteinDistance(
+        private static int DamerauLevenshteinDistance(
             string source,
             string target,
             int maximum)
@@ -129,40 +129,56 @@ namespace LoginAppFramework
             if (Math.Abs(source.Length - target.Length) > maximum)
                 return maximum + 1;
 
-            var previous = new int[target.Length + 1];
-            var current = new int[target.Length + 1];
+            int rows = source.Length + 1;
+            int columns = target.Length + 1;
+            var matrix = new int[rows, columns];
 
-            for (int j = 0; j <= target.Length; j++)
-                previous[j] = j;
+            for (int i = 0; i < rows; i++)
+                matrix[i, 0] = i;
 
-            for (int i = 1; i <= source.Length; i++)
+            for (int j = 0; j < columns; j++)
+                matrix[0, j] = j;
+
+            for (int i = 1; i < rows; i++)
             {
-                current[0] = i;
-                int rowMinimum = current[0];
+                int rowMinimum = int.MaxValue;
 
-                for (int j = 1; j <= target.Length; j++)
+                for (int j = 1; j < columns; j++)
                 {
                     int cost =
                         source[i - 1] == target[j - 1] ? 0 : 1;
 
-                    current[j] = Math.Min(
+                    int value = Math.Min(
                         Math.Min(
-                            current[j - 1] + 1,
-                            previous[j] + 1),
-                        previous[j - 1] + cost);
+                            matrix[i - 1, j] + 1,
+                            matrix[i, j - 1] + 1),
+                        matrix[i - 1, j - 1] + cost);
 
-                    rowMinimum = Math.Min(
-                        rowMinimum,
-                        current[j]);
+                    if (i > 1 &&
+                        j > 1 &&
+                        source[i - 1] == target[j - 2] &&
+                        source[i - 2] == target[j - 1])
+                    {
+                        value = Math.Min(
+                            value,
+                            matrix[i - 2, j - 2] + 1);
+                    }
+
+                    matrix[i, j] = value;
+                    rowMinimum = Math.Min(rowMinimum, value);
                 }
 
-                if (rowMinimum > maximum)
+                if (rowMinimum > maximum &&
+                    i > target.Length + maximum)
+                {
                     return maximum + 1;
-
-                (previous, current) = (current, previous);
+                }
             }
 
-            return previous[target.Length];
+            int result = matrix[source.Length, target.Length];
+            return result > maximum
+                ? maximum + 1
+                : result;
         }
     }
 }
