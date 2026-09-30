@@ -287,6 +287,7 @@ namespace LoginAppFramework
                         $"{affectedRows} qeyd yeniləndi."));
 
                 RefreshViewModelPreservingSelection();
+                ConnectionHealthService.ReportHrSuccess();
 
                 NotificationService.Success(
                     this,
@@ -294,6 +295,8 @@ namespace LoginAppFramework
             }
             catch (Exception ex)
             {
+                ConnectionHealthService.ReportHrFailure(ex);
+
                 NotificationService.Error(
                     this,
                     $"Sinxronizasiya zamanı xəta baş verdi:\n{ex.Message}");
