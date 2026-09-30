@@ -191,6 +191,14 @@ namespace LoginAppFramework
             object sender,
             KeyEventArgs e)
         {
+            if ((Keyboard.Modifiers & ModifierKeys.Control) != 0 &&
+                e.Key == Key.S)
+            {
+                e.Handled = true;
+                TrySaveAndClose();
+                return;
+            }
+
             if (e.Key != Key.Escape)
                 return;
 

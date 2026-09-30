@@ -249,6 +249,8 @@ namespace LoginAppFramework
 
         public static void SwitchUser()
         {
+            ConnectionHealthService.StopMonitoring();
+            ConnectionHealthService.ResetHrState();
             SessionManager.Logout();
 
             var loginWindow = new MainWindow();
@@ -281,6 +283,7 @@ namespace LoginAppFramework
         public static void ExitApplication()
         {
             _isShuttingDown = true;
+            ConnectionHealthService.StopMonitoring();
             SessionManager.Logout();
             Application.Current.Shutdown();
         }
@@ -288,6 +291,7 @@ namespace LoginAppFramework
         public static void RestartApplication()
         {
             _isShuttingDown = true;
+            ConnectionHealthService.StopMonitoring();
             SessionManager.Logout();
 
             Process.Start(

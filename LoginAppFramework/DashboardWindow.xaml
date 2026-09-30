@@ -8,6 +8,7 @@
         mc:Ignorable="d"
         Title="İdarə Paneli"
         Loaded="Window_Loaded"
+        PreviewKeyDown="Window_PreviewKeyDown"
         SizeChanged="Window_SizeChanged"
         WindowStartupLocation="CenterScreen"
         Style="{StaticResource MainScreenWindowStyle}">
@@ -90,6 +91,8 @@
                     </StackPanel>
                 </Grid>
             </Border>
+
+            <local:ConnectionStatusBannerControl DockPanel.Dock="Top"/>
 
             <Border DockPanel.Dock="Top"
                     Background="{StaticResource SurfaceMutedBrush}"

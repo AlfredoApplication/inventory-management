@@ -78,6 +78,8 @@
                 </Grid>
             </Border>
 
+            <local:ConnectionStatusBannerControl DockPanel.Dock="Top"/>
+
             <Border Style="{StaticResource SurfaceCardStyle}"
                     Margin="20"
                     Padding="0">

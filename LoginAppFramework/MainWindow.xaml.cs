@@ -116,6 +116,10 @@ namespace LoginAppFramework
                 }
 
                 await Task.Run(() => AppData.LoadAllData());
+
+                ConnectionHealthService.StartMonitoring();
+                _ = ConnectionHealthService.CheckDatabaseAsync();
+
                 await NavigationManager.GoToDashboard(this);
             }
             catch (Exception ex)

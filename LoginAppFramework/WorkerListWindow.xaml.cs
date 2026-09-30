@@ -287,6 +287,7 @@ namespace LoginAppFramework
                         $"{affectedRows} qeyd yeniləndi."));
 
                 RefreshViewModelPreservingSelection();
+                ConnectionHealthService.ReportHrSuccess();
 
                 NotificationService.Success(
                     this,
@@ -294,6 +295,8 @@ namespace LoginAppFramework
             }
             catch (Exception ex)
             {
+                ConnectionHealthService.ReportHrFailure(ex);
+
                 NotificationService.Error(
                     this,
                     $"Sinxronizasiya zamanı xəta baş verdi:\n{ex.Message}");
@@ -810,11 +813,58 @@ namespace LoginAppFramework
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.F)
+            bool control =
+                (Keyboard.Modifiers & ModifierKeys.Control) != 0;
+
+            if (control && e.Key == Key.F)
             {
                 SetFilterPanelVisibility(true);
                 SearchBox.Focus();
                 SearchBox.SelectAll();
+                e.Handled = true;
+                return;
+            }
+
+            if (control && e.Key == Key.K)
+            {
+                NavigationManager.GoToGlobalSearch(this);
+                e.Handled = true;
+                return;
+            }
+
+            if (control && e.Key == Key.N)
+            {
+                AddWorkerButton_Click(
+                    this,
+                    new RoutedEventArgs());
+
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.FocusedElement is TextBoxBase)
+                return;
+
+            var selected =
+                WorkersDataGrid.SelectedItem as WorkerViewModel;
+
+            if (control && e.Key == Key.E && selected != null)
+            {
+                EditSelectedWorker(selected);
+                e.Handled = true;
+                return;
+            }
+
+            if (e.Key == Key.Enter && selected != null)
+            {
+                OpenWorkerDetails(selected);
+                e.Handled = true;
+                return;
+            }
+
+            if (e.Key == Key.Delete && selected != null)
+            {
+                DeleteSelectedWorker(selected);
                 e.Handled = true;
                 return;
             }
@@ -826,6 +876,46 @@ namespace LoginAppFramework
                 CloseDetailPanel();
                 e.Handled = true;
             }
+        }
+
+        private void EditSelectedWorker(
+            WorkerViewModel selected)
+        {
+            if (selected == null)
+                return;
+
+            if (!SessionManager.CanEdit())
+            {
+                DialogService.Warning(
+                    this,
+                    "Giriş Qadağandır",
+                    "Bu əməliyyat üçün icazəniz yoxdur.");
+                return;
+            }
+
+            Manager_EditWorker(
+                this,
+                selected.GetModel());
+        }
+
+        private void DeleteSelectedWorker(
+            WorkerViewModel selected)
+        {
+            if (selected == null)
+                return;
+
+            if (!SessionManager.CanDelete())
+            {
+                DialogService.Warning(
+                    this,
+                    "Giriş Qadağandır",
+                    "Bu əməliyyat üçün icazəniz yoxdur.");
+                return;
+            }
+
+            Manager_DeleteWorker(
+                this,
+                selected.GetModel());
         }
 
         private void MenuButton_Click(object _, RoutedEventArgs e)

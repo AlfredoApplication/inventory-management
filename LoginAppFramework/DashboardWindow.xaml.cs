@@ -504,6 +504,18 @@ namespace LoginAppFramework
             filteredWindow.ShowDialog();
         }
 
+        private void Window_PreviewKeyDown(
+            object sender,
+            KeyEventArgs e)
+        {
+            if ((Keyboard.Modifiers & ModifierKeys.Control) != 0 &&
+                e.Key == Key.K)
+            {
+                NavigationManager.GoToGlobalSearch(this);
+                e.Handled = true;
+            }
+        }
+
         private void MenuButton_Click(object _, RoutedEventArgs e)
             => SharedNavigationMenu.Open();
     }

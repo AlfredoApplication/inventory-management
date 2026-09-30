@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Threading;
 using System.Windows;
 using LoginAppFramework;
@@ -708,6 +710,58 @@ public class Phase10PrintReportRegressionTests
     }
 }
 
+public class Phase10DiagnosticsRegressionTests
+{
+    [Fact]
+    public void DiagnosticPackage_CreatesSanitizedSupportArchive()
+    {
+        string path = Path.Combine(
+            Path.GetTempPath(),
+            $"inventory-diagnostics-{Guid.NewGuid():N}.zip");
+
+        try
+        {
+            DiagnosticService.Initialize();
+            DiagnosticService.Log(
+                "Test",
+                "Regression diagnostic entry.");
+
+            DiagnosticService.ExportPackage(
+                path,
+                new InvalidOperationException("Regression failure"),
+                "Automated test");
+
+            Assert.True(File.Exists(path));
+
+            using var archive = ZipFile.OpenRead(path);
+
+            Assert.Contains(
+                archive.Entries,
+                entry => entry.FullName == "environment.json");
+
+            Assert.Contains(
+                archive.Entries,
+                entry => entry.FullName == "application.log");
+
+            Assert.Contains(
+                archive.Entries,
+                entry => entry.FullName == "exception.txt");
+
+            Assert.DoesNotContain(
+                archive.Entries,
+                entry =>
+                    entry.FullName.Contains(
+                        "settings",
+                        StringComparison.OrdinalIgnoreCase));
+        }
+        finally
+        {
+            if (File.Exists(path))
+                File.Delete(path);
+        }
+    }
+}
+
 [CollectionDefinition("WPF smoke tests", DisableParallelization = true)]
 public sealed class WpfSmokeTestCollection
 {
@@ -775,6 +829,9 @@ public class WpfXamlSmokeTests
                         }),
                     new NotificationCenterWindow(),
                     new RecycleBinWindow(),
+                    new CrashReportWindow(
+                        new InvalidOperationException("Smoke test"),
+                        "WPF smoke"),
                     new PrintQrCodesWindow(
                         new List<Asset>
                         {
@@ -788,7 +845,8 @@ public class WpfXamlSmokeTests
 
                 var controls = new object[]
                 {
-                    new HighlightTextBlock()
+                    new HighlightTextBlock(),
+                    new ConnectionStatusBannerControl()
                 };
 
                 foreach (var window in windows)

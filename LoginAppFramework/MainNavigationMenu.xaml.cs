@@ -1,3 +1,4 @@
+using Microsoft.Win32;
 using System;
 using System.Threading.Tasks;
 using System.Windows;
@@ -32,14 +33,22 @@ namespace LoginAppFramework
                 UpdateUserDisplay();
                 UpdateActiveButton();
                 UpdateNotificationBadge();
+                UpdateConnectionStatus();
+
                 NotificationCenterService.Changed +=
                     NotificationCenterService_Changed;
+
+                ConnectionHealthService.Changed +=
+                    ConnectionHealthService_Changed;
             };
 
             Unloaded += (_, _) =>
             {
                 NotificationCenterService.Changed -=
                     NotificationCenterService_Changed;
+
+                ConnectionHealthService.Changed -=
+                    ConnectionHealthService_Changed;
             };
         }
 
@@ -50,6 +59,7 @@ namespace LoginAppFramework
             UpdateUserDisplay();
             UpdateActiveButton();
             UpdateNotificationBadge();
+            UpdateConnectionStatus();
             UserPopup.IsOpen = false;
             Visibility = Visibility.Visible;
 
@@ -89,6 +99,168 @@ namespace LoginAppFramework
         {
             if (d is MainNavigationMenu menu && menu.IsLoaded)
                 menu.UpdateActiveButton();
+        }
+
+        private void ConnectionHealthService_Changed(
+            object sender,
+            EventArgs e)
+        {
+            if (Dispatcher.CheckAccess())
+                UpdateConnectionStatus();
+            else
+                Dispatcher.BeginInvoke(
+                    new Action(UpdateConnectionStatus));
+        }
+
+        private void UpdateConnectionStatus()
+        {
+            if (DatabaseStatusText == null ||
+                HrStatusText == null ||
+                DatabaseStatusDot == null ||
+                HrStatusDot == null)
+            {
+                return;
+            }
+
+            var success =
+                (Brush)FindResource("SuccessTextBrush");
+
+            var warning =
+                (Brush)FindResource("WarningTextBrush");
+
+            var danger =
+                (Brush)FindResource("DangerTextBrush");
+
+            var subtle =
+                (Brush)FindResource("SubtleTextBrush");
+
+            switch (ConnectionHealthService.DatabaseState)
+            {
+                case ConnectionHealthState.Online:
+                    DatabaseStatusText.Text = "DB: onlayn";
+                    DatabaseStatusText.Foreground = success;
+                    DatabaseStatusDot.Fill = success;
+                    break;
+
+                case ConnectionHealthState.Offline:
+                    DatabaseStatusText.Text = "DB: bağlantı yoxdur";
+                    DatabaseStatusText.Foreground = danger;
+                    DatabaseStatusDot.Fill = danger;
+                    break;
+
+                case ConnectionHealthState.Checking:
+                    DatabaseStatusText.Text = "DB: yoxlanılır";
+                    DatabaseStatusText.Foreground = warning;
+                    DatabaseStatusDot.Fill = warning;
+                    break;
+
+                default:
+                    DatabaseStatusText.Text = "DB: naməlum";
+                    DatabaseStatusText.Foreground = subtle;
+                    DatabaseStatusDot.Fill = subtle;
+                    break;
+            }
+
+            switch (ConnectionHealthService.HrState)
+            {
+                case ConnectionHealthState.Online:
+                    HrStatusText.Text = "HR: əlçatandır";
+                    HrStatusText.Foreground = success;
+                    HrStatusDot.Fill = success;
+                    break;
+
+                case ConnectionHealthState.Offline:
+                    HrStatusText.Text = "HR: əlçatan deyil";
+                    HrStatusText.Foreground = danger;
+                    HrStatusDot.Fill = danger;
+                    break;
+
+                default:
+                    HrStatusText.Text = "HR: yoxlanmayıb";
+                    HrStatusText.Foreground = subtle;
+                    HrStatusDot.Fill = subtle;
+                    break;
+            }
+
+            string dbChecked =
+                ConnectionHealthService.DatabaseCheckedAt?
+                    .ToString("HH:mm:ss")
+                ?? "—";
+
+            string hrChecked =
+                ConnectionHealthService.HrCheckedAt?
+                    .ToString("HH:mm:ss")
+                ?? "—";
+
+            ConnectionStatusPanel.ToolTip =
+                $"DB son yoxlama: {dbChecked}\nHR son yoxlama: {hrChecked}";
+        }
+
+        private async void RetryConnectionButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            RetryConnectionButton.IsEnabled = false;
+
+            try
+            {
+                bool online =
+                    await ConnectionHealthService.CheckDatabaseAsync();
+
+                if (online)
+                {
+                    NotificationService.Success(
+                        OwnerWindow,
+                        "Verilənlər bazası bağlantısı aktivdir.",
+                        title: "Bağlantı");
+                }
+                else
+                {
+                    NotificationService.Warning(
+                        OwnerWindow,
+                        "Verilənlər bazasına qoşulmaq mümkün olmadı.",
+                        title: "Bağlantı");
+                }
+            }
+            finally
+            {
+                RetryConnectionButton.IsEnabled = true;
+            }
+        }
+
+        private void ExportDiagnosticsButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            var dialog = new SaveFileDialog
+            {
+                Filter = "ZIP arxiv|*.zip",
+                Title = "Diaqnostika paketini yadda saxla",
+                FileName =
+                    $"Inventory_Diagnostics_{DateTime.Now:yyyyMMdd_HHmmss}.zip"
+            };
+
+            if (dialog.ShowDialog(OwnerWindow) != true)
+                return;
+
+            try
+            {
+                DiagnosticService.ExportPackage(
+                    dialog.FileName,
+                    context: "Manual diagnostic export");
+
+                NotificationService.Success(
+                    OwnerWindow,
+                    "Diaqnostika paketi yaradıldı.",
+                    title: "Diaqnostika");
+            }
+            catch (Exception ex)
+            {
+                NotificationService.Error(
+                    OwnerWindow,
+                    $"Diaqnostika paketi yaradıla bilmədi: {ex.Message}",
+                    title: "Diaqnostika");
+            }
         }
 
         private void NotificationCenterService_Changed(
