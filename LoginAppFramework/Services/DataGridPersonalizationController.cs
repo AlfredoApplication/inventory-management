@@ -322,6 +322,12 @@ namespace LoginAppFramework
         {
             public Dictionary<string, Dictionary<string, List<GridColumnState>>> Users { get; set; }
                 = new(StringComparer.OrdinalIgnoreCase);
+
+            public Dictionary<string, Dictionary<string, double>> Scalars { get; set; }
+                = new(StringComparer.OrdinalIgnoreCase);
+
+            public Dictionary<string, Dictionary<string, List<string>>> StringLists { get; set; }
+                = new(StringComparer.OrdinalIgnoreCase);
         }
 
         public static List<GridColumnState> LoadGridLayout(string layoutKey)
@@ -369,6 +375,98 @@ namespace LoginAppFramework
             }
         }
 
+        public static double? LoadScalar(string key)
+        {
+            lock (Sync)
+            {
+                var root = LoadRoot();
+                string userKey = CurrentUserKey();
+
+                if (root.Scalars.TryGetValue(userKey, out var values) &&
+                    values.TryGetValue(key, out double value))
+                {
+                    return value;
+                }
+
+                return null;
+            }
+        }
+
+        public static void SaveScalar(string key, double value)
+        {
+            lock (Sync)
+            {
+                try
+                {
+                    var root = LoadRoot();
+                    string userKey = CurrentUserKey();
+
+                    if (!root.Scalars.TryGetValue(userKey, out var values))
+                    {
+                        values = new Dictionary<string, double>(
+                            StringComparer.OrdinalIgnoreCase);
+                        root.Scalars[userKey] = values;
+                    }
+
+                    values[key] = value;
+                    SaveRoot(root);
+                }
+                catch
+                {
+                    // Preferences are best-effort.
+                }
+            }
+        }
+
+        public static List<string> LoadStringList(string key)
+        {
+            lock (Sync)
+            {
+                var root = LoadRoot();
+                string userKey = CurrentUserKey();
+
+                if (root.StringLists.TryGetValue(userKey, out var lists) &&
+                    lists.TryGetValue(key, out var values))
+                {
+                    return values?.ToList() ?? new List<string>();
+                }
+
+                return new List<string>();
+            }
+        }
+
+        public static void SaveStringList(string key, IEnumerable<string> values)
+        {
+            lock (Sync)
+            {
+                try
+                {
+                    var root = LoadRoot();
+                    string userKey = CurrentUserKey();
+
+                    if (!root.StringLists.TryGetValue(userKey, out var lists))
+                    {
+                        lists = new Dictionary<string, List<string>>(
+                            StringComparer.OrdinalIgnoreCase);
+                        root.StringLists[userKey] = lists;
+                    }
+
+                    lists[key] = values?
+                        .Where(value => !string.IsNullOrWhiteSpace(value))
+                        .Select(value => value.Trim())
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .ToList()
+                        ?? new List<string>();
+
+                    SaveRoot(root);
+                }
+                catch
+                {
+                    // Preferences are best-effort.
+                }
+            }
+        }
+
         public static void RemoveGridLayout(string layoutKey)
         {
             lock (Sync)
@@ -403,8 +501,22 @@ namespace LoginAppFramework
                     return new PreferenceRoot();
 
                 string json = File.ReadAllText(FilePath);
-                return JsonSerializer.Deserialize<PreferenceRoot>(json)
+                var root = JsonSerializer.Deserialize<PreferenceRoot>(json)
                     ?? new PreferenceRoot();
+
+                root.Users ??=
+                    new Dictionary<string, Dictionary<string, List<GridColumnState>>>(
+                        StringComparer.OrdinalIgnoreCase);
+
+                root.Scalars ??=
+                    new Dictionary<string, Dictionary<string, double>>(
+                        StringComparer.OrdinalIgnoreCase);
+
+                root.StringLists ??=
+                    new Dictionary<string, Dictionary<string, List<string>>>(
+                        StringComparer.OrdinalIgnoreCase);
+
+                return root;
             }
             catch
             {
