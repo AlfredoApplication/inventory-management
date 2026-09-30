@@ -60,7 +60,10 @@ namespace LoginAppFramework
         {
             if (_isReadOnlyMode)
             {
-                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                DialogService.Warning(
+                    Window.GetWindow(this),
+                    "Giriş Qadağandır",
+                    "Bu əməliyyat üçün icazəniz yoxdur.");
                 return;
             }
 
@@ -72,7 +75,10 @@ namespace LoginAppFramework
             if (_isReadOnlyMode)
             {
                 // Allow viewing but show message that editing is not allowed
-                MessageBox.Show("Yalnız baxış rejimində redaktə edə bilməzsiniz.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Information);
+                DialogService.Info(
+                    Window.GetWindow(this),
+                    "Giriş Qadağandır",
+                    "Yalnız baxış rejimində redaktə edə bilməzsiniz.");
                 return;
             }
 
@@ -175,7 +181,10 @@ namespace LoginAppFramework
         {
             if (_isReadOnlyMode)
             {
-                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                DialogService.Warning(
+                    Window.GetWindow(this),
+                    "Giriş Qadağandır",
+                    "Bu əməliyyat üçün icazəniz yoxdur.");
                 return;
             }
 
@@ -193,13 +202,25 @@ namespace LoginAppFramework
         {
             if (_isReadOnlyMode)
             {
-                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                DialogService.Warning(
+                    Window.GetWindow(this),
+                    "Giriş Qadağandır",
+                    "Bu əməliyyat üçün icazəniz yoxdur.");
                 return;
             }
 
-            if (_currentAsset != null &&
-                MessageBox.Show($"'{_currentAsset.AssignedUser}' adlı işçidən təhkimi ləğv etməyə əminsinizmi?", "Təsdiq", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            if (_currentAsset != null)
             {
+                bool confirm = DialogService.Confirm(
+                    Window.GetWindow(this),
+                    "Təhkimatı Ləğv Et",
+                    $"'{_currentAsset.AssignedUser}' adlı işçidən təhkimi ləğv etməyə əminsinizmi?",
+                    "Təhkimatı ləğv et",
+                    "Geri qayıt");
+
+                if (!confirm)
+                    return;
+
                 AppServices.Assets.Unassign(_currentAsset, "Vəsait detalları");
                 OnAssignmentChanged?.Invoke(this, EventArgs.Empty);
             }
@@ -209,24 +230,28 @@ namespace LoginAppFramework
         {
             if (_currentAsset == null) return;
 
-            var result = MessageBox.Show(
-                $"'{_currentAsset.VesaitinAdi}' adlı vəsaiti arxivləşdirməyə əminsinizmi? Vəsait qeyri-aktiv olacaq və əsas siyahıda görünməyəcək.",
+            bool result = DialogService.Confirm(
+                Window.GetWindow(this),
                 "Arxivləməni Təsdiq Et",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
+                $"'{_currentAsset.VesaitinAdi}' adlı vəsaiti arxivləşdirməyə əminsinizmi? Vəsait qeyri-aktiv olacaq və əsas siyahıda görünməyəcək.",
+                "Arxivlə",
+                "Ləğv et");
 
-            if (result == MessageBoxResult.Yes)
-            {
-                AppServices.Assets.Archive(_currentAsset, "Arxiv");
-                OnAssignmentChanged?.Invoke(this, EventArgs.Empty);
-            }
+            if (!result)
+                return;
+
+            AppServices.Assets.Archive(_currentAsset, "Arxiv");
+            OnAssignmentChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private void DeleteAssetButton_Click(object sender, RoutedEventArgs e)
         {
             if (_isReadOnlyMode)
             {
-                MessageBox.Show("Bu əməliyyat üçün icazəniz yoxdur.", "Giriş Qadağandır", MessageBoxButton.OK, MessageBoxImage.Warning);
+                DialogService.Warning(
+                    Window.GetWindow(this),
+                    "Giriş Qadağandır",
+                    "Bu əməliyyat üçün icazəniz yoxdur.");
                 return;
             }
 
