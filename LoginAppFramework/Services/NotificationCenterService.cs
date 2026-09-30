@@ -317,8 +317,12 @@ namespace LoginAppFramework
 
                 string json = File.ReadAllText(FilePath);
 
-                return JsonSerializer.Deserialize<NotificationRoot>(json)
+                var root =
+                    JsonSerializer.Deserialize<NotificationRoot>(json)
                     ?? new NotificationRoot();
+
+                root.Items ??= new List<NotificationCenterItem>();
+                return root;
             }
             catch
             {
