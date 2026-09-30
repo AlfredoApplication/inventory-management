@@ -51,6 +51,7 @@
             <SolidColorBrush x:Key="InfoBorderBrush" Color="#93C5FD" />
             <SolidColorBrush x:Key="InfoTextBrush" Color="#1D4ED8" />
             <SolidColorBrush x:Key="MenuSuccessTextBrush" Color="#A7F3D0" />
+            <Color x:Key="ShadowColor">#000000</Color>
 
             <!-- ================================================================ -->
             <!-- ==          SURFACES & EFFECTS                                == -->
