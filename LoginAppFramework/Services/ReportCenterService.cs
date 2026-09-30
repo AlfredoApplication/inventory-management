@@ -338,53 +338,44 @@ namespace LoginAppFramework
 
                             table.Header(header =>
                             {
-                                HeaderCell(header, "Kod");
-                                HeaderCell(header, "Vəsait");
-                                HeaderCell(header, "Kateqoriya");
-                                HeaderCell(header, "Əməkdaş");
-                                HeaderCell(header, "Departament");
-                                HeaderCell(header, "Status");
-                                HeaderCell(header, "Alış tarixi");
-                                HeaderCell(header, "Cari dəyər");
+                                header.Cell().Element(HeaderCellStyle).Text("Kod").FontColor(Colors.White).SemiBold();
+                                header.Cell().Element(HeaderCellStyle).Text("Vəsait").FontColor(Colors.White).SemiBold();
+                                header.Cell().Element(HeaderCellStyle).Text("Kateqoriya").FontColor(Colors.White).SemiBold();
+                                header.Cell().Element(HeaderCellStyle).Text("Əməkdaş").FontColor(Colors.White).SemiBold();
+                                header.Cell().Element(HeaderCellStyle).Text("Departament").FontColor(Colors.White).SemiBold();
+                                header.Cell().Element(HeaderCellStyle).Text("Status").FontColor(Colors.White).SemiBold();
+                                header.Cell().Element(HeaderCellStyle).Text("Alış tarixi").FontColor(Colors.White).SemiBold();
+                                header.Cell().Element(HeaderCellStyle).Text("Cari dəyər").FontColor(Colors.White).SemiBold();
                             });
 
                             foreach (var asset in assets)
                             {
-                                BodyCell(
-                                    table,
-                                    asset.VesaitinKodu ?? "—");
+                                table.Cell().Element(BodyCellStyle)
+                                    .Text(asset.VesaitinKodu ?? "—");
 
-                                BodyCell(
-                                    table,
-                                    asset.VesaitinAdi ?? "—");
+                                table.Cell().Element(BodyCellStyle)
+                                    .Text(asset.VesaitinAdi ?? "—");
 
-                                BodyCell(
-                                    table,
-                                    asset.Kateqoriya ?? "—");
+                                table.Cell().Element(BodyCellStyle)
+                                    .Text(asset.Kateqoriya ?? "—");
 
-                                BodyCell(
-                                    table,
-                                    asset.AssignedUser ?? "—");
+                                table.Cell().Element(BodyCellStyle)
+                                    .Text(asset.AssignedUser ?? "—");
 
-                                BodyCell(
-                                    table,
-                                    asset.Department ?? "—");
+                                table.Cell().Element(BodyCellStyle)
+                                    .Text(asset.Department ?? "—");
 
-                                BodyCell(
-                                    table,
-                                    asset.Status ?? "—");
+                                table.Cell().Element(BodyCellStyle)
+                                    .Text(asset.Status ?? "—");
 
-                                BodyCell(
-                                    table,
-                                    asset.PurchaseDate >
-                                        DateTime.MinValue
-                                        ? asset.PurchaseDate
-                                            .ToString("dd.MM.yyyy")
-                                        : "—");
+                                table.Cell().Element(BodyCellStyle)
+                                    .Text(
+                                        asset.PurchaseDate > DateTime.MinValue
+                                            ? asset.PurchaseDate.ToString("dd.MM.yyyy")
+                                            : "—");
 
-                                BodyCell(
-                                    table,
-                                    $"{asset.CurrentValue:N2} ₼");
+                                table.Cell().Element(BodyCellStyle)
+                                    .Text($"{asset.CurrentValue:N2} ₼");
                             }
                         });
 
@@ -408,25 +399,19 @@ namespace LoginAppFramework
                     "PDF faylı diskə yazıldı."));
         }
 
-        private static void HeaderCell(
-            TableCellDescriptor header,
-            string text)
-            => header.Cell()
+        private static IContainer HeaderCellStyle(
+            IContainer container)
+            => container
                 .Background(Colors.Blue.Darken2)
-                .Padding(5)
-                .Text(text)
-                .FontColor(Colors.White)
-                .SemiBold();
+                .Padding(5);
 
-        private static void BodyCell(
-            TableDescriptor table,
-            string text)
-            => table.Cell()
+        private static IContainer BodyCellStyle(
+            IContainer container)
+            => container
                 .BorderBottom(0.5f)
                 .BorderColor(Colors.Grey.Lighten2)
                 .PaddingVertical(4)
-                .PaddingHorizontal(3)
-                .Text(text ?? string.Empty);
+                .PaddingHorizontal(3);
 
         public static IReadOnlyList<RecentReportEntry> LoadRecent()
         {
