@@ -67,11 +67,10 @@ namespace LoginAppFramework
                 _purchaseDateTo.HasValue &&
                 _purchaseDateFrom.Value > _purchaseDateTo.Value)
             {
-                MessageBox.Show(
-                    "Başlanğıc tarixi son tarixdən böyük ola bilməz.",
+                DialogService.Warning(
+                    this,
                     "Tarix Filtri",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
+                    "Başlanğıc tarixi son tarixdən böyük ola bilməz.");
                 return;
             }
 
@@ -102,13 +101,18 @@ namespace LoginAppFramework
                 StatusTextBlock.Text =
                     $"{exportedCount} vəsait hesabatına daxil edildi.";
 
-                var result = MessageBox.Show(
-                    $"{exportedCount} vəsait Excel hesabatına çıxarıldı.\n\nFaylı indi açmaq istəyirsinizmi?",
-                    "Excel Hesabatı Hazırdır",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Information);
+                NotificationService.Success(
+                    this,
+                    $"{exportedCount} vəsait Excel hesabatına çıxarıldı.");
 
-                if (result == MessageBoxResult.Yes)
+                bool result = DialogService.Confirm(
+                    this,
+                    "Excel Hesabatı Hazırdır",
+                    "Faylı indi açmaq istəyirsinizmi?",
+                    "Faylı aç",
+                    "Bağla");
+
+                if (result)
                 {
                     Process.Start(
                         new ProcessStartInfo(saveFileDialog.FileName)
@@ -121,11 +125,10 @@ namespace LoginAppFramework
             {
                 StatusTextBlock.Text = string.Empty;
 
-                MessageBox.Show(
-                    $"Excel hesabatı yaradılarkən xəta baş verdi: {ex.Message}",
+                DialogService.Error(
+                    this,
                     "Xəta",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                    $"Excel hesabatı yaradılarkən xəta baş verdi: {ex.Message}");
             }
             finally
             {
