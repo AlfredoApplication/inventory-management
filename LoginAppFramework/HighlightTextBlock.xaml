@@ -1,0 +1,8 @@
+<UserControl x:Class="LoginAppFramework.HighlightTextBlock"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="Transparent">
+    <TextBlock x:Name="DisplayTextBlock"
+               TextWrapping="NoWrap"
+               TextTrimming="CharacterEllipsis"/>
+</UserControl>
