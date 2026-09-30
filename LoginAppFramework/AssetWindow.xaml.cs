@@ -431,7 +431,34 @@ namespace LoginAppFramework
                 Owner = this
             };
 
-            if (editWindow.ShowDialog() != true) return;
+            if (editWindow.ShowDialog() != true)
+                return;
+
+            var preview =
+                BulkActionPreviewBuilder.ForEdit(
+                    checkedAssets,
+                    editWindow.Changes);
+
+            if (preview.Changes.Count == 0)
+            {
+                NotificationService.Info(
+                    this,
+                    "Dəyişiklik üçün yeni dəyər seçilməyib.",
+                    title: "Toplu Redaktə");
+                return;
+            }
+
+            var previewWindow = new BulkActionPreviewWindow(preview)
+            {
+                Owner = this
+            };
+
+            if (previewWindow.ShowDialog() != true)
+                return;
+
+            var snapshots = checkedAssets
+                .Select(asset => asset.Clone())
+                .ToList();
 
             try
             {
@@ -441,29 +468,26 @@ namespace LoginAppFramework
 
                 if (result.UpdatedCount > 0)
                 {
-                    NotificationService.Success(
+                    NotificationService.Undo(
                         this,
-                        $"{result.UpdatedCount} vəsait dəyişdirildi.");
+                        $"{result.UpdatedCount} vəsait dəyişdirildi.",
+                        () => RestoreAssetSnapshots(
+                            snapshots,
+                            "Toplu dəyişiklik geri qaytarıldı."));
                 }
 
                 if (result.SkippedStatusAssets.Count > 0)
                 {
                     string skippedNames = string.Join(
                         "\n",
-                        result.SkippedStatusAssets.Select(a => $"- {a.VesaitinAdi}"));
+                        result.SkippedStatusAssets
+                            .Take(15)
+                            .Select(a => $"- {a.VesaitinAdi}"));
 
                     DialogService.Warning(
                         this,
                         "Status Dəyişikliyi Ötürüldü",
                         $"{result.SkippedStatusAssets.Count} vəsaitin statusu dəyişdirilmədi, çünki onlar işçiyə təhkim olunub və 'İstifadədədir' statusunda qalmalıdırlar:\n\n{skippedNames}");
-                }
-
-                if (result.UpdatedCount == 0 &&
-                    result.SkippedStatusAssets.Count == 0)
-                {
-                    NotificationService.Success(
-                        this,
-                        "Dəyişiklik üçün yeni dəyər seçilməyib.");
                 }
             }
             catch (Exception ex)
@@ -496,29 +520,73 @@ namespace LoginAppFramework
                 return;
             }
 
-            var selectWindow = new SelectWorkerWindow(_viewModel.Workers.ToList()) { Owner = this };
-            if (selectWindow.ShowDialog() == true)
+            var selectWindow =
+                new SelectWorkerWindow(_viewModel.Workers.ToList())
+                {
+                    Owner = this
+                };
+
+            if (selectWindow.ShowDialog() != true ||
+                selectWindow.SelectedWorker == null)
             {
-                Worker newWorker = selectWindow.SelectedWorker;
+                return;
+            }
 
-                try
-                {
-                    _viewModel.AssignCheckedAssets(newWorker);
-                    RefreshDataAndSelection();
+            Worker newWorker = selectWindow.SelectedWorker;
 
-                    NotificationService.Success(
-                        this,
-                        $"{checkedAssets.Count} vəsait {newWorker.per_adiper_soyadi} adlı işçiyə təhkim edildi.");
-                }
-                catch (Exception ex)
-                {
-                    DialogService.Error(
-                        this,
-                        "Xəta",
-                        $"Toplu təhkim zamanı xəta baş verdi:\n\n{ex.Message}");
-                }
+            var preview = BulkActionPreviewBuilder.ForAssignment(
+                checkedAssets,
+                newWorker);
+
+            var previewWindow = new BulkActionPreviewWindow(preview)
+            {
+                Owner = this
+            };
+
+            if (previewWindow.ShowDialog() != true)
+                return;
+
+            var snapshots = checkedAssets
+                .Select(asset => asset.Clone())
+                .ToList();
+
+            try
+            {
+                _viewModel.AssignCheckedAssets(newWorker);
+                RefreshDataAndSelection();
+
+                NotificationService.Undo(
+                    this,
+                    $"{checkedAssets.Count} vəsait {newWorker.per_adiper_soyadi} adlı işçiyə təhkim edildi.",
+                    () => RestoreAssetSnapshots(
+                        snapshots,
+                        "Toplu təhkimat geri qaytarıldı."));
+            }
+            catch (Exception ex)
+            {
+                DialogService.Error(
+                    this,
+                    "Xəta",
+                    $"Toplu təhkim zamanı xəta baş verdi:\n\n{ex.Message}");
             }
         }
+        private void RestoreAssetSnapshots(
+            IReadOnlyList<Asset> snapshots,
+            string successMessage)
+        {
+            if (snapshots == null || snapshots.Count == 0)
+                return;
+
+            foreach (var snapshot in snapshots)
+                AppServices.Assets.Save(snapshot);
+
+            RefreshDataAndSelection();
+
+            NotificationService.Success(
+                this,
+                successMessage);
+        }
+
         #endregion
 
         #region Filtering and Data Logic
