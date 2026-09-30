@@ -24,11 +24,15 @@ namespace LoginAppFramework
 
             if (viewModels.Any(vm => vm.IsUnmapped))
             {
-                if (MessageBox.Show("Hələ uyğunlaşdırılmamış işçilər var. Bu işçilərə təhkim edilmiş vəsaitlər təhkimsiz import olunacaq. Davam edilsin?",
-                    "Natamam uyğunlaşdırma", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No)
-                {
+                bool confirm = DialogService.Confirm(
+                    this,
+                    "Natamam uyğunlaşdırma",
+                    "Hələ uyğunlaşdırılmamış işçilər var. Bu işçilərə təhkim edilmiş vəsaitlər təhkimsiz import olunacaq. Davam edilsin?",
+                    "Davam et",
+                    "Geri qayıt");
+
+                if (!confirm)
                     return;
-                }
             }
 
             // We now build a dictionary of the confirmed mappings to send back.
