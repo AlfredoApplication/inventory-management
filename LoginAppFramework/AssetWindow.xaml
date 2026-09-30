@@ -16,6 +16,20 @@
         <local:InvertedBooleanConverter x:Key="InvertedBooleanConverter"/>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <Style TargetType="{x:Type DataGridRow}" BasedOn="{StaticResource {x:Type DataGridRow}}">
+            <Setter Property="ContextMenu">
+                <Setter.Value>
+                    <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                        <MenuItem Header="Detalları aç" Click="OpenAssetDetailsContext_Click"/>
+                        <MenuItem Header="Redaktə et" Click="EditAssetContext_Click"/>
+                        <Separator/>
+                        <MenuItem Header="Vəsait kodunu kopyala" Click="CopyAssetCodeContext_Click"/>
+                        <MenuItem Header="Seriya nömrəsini kopyala" Click="CopyAssetSerialContext_Click"/>
+                        <Separator/>
+                        <MenuItem Header="İşçiyə təhkim et..." Click="AssignAssetContext_Click"/>
+                        <MenuItem Header="Barkod çap et" Click="PrintAssetBarcodeContext_Click"/>
+                    </ContextMenu>
+                </Setter.Value>
+            </Setter>
             <Style.Triggers>
                 <Trigger Property="AlternationIndex" Value="1">
                     <Setter Property="Background" Value="{StaticResource RowAlternateBrush}" />
@@ -61,6 +75,10 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <Button x:Name="ColumnsButton"
+                                Content="Sütunlar"
+                                Margin="0,0,10,0"
+                                ToolTip="Görünən sütunları seçin və görünüşü sıfırlayın"/>
                         <Button x:Name="FilterPanelToggleButton"
                                 Content="Filtrləri Gizlət"
                                 Click="ToggleFilterPanelButton_Click"
@@ -182,19 +200,18 @@
                             </Button>
                         </StackPanel>
                     </Border>
-                    <DataGrid Grid.Row="2" x:Name="AssetsDataGrid" ItemsSource="{Binding VisibleAssets}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Extended" SelectionChanged="AssetsDataGrid_SelectionChanged" AlternationCount="2">
-                        <DataGrid.Resources>
-                            <ContextMenu x:Key="CellContextMenu">
-                                <MenuItem Header="Kopyala" Click="CopyCellContent_Click"/>
-                            </ContextMenu>
-                        </DataGrid.Resources>
-                        <DataGrid.CellStyle>
-                            <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
-                                <Setter Property="ContextMenu" Value="{StaticResource CellContextMenu}"/>
-                            </Style>
-                        </DataGrid.CellStyle>
+                    <DataGrid Grid.Row="2"
+                              x:Name="AssetsDataGrid"
+                              ItemsSource="{Binding VisibleAssets}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              SelectionMode="Extended"
+                              SelectionChanged="AssetsDataGrid_SelectionChanged"
+                              MouseDoubleClick="AssetsDataGrid_MouseDoubleClick"
+                              FrozenColumnCount="1"
+                              AlternationCount="2">
                         <DataGrid.Columns>
-                            <DataGridTemplateColumn Width="Auto">
+                            <DataGridTemplateColumn Width="Auto" CanUserReorder="False" CanUserResize="False">
                                 <DataGridTemplateColumn.Header>
                                     <CheckBox x:Name="SelectAllCheckBox"
                                               Content="Seç"

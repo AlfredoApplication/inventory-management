@@ -20,7 +20,22 @@ namespace LoginAppFramework
         private AssetCheckableViewModel _selectedAssetVM;
         private int? _assetIdToSelectOnLoad;
         private readonly DispatcherTimer _selectionTimer;
+        private DataGridPersonalizationController _gridPersonalization;
         private bool _suppressSelectionChange;
+
+        private static readonly IReadOnlyDictionary<string, string> AssetColumnLabels =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["VesaitinKodu"] = "Vəsaitin Kodu",
+                ["VesaitinAdi"] = "Vəsaitin Adı",
+                ["ITAvadanliqlarininSeriyaNomresi"] = "Seriya Nömrəsi",
+                ["Kateqoriya"] = "Kateqoriya",
+                ["Worker.per_adiper_soyadi"] = "Təhkim Olunan Əməkdaş",
+                ["Worker.pgk_gorev_adi"] = "Vəzifəsi",
+                ["Worker.pdp_adi"] = "Bölmə/Şöbə/Departament",
+                ["YerleshmeYeri"] = "Yerləşmə Yeri",
+                ["Erazi"] = "Ərazi"
+            };
 
         public AssetWindow()
         {
@@ -32,6 +47,7 @@ namespace LoginAppFramework
             _assetIdToSelectOnLoad = null;
             _selectionTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(150) };
             _selectionTimer.Tick += SelectionTimer_Tick;
+            InitializeGridPersonalization();
         }
 
         public AssetWindow(int assetIdToSelect = -1)
@@ -44,6 +60,16 @@ namespace LoginAppFramework
             _assetIdToSelectOnLoad = assetIdToSelect > 0 ? assetIdToSelect : null;
             _selectionTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(150) };
             _selectionTimer.Tick += SelectionTimer_Tick;
+            InitializeGridPersonalization();
+        }
+
+        private void InitializeGridPersonalization()
+        {
+            _gridPersonalization = new DataGridPersonalizationController(
+                AssetsDataGrid,
+                ColumnsButton,
+                "assets-grid",
+                AssetColumnLabels);
         }
 
         private async void Window_Loaded(object _, RoutedEventArgs e)
@@ -480,6 +506,167 @@ namespace LoginAppFramework
 
         private void DetailControl_AssignmentChanged(object _, EventArgs e) => RefreshDataAndSelection(_selectedAssetVM?.Asset.Id);
 
+
+        private void ShowAssetDetails(AssetCheckableViewModel assetVm)
+        {
+            if (assetVm == null)
+                return;
+
+            AssetsDataGrid.SelectedItem = assetVm;
+            AssetsDataGrid.ScrollIntoView(assetVm);
+            _selectedAssetVM = assetVm;
+            UpdateDetailView();
+
+            if (!isDetailPanelOpen)
+                OpenDetailPanel();
+        }
+
+        private void AssetsDataGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (e.OriginalSource is not DependencyObject source ||
+                FindParent<DataGridRow>(source) == null ||
+                AssetsDataGrid.SelectedItem is not AssetCheckableViewModel assetVm)
+            {
+                return;
+            }
+
+            ShowAssetDetails(assetVm);
+            e.Handled = true;
+        }
+
+        private AssetCheckableViewModel GetAssetFromContext(object sender)
+            => (sender as FrameworkElement)?.DataContext as AssetCheckableViewModel;
+
+        private void OpenAssetDetailsContext_Click(object sender, RoutedEventArgs e)
+            => ShowAssetDetails(GetAssetFromContext(sender));
+
+        private void EditAssetContext_Click(object sender, RoutedEventArgs e)
+        {
+            var assetVm = GetAssetFromContext(sender);
+            if (assetVm == null)
+                return;
+
+            if (!SessionManager.CanEdit())
+            {
+                DialogService.Warning(
+                    this,
+                    "Giriş Qadağandır",
+                    "Bu əməliyyat üçün icazəniz yoxdur.");
+                return;
+            }
+
+            DetailControl_EditAsset(sender, assetVm);
+        }
+
+        private void CopyAssetCodeContext_Click(object sender, RoutedEventArgs e)
+        {
+            var asset = GetAssetFromContext(sender)?.Asset;
+            CopyTextToClipboard(asset?.VesaitinKodu, "Vəsait kodu");
+        }
+
+        private void CopyAssetSerialContext_Click(object sender, RoutedEventArgs e)
+        {
+            var asset = GetAssetFromContext(sender)?.Asset;
+            CopyTextToClipboard(asset?.ITAvadanliqlarininSeriyaNomresi, "Seriya nömrəsi");
+        }
+
+        private void CopyTextToClipboard(string value, string label)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                NotificationService.Info(
+                    this,
+                    $"{label} boşdur.",
+                    title: "Kopyalama");
+                return;
+            }
+
+            try
+            {
+                Clipboard.SetText(value);
+                NotificationService.Success(
+                    this,
+                    $"{label} kopyalandı.");
+            }
+            catch (Exception ex)
+            {
+                NotificationService.Error(
+                    this,
+                    $"Kopyalama zamanı xəta baş verdi: {ex.Message}");
+            }
+        }
+
+        private void AssignAssetContext_Click(object sender, RoutedEventArgs e)
+        {
+            var assetVm = GetAssetFromContext(sender);
+            if (assetVm == null)
+                return;
+
+            if (!SessionManager.CanEdit())
+            {
+                DialogService.Warning(
+                    this,
+                    "Giriş Qadağandır",
+                    "Bu əməliyyat üçün icazəniz yoxdur.");
+                return;
+            }
+
+            var workers = AppData.GetWorkers()
+                .Where(worker => worker.IsActive)
+                .ToList();
+
+            if (workers.Count == 0)
+            {
+                NotificationService.Info(
+                    this,
+                    "Təhkim ediləcək aktiv işçi tapılmadı.",
+                    title: "İşçi Yoxdur");
+                return;
+            }
+
+            var selectWindow = new SelectWorkerWindow(workers)
+            {
+                Owner = this
+            };
+
+            if (selectWindow.ShowDialog() != true ||
+                selectWindow.SelectedWorker == null)
+            {
+                return;
+            }
+
+            AppServices.Assets.Assign(
+                assetVm.Asset,
+                selectWindow.SelectedWorker,
+                "Vəsait siyahısı");
+
+            RefreshDataAndSelection(assetVm.Asset.Id);
+            NotificationService.Success(
+                this,
+                $"Vəsait {selectWindow.SelectedWorker.per_adiper_soyadi} adlı işçiyə təhkim edildi.");
+        }
+
+        private void PrintAssetBarcodeContext_Click(object sender, RoutedEventArgs e)
+        {
+            var asset = GetAssetFromContext(sender)?.Asset;
+            if (asset == null)
+                return;
+
+            if (string.IsNullOrWhiteSpace(asset.VesaitinKodu))
+            {
+                NotificationService.Info(
+                    this,
+                    "Barkod çap etmək üçün vəsait kodu olmalıdır.",
+                    title: "Barkod");
+                return;
+            }
+
+            var printWindow = new PrintQrCodesWindow(new List<Asset> { asset })
+            {
+                Owner = this
+            };
+            printWindow.ShowDialog();
+        }
 
         private void AssetsDataGrid_SelectionChanged(object _, SelectionChangedEventArgs e)
         {

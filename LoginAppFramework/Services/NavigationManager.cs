@@ -154,6 +154,27 @@ namespace LoginAppFramework
             Window callingWindow = null)
             => await NavigateAsync<WorkerListWindow>(callingWindow);
 
+        public static async Task GoToWorkerListWindow(
+            Window callingWindow,
+            int workerId)
+        {
+            var window = await NavigateAsync<WorkerListWindow>(callingWindow);
+            window.NavigateToWorker(workerId);
+        }
+
+        public static void GoToGlobalSearch(Window owner = null)
+        {
+            var searchWindow = new GlobalSearchWindow
+            {
+                Owner =
+                    owner ??
+                    _currentWindow ??
+                    Application.Current.MainWindow
+            };
+
+            searchWindow.ShowDialog();
+        }
+
         public static async Task GoToHistoryLogWindow(
             Window callingWindow = null)
             => await NavigateAsync<HistoryLogWindow>(callingWindow);
