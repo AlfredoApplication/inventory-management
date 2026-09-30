@@ -111,6 +111,8 @@ namespace LoginAppFramework
                         StringComparison.CurrentCultureIgnoreCase));
             }
 
+            bool alertSourceProvided = alerts != null;
+
             var alertList = alerts?.ToList()
                 ?? new List<Alert>();
 
@@ -122,7 +124,7 @@ namespace LoginAppFramework
                     .Select(alert => alert.TargetId)
                     .ToHashSet();
 
-                if (ids.Count > 0)
+                if (alertSourceProvided)
                 {
                     filtered = filtered.Where(asset =>
                         ids.Contains(asset.Id));
@@ -147,7 +149,7 @@ namespace LoginAppFramework
                     .Select(alert => alert.TargetId)
                     .ToHashSet();
 
-                if (ids.Count > 0)
+                if (alertSourceProvided)
                 {
                     filtered = filtered.Where(asset =>
                         ids.Contains(asset.Id));
