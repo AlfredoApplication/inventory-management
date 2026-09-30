@@ -40,11 +40,10 @@ namespace LoginAppFramework
             {
                 if (string.IsNullOrEmpty(SessionManager.CurrentUserConnectionString))
                 {
-                    MessageBox.Show(
-                        "Aktiv istifadəçi sessiyası tapılmadı. Giriş ekranına qaytarılırsınız.",
+                    DialogService.Error(
+                        this,
                         "Sessiya Xətası",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error);
+                        "Aktiv istifadəçi sessiyası tapılmadı. Giriş ekranına qaytarılırsınız.");
 
                     NavigationManager.RestartApplication();
                     return;
@@ -56,11 +55,10 @@ namespace LoginAppFramework
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"İşçilər yüklənərkən xəta baş verdi:\n\n{ex.Message}",
+                DialogService.Error(
+                    this,
                     "Yükləmə Xətası",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                    $"İşçilər yüklənərkən xəta baş verdi:\n\n{ex.Message}");
             }
             finally
             {
@@ -133,21 +131,21 @@ namespace LoginAppFramework
         {
             if (!SessionManager.CanEdit())
             {
-                MessageBox.Show(
-                    "Bu əməliyyat üçün icazəniz yoxdur.",
+                DialogService.Warning(
+                    this,
                     "Giriş Qadağandır",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
+                    "Bu əməliyyat üçün icazəniz yoxdur.");
                 return;
             }
 
-            var confirmResult = MessageBox.Show(
-                "İşçi siyahısı uzaq HR məlumat bazası ilə sinxronizasiya ediləcək.\n\nDavam etmək istəyirsiniz?",
+            bool confirmResult = DialogService.Confirm(
+                this,
                 "Sinxronizasiyanı Təsdiq Et",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
+                "İşçi siyahısı uzaq HR məlumat bazası ilə sinxronizasiya ediləcək.\n\nDavam etmək istəyirsiniz?",
+                "Sinxronizasiya et",
+                "Ləğv et");
 
-            if (confirmResult != MessageBoxResult.Yes) return;
+            if (!confirmResult) return;
 
             SyncWorkersButton.IsEnabled = false;
             LoadingMessage.Text = "Sinxronizasiya edilir...";
@@ -164,11 +162,9 @@ namespace LoginAppFramework
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Sinxronizasiya zamanı xəta baş verdi:\n{ex.Message}",
-                    "Xəta",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                NotificationService.Error(
+                    this,
+                    $"Sinxronizasiya zamanı xəta baş verdi:\n{ex.Message}");
             }
             finally
             {
@@ -245,11 +241,10 @@ namespace LoginAppFramework
         {
             if (!SessionManager.CanEdit())
             {
-                MessageBox.Show(
-                    "Bu əməliyyat üçün icazəniz yoxdur.",
+                DialogService.Warning(
+                    this,
                     "Giriş Qadağandır",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
+                    "Bu əməliyyat üçün icazəniz yoxdur.");
                 return;
             }
 
@@ -259,13 +254,14 @@ namespace LoginAppFramework
 
             if (selected.Count == 0) return;
 
-            var result = MessageBox.Show(
-                $"Seçilmiş {selected.Count} işçini qeyri-aktiv etmək istəyirsiniz?",
+            bool result = DialogService.Confirm(
+                this,
                 "Deaktivləşdirməni Təsdiq Et",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning);
+                $"Seçilmiş {selected.Count} işçini qeyri-aktiv etmək istəyirsiniz?",
+                "Deaktiv et",
+                "Ləğv et");
 
-            if (result != MessageBoxResult.Yes) return;
+            if (!result) return;
 
             int count = _viewModel.SetActiveState(
                 selected.Select(vm => vm.GetModel().Id),
@@ -279,11 +275,10 @@ namespace LoginAppFramework
         {
             if (!SessionManager.CanEdit())
             {
-                MessageBox.Show(
-                    "Bu əməliyyat üçün icazəniz yoxdur.",
+                DialogService.Warning(
+                    this,
                     "Giriş Qadağandır",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
+                    "Bu əməliyyat üçün icazəniz yoxdur.");
                 return;
             }
 
@@ -293,13 +288,14 @@ namespace LoginAppFramework
 
             if (selected.Count == 0) return;
 
-            var result = MessageBox.Show(
-                $"Seçilmiş {selected.Count} işçini aktiv etmək istəyirsiniz?",
+            bool result = DialogService.Confirm(
+                this,
                 "Aktivləşdirməni Təsdiq Et",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
+                $"Seçilmiş {selected.Count} işçini aktiv etmək istəyirsiniz?",
+                "Aktiv et",
+                "Ləğv et");
 
-            if (result != MessageBoxResult.Yes) return;
+            if (!result) return;
 
             int count = _viewModel.SetActiveState(
                 selected.Select(vm => vm.GetModel().Id),
@@ -316,11 +312,10 @@ namespace LoginAppFramework
         {
             if (!SessionManager.CanEdit())
             {
-                MessageBox.Show(
-                    "Bu əməliyyat üçün icazəniz yoxdur.",
+                DialogService.Warning(
+                    this,
                     "Giriş Qadağandır",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
+                    "Bu əməliyyat üçün icazəniz yoxdur.");
                 return;
             }
 
@@ -348,13 +343,15 @@ namespace LoginAppFramework
         {
             if (worker == null) return;
 
-            var result = MessageBox.Show(
-                $"'{worker.per_adiper_soyadi}' adlı işçini həmişəlik silmək istəyirsiniz?",
+            bool result = DialogService.Confirm(
+                this,
                 "Silməni Təsdiq Et",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning);
+                $"'{worker.per_adiper_soyadi}' adlı işçini həmişəlik silmək istəyirsiniz?",
+                "İşçini sil",
+                "Ləğv et",
+                destructive: true);
 
-            if (result != MessageBoxResult.Yes) return;
+            if (!result) return;
 
             _viewModel.DeleteWorker(worker);
             RefreshViewModelPreservingSelection();
