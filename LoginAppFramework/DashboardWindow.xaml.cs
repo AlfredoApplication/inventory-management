@@ -40,11 +40,10 @@ namespace LoginAppFramework
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"İdarə paneli yüklənərkən xəta baş verdi:\n\n{ex.Message}",
+                DialogService.Error(
+                    this,
                     "Yükləmə Xətası",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                    $"İdarə paneli yüklənərkən xəta baş verdi:\n\n{ex.Message}");
             }
             finally
             {
