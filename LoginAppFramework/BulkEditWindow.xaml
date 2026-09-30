@@ -3,8 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:LoginAppFramework"
         Title="Toplu Vəsait Dəyişikliyi"
-        Width="620"
-        Height="720"
+        Width="660"
+        Height="760"
         MinWidth="520"
         MinHeight="480"
         WindowStartupLocation="CenterOwner"
@@ -15,7 +15,8 @@
         <local:InvertedBooleanConverter x:Key="InvertedBooleanConverter"/>
     </Window.Resources>
 
-    <Grid Margin="20">
+    <Border Style="{StaticResource SurfaceCardStyle}" Margin="24" Padding="24">
+        <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -25,7 +26,8 @@
         <TextBlock x:Name="InstructionText"
                    Grid.Row="0"
                    TextWrapping="Wrap"
-                   Margin="0,0,0,15"
+                   Margin="0,0,0,18"
+                   Foreground="{StaticResource SubtleTextBrush}"
                    Text="Seçilmiş bütün vəsaitlər üçün dəyişdirmək istədiyiniz sahələrə YENİ dəyər daxil edin. Sahələri boş buraxmaq onların orijinal dəyərlərini saxlayacaq."/>
 
         <ScrollViewer Grid.Row="1"
@@ -62,7 +64,7 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBox x:Name="VesaitinKoduTextBox"
-                             Padding="5"
+                             Padding="10,7"
                              IsEnabled="{Binding IsChecked, ElementName=ClearVesaitinKoduCheckBox, Converter={StaticResource InvertedBooleanConverter}}"/>
                     <CheckBox x:Name="ClearVesaitinKoduCheckBox"
                               Grid.Column="1"
@@ -72,7 +74,7 @@
                 </Grid>
 
                 <Label Grid.Row="1" Content="Yeni Vəsaitin Adı:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
-                <TextBox x:Name="VesaitinAdiTextBox" Grid.Row="1" Grid.Column="1" Margin="0,0,0,10" Padding="5"/>
+                <TextBox x:Name="VesaitinAdiTextBox" Grid.Row="1" Grid.Column="1" Margin="0,0,0,10" Padding="10,7"/>
 
                 <Label Grid.Row="2" Content="Yeni Seriya Nömrəsi:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
                 <Grid Grid.Row="2" Grid.Column="1" Margin="0,0,0,10">
@@ -81,7 +83,7 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBox x:Name="SeriyaNomresiTextBox"
-                             Padding="5"
+                             Padding="10,7"
                              IsEnabled="{Binding IsChecked, ElementName=ClearSerialCheckBox, Converter={StaticResource InvertedBooleanConverter}}"/>
                     <CheckBox x:Name="ClearSerialCheckBox"
                               Grid.Column="1"
@@ -91,7 +93,7 @@
                 </Grid>
 
                 <Label Grid.Row="3" Content="Yeni Kateqoriya:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
-                <ComboBox x:Name="CategoryComboBox" Grid.Row="3" Grid.Column="1" Margin="0,0,0,10" Padding="5"/>
+                <ComboBox x:Name="CategoryComboBox" Grid.Row="3" Grid.Column="1" Margin="0,0,0,10" Padding="10,7"/>
 
                 <Label Grid.Row="4" Content="Yeni Təhkim Olunan Əməkdaş:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
                 <ComboBox x:Name="UserComboBox"
@@ -100,7 +102,7 @@
                           DisplayMemberPath="DisplayName"
                           TextSearch.TextPath="DisplayName"
                           Margin="0,0,0,10"
-                          Padding="5"
+                          Padding="10,7"
                           IsEditable="True"
                           IsTextSearchEnabled="True"
                           StaysOpenOnEdit="True"
@@ -116,7 +118,7 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBox x:Name="LocationTextBox"
-                             Padding="5"
+                             Padding="10,7"
                              IsEnabled="{Binding IsChecked, ElementName=ClearLocationCheckBox, Converter={StaticResource InvertedBooleanConverter}}"/>
                     <CheckBox x:Name="ClearLocationCheckBox"
                               Grid.Column="1"
@@ -132,7 +134,7 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBox x:Name="AreaTextBox"
-                             Padding="5"
+                             Padding="10,7"
                              IsEnabled="{Binding IsChecked, ElementName=ClearAreaCheckBox, Converter={StaticResource InvertedBooleanConverter}}"/>
                     <CheckBox x:Name="ClearAreaCheckBox"
                               Grid.Column="1"
@@ -142,12 +144,12 @@
                 </Grid>
 
                 <Label Grid.Row="8" Content="Yeni Status:" VerticalAlignment="Center" Margin="0,0,10,10" FontWeight="SemiBold"/>
-                <ComboBox x:Name="StatusComboBox" Grid.Row="8" Grid.Column="1" Margin="0,0,0,10" Padding="5"/>
+                <ComboBox x:Name="StatusComboBox" Grid.Row="8" Grid.Column="1" Margin="0,0,0,10" Padding="10,7"/>
 
                 <Separator Grid.Row="9" Grid.ColumnSpan="2" Margin="0,5,0,10"/>
 
                 <Label Grid.Row="10" Content="Yeni Alış Qiyməti:" VerticalAlignment="Center" Margin="0,0,10,10"/>
-                <TextBox x:Name="PurchaseCostTextBox" Grid.Row="10" Grid.Column="1" Margin="0,0,0,10" Padding="5"/>
+                <TextBox x:Name="PurchaseCostTextBox" Grid.Row="10" Grid.Column="1" Margin="0,0,0,10" Padding="10,7"/>
 
                 <Label Grid.Row="11" Content="Yeni Alınma Tarixi:" VerticalAlignment="Center" Margin="0,0,10,10"/>
                 <local:DateSelectorControl x:Name="PurchaseDateSelector"
@@ -164,7 +166,7 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBox x:Name="SupplierTextBox"
-                             Padding="5"
+                             Padding="10,7"
                              IsEnabled="{Binding IsChecked, ElementName=ClearSupplierCheckBox, Converter={StaticResource InvertedBooleanConverter}}"/>
                     <CheckBox x:Name="ClearSupplierCheckBox"
                               Grid.Column="1"
@@ -182,7 +184,7 @@
                                            DialogTitle="Yeni zəmanət bitmə tarixini seçin"/>
 
                 <Label Grid.Row="14" Content="Yeni İstifadə müddəti (İl):" VerticalAlignment="Center" Margin="0,0,10,10"/>
-                <TextBox x:Name="UsefulLifeTextBox" Grid.Row="14" Grid.Column="1" Margin="0,0,0,10" Padding="5"/>
+                <TextBox x:Name="UsefulLifeTextBox" Grid.Row="14" Grid.Column="1" Margin="0,0,0,10" Padding="10,7"/>
             </Grid>
         </ScrollViewer>
 
@@ -219,5 +221,6 @@
                 </StackPanel>
             </Grid>
         </Border>
-    </Grid>
+        </Grid>
+    </Border>
 </Window>
