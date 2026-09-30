@@ -16,6 +16,19 @@
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <Style TargetType="{x:Type DataGridRow}" BasedOn="{StaticResource {x:Type DataGridRow}}">
             <Setter Property="Background" Value="{StaticResource PanelBackgroundBrush}" />
+            <Setter Property="ContextMenu">
+                <Setter.Value>
+                    <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                        <MenuItem Header="Detalları aç" Click="OpenWorkerDetailsContext_Click"/>
+                        <MenuItem Header="Redaktə et" Click="EditWorkerContext_Click"/>
+                        <Separator/>
+                        <MenuItem Header="Adı kopyala" Click="CopyWorkerNameContext_Click"/>
+                        <MenuItem Header="İşçi kodunu kopyala" Click="CopyWorkerCodeContext_Click"/>
+                        <Separator/>
+                        <MenuItem Header="Aktiv/Qeyri-aktiv et" Click="ToggleWorkerActiveContext_Click"/>
+                    </ContextMenu>
+                </Setter.Value>
+            </Setter>
             <Style.Triggers>
                 <Trigger Property="AlternationIndex" Value="1">
                     <Setter Property="Background" Value="{StaticResource RowAlternateBrush}" />
@@ -58,6 +71,10 @@
                     </Button>
                     <TextBlock Grid.Column="1" Text="İşçi İdarəetməsi" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource PrimaryTextBrush}"/>
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <Button x:Name="ColumnsButton"
+                                Content="Sütunlar"
+                                Margin="0,0,10,0"
+                                ToolTip="Görünən sütunları seçin və görünüşü sıfırlayın"/>
                         <Button x:Name="FilterPanelToggleButton"
                                 Content="Filtrləri Gizlət"
                                 Click="ToggleFilterPanelButton_Click"
@@ -163,7 +180,7 @@
                              <DataGridTextColumn Header="Tam Ad" Binding="{Binding Name}" Width="2*"/>
                              <DataGridTextColumn Header="Vəzifə" Binding="{Binding Position}" Width="2.5*"/>
                              <DataGridTextColumn Header="Departament" Binding="{Binding Department}" Width="2*"/>
-                             <DataGridTemplateColumn Header="Status" Width="120">
+                             <DataGridTemplateColumn Header="Status" Width="120" SortMemberPath="IsActive">
                                  <DataGridTemplateColumn.CellTemplate>
                                      <DataTemplate>
                                          <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="5,0">
