@@ -108,10 +108,12 @@ namespace LoginAppFramework
 
             e.SetObserved();
 
-            NotificationService.Error(
-                null,
-                "Arxa planda gözlənilməz xəta baş verdi. Diaqnostika tarixçəyə yazıldı.",
-                title: "Sistem xətası");
+            Dispatcher.BeginInvoke(
+                new Action(() =>
+                    NotificationService.Error(
+                        null,
+                        "Arxa planda gözlənilməz xəta baş verdi. Diaqnostika tarixçəyə yazıldı.",
+                        title: "Sistem xətası")));
         }
 
         private void ShowFatalError(
