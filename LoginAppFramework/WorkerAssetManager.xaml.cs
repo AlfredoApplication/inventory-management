@@ -124,8 +124,28 @@ namespace LoginAppFramework
                 if (!confirm)
                     return;
 
-                AppServices.Assets.Unassign(assetToUnassign, "İşçi detalları");
+                var owner = Window.GetWindow(this);
+                var snapshot = assetToUnassign.Clone();
+
+                AppServices.Assets.Unassign(
+                    assetToUnassign,
+                    "İşçi detalları");
+
                 AssetAssignmentChanged?.Invoke(this, EventArgs.Empty);
+
+                NotificationService.Undo(
+                    owner,
+                    "Təhkimat ləğv edildi.",
+                    () =>
+                    {
+                        AppServices.Assets.Save(snapshot);
+                        AssetAssignmentChanged?.Invoke(
+                            this,
+                            EventArgs.Empty);
+                        NotificationService.Success(
+                            owner,
+                            "Təhkimat bərpa edildi.");
+                    });
             }
         }
 
@@ -155,15 +175,39 @@ namespace LoginAppFramework
                 return;
             }
 
-            var selectWindow = new SelectAssetWindow(availableAssets) { Owner = Window.GetWindow(this) };
-            if (selectWindow.ShowDialog() == true && selectWindow.SelectedAsset != null)
+            var owner = Window.GetWindow(this);
+            var selectWindow = new SelectAssetWindow(availableAssets)
             {
+                Owner = owner
+            };
+
+            if (selectWindow.ShowDialog() == true &&
+                selectWindow.SelectedAsset != null)
+            {
+                var snapshot = selectWindow.SelectedAsset.Clone();
+                string assetName =
+                    selectWindow.SelectedAsset.VesaitinAdi;
+
                 AppServices.Assets.Assign(
                     selectWindow.SelectedAsset,
                     _currentWorker.GetModel(),
                     "İşçi detalları");
 
                 AssetAssignmentChanged?.Invoke(this, EventArgs.Empty);
+
+                NotificationService.Undo(
+                    owner,
+                    $"{assetName} işçiyə təhkim edildi.",
+                    () =>
+                    {
+                        AppServices.Assets.Save(snapshot);
+                        AssetAssignmentChanged?.Invoke(
+                            this,
+                            EventArgs.Empty);
+                        NotificationService.Success(
+                            owner,
+                            "Təhkimat geri qaytarıldı.");
+                    });
             }
         }
     }
