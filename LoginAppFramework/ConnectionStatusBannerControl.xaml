@@ -1,0 +1,45 @@
+<UserControl x:Class="LoginAppFramework.ConnectionStatusBannerControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:LoginAppFramework"
+             Visibility="Collapsed">
+    <Border x:Name="BannerBorder"
+            Background="{StaticResource DangerSurfaceBrush}"
+            BorderBrush="{StaticResource DangerBorderBrush}"
+            BorderThickness="0,0,0,1"
+            Padding="14,8">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <local:AppIcon x:Name="StateIcon"
+                           Icon="Warning"
+                           Size="17"
+                           Foreground="{StaticResource DangerTextBrush}"
+                           VerticalAlignment="Center"/>
+
+            <StackPanel Grid.Column="1"
+                        Margin="9,0,12,0">
+                <TextBlock x:Name="TitleTextBlock"
+                           Text="Bağlantı yoxdur"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource DangerTextBrush}"/>
+                <TextBlock x:Name="MessageTextBlock"
+                           Text="Verilənlər bazası əlçatan deyil."
+                           FontSize="11"
+                           TextWrapping="Wrap"
+                           Foreground="{StaticResource BodyTextBrush}"/>
+            </StackPanel>
+
+            <Button x:Name="RetryButton"
+                    Grid.Column="2"
+                    Content="Yenidən yoxla"
+                    Padding="10,5"
+                    VerticalAlignment="Center"
+                    Click="RetryButton_Click"/>
+        </Grid>
+    </Border>
+</UserControl>
