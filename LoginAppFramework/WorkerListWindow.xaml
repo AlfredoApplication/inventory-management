@@ -254,5 +254,7 @@
                 Visibility="Collapsed">
             <local:LoadingSkeletonControl/>
         </Border>
+
+        <local:OperationProgressOverlay x:Name="OperationProgressOverlay"/>
     </Grid>
 </Window>
