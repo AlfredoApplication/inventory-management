@@ -81,9 +81,11 @@ namespace LoginAppFramework
 
         private void OpenDetailPanel()
         {
+            double targetWidth = GetResponsiveDetailPanelWidth();
+
             var animation = new DoubleAnimation(
-                0,
-                650,
+                DetailPanelContainer.ActualWidth,
+                targetWidth,
                 TimeSpan.FromMilliseconds(250))
             {
                 EasingFunction = new CubicEase
@@ -94,6 +96,21 @@ namespace LoginAppFramework
 
             DetailPanelContainer.BeginAnimation(WidthProperty, animation);
             isDetailPanelOpen = true;
+        }
+
+        private double GetResponsiveDetailPanelWidth()
+        {
+            double available = Math.Max(ActualWidth, 1000);
+            return Math.Clamp(available * 0.42, 480, 680);
+        }
+
+        private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (!isDetailPanelOpen)
+                return;
+
+            DetailPanelContainer.BeginAnimation(WidthProperty, null);
+            DetailPanelContainer.Width = GetResponsiveDetailPanelWidth();
         }
 
         private void CloseDetailPanel()
