@@ -174,8 +174,8 @@
                             Visibility="{Binding HasBulkSelection, Converter={StaticResource BoolToVis}}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock x:Name="SelectionCountText" Text="{Binding SelectionCountText}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="5,0,20,0" Foreground="{StaticResource BodyTextBrush}"/>
-                            <Button x:Name="BulkDeactivateButton" Content="Seçilmişləri Deaktiv et" Click="BulkDeactivateButton_Click" Background="{StaticResource WarningBrush}" Foreground="{StaticResource PrimaryForegroundBrush}" Padding="8,4" Margin="0,0,10,0" ToolTip="Seçilmiş aktiv işçiləri qeyri-aktiv olaraq işarələyin."/>
-                            <Button x:Name="BulkActivateButton" Content="Seçilmişləri Aktiv et" Click="BulkActivateButton_Click" Background="{StaticResource SuccessBrush}" Foreground="{StaticResource PrimaryForegroundBrush}" Padding="8,4" ToolTip="Seçilmiş qeyri-aktiv işçiləri aktiv olaraq işarələyin."/>
+                            <Button x:Name="BulkDeactivateButton" Content="Seçilmişləri Deaktiv et" Click="BulkDeactivateButton_Click" Style="{StaticResource WarningActionButton}" Padding="8,4" Margin="0,0,10,0" ToolTip="Seçilmiş aktiv işçiləri qeyri-aktiv olaraq işarələyin."/>
+                            <Button x:Name="BulkActivateButton" Content="Seçilmişləri Aktiv et" Click="BulkActivateButton_Click" Style="{StaticResource SuccessActionButton}" Padding="8,4" ToolTip="Seçilmiş qeyri-aktiv işçiləri aktiv olaraq işarələyin."/>
                         </StackPanel>
                     </Border>
                     <DataGrid Grid.Row="3" x:Name="WorkersDataGrid" ItemsSource="{Binding VisibleWorkers}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Extended" AlternationCount="2" SelectionChanged="WorkersDataGrid_SelectionChanged" MouseDoubleClick="WorkersDataGrid_MouseDoubleClick">
