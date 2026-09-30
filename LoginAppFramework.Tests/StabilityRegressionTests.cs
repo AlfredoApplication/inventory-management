@@ -249,6 +249,129 @@ public class Phase9RegressionTests
     }
 }
 
+public class Phase10AlertRegressionTests
+{
+    [Fact]
+    public void WarrantyAlert_AppearsWithinDefaultThirtyDayWindow()
+    {
+        DateTime today = new DateTime(2026, 9, 30);
+
+        var asset = new Asset
+        {
+            Id = 10,
+            VesaitinKodu = "IT-010",
+            VesaitinAdi = "Laptop",
+            Status = "Anbarda",
+            PurchaseDate = today.AddYears(-1),
+            WarrantyExpirationDate = today.AddDays(20)
+        };
+
+        var alerts = AlertService.BuildAlerts(
+            new[] { asset },
+            Array.Empty<AlertRule>(),
+            today);
+
+        var warranty = Assert.Single(
+            alerts.Where(alert =>
+                alert.Category == AlertCategory.Warranty));
+
+        Assert.Equal(AlertType.Warning, warranty.Type);
+        Assert.Contains("20 gün", warranty.Message);
+        Assert.Equal(asset.Id, warranty.TargetId);
+    }
+
+    [Fact]
+    public void ExpiredWarranty_IsCritical()
+    {
+        DateTime today = new DateTime(2026, 9, 30);
+
+        var asset = new Asset
+        {
+            Id = 11,
+            VesaitinAdi = "Monitor",
+            Status = "İstifadədədir",
+            PurchaseDate = today.AddYears(-2),
+            WarrantyExpirationDate = today.AddDays(-5)
+        };
+
+        var alerts = AlertService.BuildAlerts(
+            new[] { asset },
+            Array.Empty<AlertRule>(),
+            today);
+
+        var warranty = Assert.Single(
+            alerts.Where(alert =>
+                alert.Category == AlertCategory.Warranty));
+
+        Assert.Equal(AlertType.Critical, warranty.Type);
+        Assert.Contains("5 gün əvvəl", warranty.Message);
+    }
+
+    [Fact]
+    public void MaintenanceAlert_UsesLastMaintenanceAsBaseline()
+    {
+        DateTime today = new DateTime(2026, 9, 30);
+
+        var asset = new Asset
+        {
+            Id = 12,
+            VesaitinAdi = "Printer",
+            Status = "Anbarda",
+            PurchaseDate = today.AddYears(-3),
+            MaintenanceHistory = new List<MaintenanceRecord>
+            {
+                new()
+                {
+                    MaintenanceDate = today.AddDays(-30),
+                    MaintenanceType = MaintenanceType.Inspection
+                }
+            }
+        };
+
+        var alerts = AlertService.BuildAlerts(
+            new[] { asset },
+            Array.Empty<AlertRule>(),
+            today);
+
+        Assert.DoesNotContain(
+            alerts,
+            alert => alert.Category == AlertCategory.Maintenance);
+    }
+
+    [Fact]
+    public void MaintenanceRuleThresholdOverridesDefault()
+    {
+        DateTime today = new DateTime(2026, 9, 30);
+
+        var asset = new Asset
+        {
+            Id = 13,
+            VesaitinAdi = "Router",
+            Status = "Anbarda",
+            PurchaseDate = today.AddDays(-100)
+        };
+
+        var rules = new[]
+        {
+            new AlertRule
+            {
+                RuleName = "Texniki xidmət intervalı",
+                IsEnabled = true,
+                ThresholdValue = 90
+            }
+        };
+
+        var alerts = AlertService.BuildAlerts(
+            new[] { asset },
+            rules,
+            today);
+
+        Assert.Contains(
+            alerts,
+            alert => alert.Category == AlertCategory.Maintenance);
+    }
+}
+
 [CollectionDefinition("WPF smoke tests", DisableParallelization = true)]
 public sealed class WpfSmokeTestCollection
 {
