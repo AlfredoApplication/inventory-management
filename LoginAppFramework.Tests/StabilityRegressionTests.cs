@@ -143,7 +143,15 @@ public class WpfXamlSmokeTests
                     new HistoryLogWindow(),
                     new LifecycleReportWindow(),
                     new GlobalSearchWindow(),
-                    new ReportsWindow()
+                    new ReportsWindow(),
+                    new AddEditAssetWindow(new Asset()),
+                    new AddEditWorkerWindow(),
+                    new BulkEditWindow(1),
+                    new SelectAssetWindow(new List<Asset>()),
+                    new SelectWorkerWindow(new List<Worker>()),
+                    new FilteredAssetsWindow(
+                        "XAML smoke test",
+                        new List<Asset>())
                 };
 
                 foreach (var window in windows)
