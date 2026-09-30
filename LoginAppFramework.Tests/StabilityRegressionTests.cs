@@ -10,13 +10,13 @@ namespace LoginAppFramework.Tests;
 public class AssetFormValidatorTests
 {
     [Theory]
-    [InlineData("1250,50", 1250.50)]
-    [InlineData("1250.50", 1250.50)]
-    [InlineData("0", 0)]
-    [InlineData("", 0)]
+    [InlineData("1250,50", "1250.50")]
+    [InlineData("1250.50", "1250.50")]
+    [InlineData("0", "0")]
+    [InlineData("", "0")]
     public void PurchaseCost_AcceptsValidNonNegativeValues(
         string text,
-        decimal expected)
+        string expectedText)
     {
         bool valid = AssetFormValidator.TryParsePurchaseCost(
             text,
@@ -25,7 +25,11 @@ public class AssetFormValidatorTests
 
         Assert.True(valid);
         Assert.Null(error);
-        Assert.Equal(expected, value);
+        Assert.Equal(
+            decimal.Parse(
+                expectedText,
+                System.Globalization.CultureInfo.InvariantCulture),
+            value);
     }
 
     [Theory]
