@@ -288,6 +288,16 @@
                     Margin="0,0,0,6">
                 <StackPanel>
                     <Button Style="{StaticResource SharedNavButtonStyle}"
+                            Click="ExportDiagnosticsButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <local:AppIcon Icon="Info" Size="18"/>
+                            <TextBlock Text="Diaqnostika Paketi"
+                                       Margin="15,0,0,0"/>
+                        </StackPanel>
+                    </Button>
+                    <Separator Background="{StaticResource GlassBorderBrush}"/>
+
+                    <Button Style="{StaticResource SharedNavButtonStyle}"
                             Click="SwitchUserButton_Click">
                         <StackPanel Orientation="Horizontal">
                             <local:AppIcon Icon="SwitchUser" Size="18"/>
