@@ -7,8 +7,6 @@ using System.Windows.Media.Animation;
 
 namespace LoginAppFramework
 {
-    public enum ToastType { Success, Error, Warning, Info }
-
     public partial class ToastNotificationControl : UserControl
     {
         private bool _isShowing = false;
