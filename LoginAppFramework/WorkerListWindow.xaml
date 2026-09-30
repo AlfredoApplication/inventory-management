@@ -16,19 +16,6 @@
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <Style TargetType="{x:Type DataGridRow}" BasedOn="{StaticResource {x:Type DataGridRow}}">
             <Setter Property="Background" Value="{StaticResource PanelBackgroundBrush}" />
-            <Setter Property="ContextMenu">
-                <Setter.Value>
-                    <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
-                        <MenuItem Header="Detalları aç" Click="OpenWorkerDetailsContext_Click"/>
-                        <MenuItem Header="Redaktə et" Click="EditWorkerContext_Click"/>
-                        <Separator/>
-                        <MenuItem Header="Adı kopyala" Click="CopyWorkerNameContext_Click"/>
-                        <MenuItem Header="İşçi kodunu kopyala" Click="CopyWorkerCodeContext_Click"/>
-                        <Separator/>
-                        <MenuItem Header="Aktiv/Qeyri-aktiv et" Click="ToggleWorkerActiveContext_Click"/>
-                    </ContextMenu>
-                </Setter.Value>
-            </Setter>
             <Style.Triggers>
                 <Trigger Property="AlternationIndex" Value="1">
                     <Setter Property="Background" Value="{StaticResource RowAlternateBrush}" />
@@ -175,7 +162,7 @@
                             <Button x:Name="BulkActivateButton" Content="Seçilmişləri Aktiv et" Click="BulkActivateButton_Click" Style="{StaticResource SuccessActionButton}" Padding="8,4" ToolTip="Seçilmiş qeyri-aktiv işçiləri aktiv olaraq işarələyin."/>
                         </StackPanel>
                     </Border>
-                    <DataGrid Grid.Row="3" x:Name="WorkersDataGrid" ItemsSource="{Binding VisibleWorkers}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Extended" AlternationCount="2" SelectionChanged="WorkersDataGrid_SelectionChanged" MouseDoubleClick="WorkersDataGrid_MouseDoubleClick">
+                    <DataGrid Grid.Row="3" x:Name="WorkersDataGrid" ItemsSource="{Binding VisibleWorkers}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Extended" AlternationCount="2" SelectionChanged="WorkersDataGrid_SelectionChanged" LoadingRow="WorkersDataGrid_LoadingRow" MouseDoubleClick="WorkersDataGrid_MouseDoubleClick">
                         <DataGrid.Columns>
                              <DataGridTextColumn Header="Tam Ad" Binding="{Binding Name}" Width="2*"/>
                              <DataGridTextColumn Header="Vəzifə" Binding="{Binding Position}" Width="2.5*"/>
