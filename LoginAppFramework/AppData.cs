@@ -405,22 +405,22 @@ namespace LoginAppFramework
 
         private static void RelinkAllAssetWorkersUnsafe()
         {
-            foreach (var asset in _assets ?? Enumerable.Empty<Asset>())
+            foreach (var asset in _assets?.AsEnumerable() ?? Enumerable.Empty<Asset>())
                 RelinkAssetWorkerUnsafe(asset);
 
-            foreach (var asset in _deletedAssets ?? Enumerable.Empty<Asset>())
+            foreach (var asset in _deletedAssets?.AsEnumerable() ?? Enumerable.Empty<Asset>())
                 RelinkAssetWorkerUnsafe(asset);
         }
 
         private static void RelinkAssetsForWorkerUnsafe(int workerId)
         {
-            foreach (var asset in (_assets ?? Enumerable.Empty<Asset>())
+            foreach (var asset in (_assets?.AsEnumerable() ?? Enumerable.Empty<Asset>())
                 .Where(asset => asset.WorkerId == workerId))
             {
                 RelinkAssetWorkerUnsafe(asset);
             }
 
-            foreach (var asset in (_deletedAssets ?? Enumerable.Empty<Asset>())
+            foreach (var asset in (_deletedAssets?.AsEnumerable() ?? Enumerable.Empty<Asset>())
                 .Where(asset => asset.WorkerId == workerId))
             {
                 RelinkAssetWorkerUnsafe(asset);
