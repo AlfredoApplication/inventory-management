@@ -1,6 +1,7 @@
 using Microsoft.Win32;
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace LoginAppFramework
@@ -58,10 +59,10 @@ namespace LoginAppFramework
             StatusTextBlock.Text = string.Empty;
         }
 
-        private void GenerateButton_Click(object sender, RoutedEventArgs e)
-            => GeneratePurchaseDateExcelReport();
+        private async void GenerateButton_Click(object sender, RoutedEventArgs e)
+            => await GeneratePurchaseDateExcelReportAsync();
 
-        private void GeneratePurchaseDateExcelReport()
+        private async Task GeneratePurchaseDateExcelReportAsync()
         {
             if (_purchaseDateFrom.HasValue &&
                 _purchaseDateTo.HasValue &&
@@ -88,15 +89,22 @@ namespace LoginAppFramework
 
             GenerateButton.IsEnabled = false;
             StatusTextBlock.Text = "Excel hesabatı yaradılır...";
+            OperationProgressOverlay.Show(
+                "Excel hesabatı yaradılır...",
+                "Vəsait məlumatları hazırlanır.");
+
+            var progress = new Progress<OperationProgressInfo>(
+                value => OperationProgressOverlay.Report(value));
 
             try
             {
-                int exportedCount =
+                int exportedCount = await Task.Run(() =>
                     AppServices.AssetExcel.ExportPurchaseDateReport(
                         saveFileDialog.FileName,
                         AppData.GetAssets(),
                         _purchaseDateFrom,
-                        _purchaseDateTo);
+                        _purchaseDateTo,
+                        progress));
 
                 StatusTextBlock.Text =
                     $"{exportedCount} vəsait hesabatına daxil edildi.";
@@ -132,6 +140,7 @@ namespace LoginAppFramework
             }
             finally
             {
+                OperationProgressOverlay.Hide();
                 GenerateButton.IsEnabled = true;
             }
         }
