@@ -18,7 +18,7 @@
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="Border"
                                 Background="{TemplateBinding Background}"
-                                CornerRadius="5">
+                                CornerRadius="8">
                             <ContentPresenter
                                 HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                 VerticalAlignment="Center"
@@ -39,13 +39,14 @@
     </UserControl.Resources>
 
     <Grid x:Name="Root">
-        <Border Background="#66000000"
+        <Border Background="#55000000"
                 MouseDown="Overlay_MouseDown"/>
 
         <Border x:Name="NavigationPanel"
                 HorizontalAlignment="Left"
-                Width="320"
+                Width="288"
                 Background="{StaticResource MenuBackgroundBrush}"
+                CornerRadius="0,14,14,0"
                 KeyboardNavigation.TabNavigation="Cycle"
                 KeyboardNavigation.DirectionalNavigation="Cycle">
             <Grid>
@@ -58,7 +59,7 @@
                 <Grid Grid.Row="0">
                     <TextBlock Text="Əsas Menyu"
                                Foreground="White"
-                               FontSize="20"
+                               FontSize="19"
                                FontWeight="SemiBold"
                                VerticalAlignment="Center"
                                Margin="20,0"/>
@@ -72,7 +73,7 @@
                     </Button>
                 </Grid>
 
-                <StackPanel Grid.Row="1" Margin="6,4">
+                <StackPanel Grid.Row="1" Margin="10,8">
                     <Button x:Name="DashboardButton"
                             Style="{StaticResource SharedNavButtonStyle}"
                             Click="DashboardButton_Click">
@@ -129,7 +130,7 @@
                     </Button>
                 </StackPanel>
 
-                <StackPanel Grid.Row="2" Margin="6,0,6,12">
+                <StackPanel Grid.Row="2" Margin="10,0,10,14">
                     <Separator Margin="6,8"
                                Background="#55FFFFFF"/>
 
