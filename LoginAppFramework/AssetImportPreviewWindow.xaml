@@ -1,0 +1,193 @@
+<Window x:Class="LoginAppFramework.AssetImportPreviewWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:LoginAppFramework"
+        Title="Import Preview"
+        Width="980"
+        Height="720"
+        MinWidth="760"
+        MinHeight="520"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResizeWithGrip"
+        Background="{StaticResource AppBackgroundBrush}"
+        FontFamily="Segoe UI">
+    <Border Style="{StaticResource SurfaceCardStyle}"
+            Margin="20"
+            Padding="0">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0"
+                    Padding="20,18"
+                    BorderBrush="{StaticResource ControlBorderBrush}"
+                    BorderThickness="0,0,0,1">
+                <StackPanel>
+                    <TextBlock Text="Import preview / dry-run"
+                               Style="{StaticResource PageTitleTextStyle}"/>
+                    <TextBlock Text="Verilənlər bazasına heç nə yazılmayıb. Problemləri yoxlayın və yalnız hazır sətirləri import edin."
+                               Style="{StaticResource PageSubtitleTextStyle}"
+                               TextWrapping="Wrap"
+                               Margin="0,4,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="1"
+                    Background="{StaticResource SurfaceMutedBrush}"
+                    BorderBrush="{StaticResource ControlBorderBrush}"
+                    BorderThickness="0,0,0,1"
+                    Padding="14">
+                <UniformGrid Columns="4">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="{Binding TotalRowsText}"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource PrimaryTextBrush}"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="Oxunan"
+                                   FontSize="11"
+                                   Foreground="{StaticResource SubtleTextBrush}"/>
+                    </StackPanel>
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="{Binding ReadyCountText}"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource SuccessTextBrush}"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="Problemsiz"
+                                   FontSize="11"
+                                   Foreground="{StaticResource SubtleTextBrush}"/>
+                    </StackPanel>
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="{Binding WarningCountText}"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource WarningTextBrush}"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="Import olunacaq"
+                                   FontSize="11"
+                                   Foreground="{StaticResource SubtleTextBrush}"/>
+                    </StackPanel>
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="{Binding ErrorCountText}"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource DangerTextBrush}"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="Skip ediləcək"
+                                   FontSize="11"
+                                   Foreground="{StaticResource SubtleTextBrush}"/>
+                    </StackPanel>
+                </UniformGrid>
+            </Border>
+
+            <TabControl Grid.Row="2"
+                        Margin="12">
+                <TabItem Header="Sətirlər">
+                    <DataGrid ItemsSource="{Binding Items}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False"
+                              HeadersVisibility="Column">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Sətir" Binding="{Binding RowNumber}" Width="70"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding StateText}" Width="105"/>
+                            <DataGridTextColumn Header="Kod" Binding="{Binding Code}" Width="120"/>
+                            <DataGridTextColumn Header="Vəsait" Binding="{Binding Name}" Width="1.4*"/>
+                            <DataGridTextColumn Header="Seriya" Binding="{Binding Serial}" Width="140"/>
+                            <DataGridTextColumn Header="Kateqoriya" Binding="{Binding Category}" Width="130"/>
+                            <DataGridTextColumn Header="İşçi" Binding="{Binding ResolvedWorker}" Width="150"/>
+                            <DataGridTextColumn Header="Qeyd" Binding="{Binding IssueText}" Width="2*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </TabItem>
+
+                <TabItem Header="Problemlər">
+                    <Grid>
+                        <ListView ItemsSource="{Binding Issues}"
+                                  BorderThickness="0">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Padding="12,9"
+                                            BorderBrush="{StaticResource ControlBorderBrush}"
+                                            BorderThickness="0,0,0,1">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="110"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{Binding SeverityText}"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{StaticResource WarningTextBrush}"/>
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding Message}"
+                                                       TextWrapping="Wrap"
+                                                       Foreground="{StaticResource BodyTextBrush}"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+
+                        <local:EmptyStateControl Icon="Success"
+                                                 Title="Əlavə parser problemi yoxdur"
+                                                 Message="Sətir səviyyəli yoxlamaları 'Sətirlər' tabında görə bilərsiniz.">
+                            <local:EmptyStateControl.Style>
+                                <Style TargetType="{x:Type local:EmptyStateControl}">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Issues.Count}" Value="0">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </local:EmptyStateControl.Style>
+                        </local:EmptyStateControl>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+
+            <Border Grid.Row="3"
+                    BorderBrush="{StaticResource ControlBorderBrush}"
+                    BorderThickness="0,1,0,0"
+                    Padding="14">
+                <Grid>
+                    <Button Content="Problemləri Excel-ə çıxar"
+                            HorizontalAlignment="Left"
+                            Click="ExportIssuesButton_Click">
+                        <Button.Style>
+                            <Style TargetType="Button"
+                                   BasedOn="{StaticResource {x:Type Button}}">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasIssues}" Value="False">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Right">
+                        <Button Content="Ləğv et"
+                                MinWidth="90"
+                                Margin="0,0,10,0"
+                                IsCancel="True"/>
+                        <Button x:Name="ImportButton"
+                                Content="{Binding ImportableCount, StringFormat='{}Import et ({0})'}"
+                                MinWidth="130"
+                                IsEnabled="{Binding CanImport}"
+                                IsDefault="True"
+                                Style="{StaticResource PrimaryActionButton}"
+                                Click="ImportButton_Click"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</Window>
