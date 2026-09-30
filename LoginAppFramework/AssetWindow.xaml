@@ -208,6 +208,7 @@
                               SelectionMode="Extended"
                               SelectionChanged="AssetsDataGrid_SelectionChanged"
                               MouseDoubleClick="AssetsDataGrid_MouseDoubleClick"
+                              FrozenColumnCount="1"
                               AlternationCount="2">
                         <DataGrid.Columns>
                             <DataGridTemplateColumn Width="Auto" CanUserReorder="False" CanUserResize="False">
