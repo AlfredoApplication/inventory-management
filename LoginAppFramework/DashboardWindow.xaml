@@ -8,6 +8,7 @@
         mc:Ignorable="d"
         Title="İdarə Paneli"
         Loaded="Window_Loaded"
+        PreviewKeyDown="Window_PreviewKeyDown"
         SizeChanged="Window_SizeChanged"
         WindowStartupLocation="CenterScreen"
         Style="{StaticResource MainScreenWindowStyle}">
