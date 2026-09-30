@@ -107,6 +107,7 @@ namespace LoginAppFramework
         }
 
         public int FilteredCount => _filteredEntries.Count;
+        public bool HasResults => FilteredCount > 0;
         public string CountText => $"{FilteredCount} qeyd";
         public string PageInfo => $"Səhifə {CurrentPage} / {TotalPages} ({FilteredCount} qeyd)";
         public bool CanGoPrevious => CurrentPage > 1;
@@ -313,6 +314,7 @@ namespace LoginAppFramework
             TotalPages = Math.Max(1, (int)Math.Ceiling((double)_filteredEntries.Count / PageSize));
 
             OnPropertyChanged(nameof(FilteredCount));
+            OnPropertyChanged(nameof(HasResults));
             OnPropertyChanged(nameof(CountText));
             OnPropertyChanged(nameof(PageInfo));
 
