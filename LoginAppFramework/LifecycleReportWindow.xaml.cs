@@ -12,7 +12,7 @@ using System.Windows.Input;
 
 namespace LoginAppFramework
 {
-    public partial class LifecycleReportWindow : Window
+    public partial class LifecycleReportWindow : Window, INavigationRefreshable
     {
         private List<Asset> _allAssets;
         private GridViewColumnHeader _lastHeaderClicked;
@@ -47,6 +47,12 @@ namespace LoginAppFramework
             {
                 LoadingOverlay.Visibility = Visibility.Collapsed;
             }
+        }
+
+        public async Task RefreshForNavigationAsync()
+        {
+            _allAssets = await Task.Run(() => AppData.GetAssets());
+            ApplyFilters();
         }
 
         private void ApplyFilters()

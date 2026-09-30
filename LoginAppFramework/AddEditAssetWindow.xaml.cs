@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -49,6 +50,15 @@ namespace LoginAppFramework
                 Asset.WarrantyExpirationDate > DateTime.MinValue
                     ? Asset.WarrantyExpirationDate
                     : null;
+
+            PurchaseCostTextBox.Text =
+                Asset.PurchaseCost.ToString(
+                    "0.##",
+                    CultureInfo.CurrentCulture);
+
+            UsefulLifeTextBox.Text =
+                Asset.UsefulLifeInYears.ToString(
+                    CultureInfo.InvariantCulture);
 
             SelectCurrentWorker();
             UpdateStatusBehavior();
@@ -222,6 +232,46 @@ namespace LoginAppFramework
                 return;
             }
 
+            if (!AssetFormValidator.TryParsePurchaseCost(
+                    PurchaseCostTextBox.Text,
+                    out decimal purchaseCost,
+                    out string purchaseCostError))
+            {
+                ShowValidation(
+                    purchaseCostError,
+                    PurchaseCostTextBox);
+                return;
+            }
+
+            if (!AssetFormValidator.TryParseUsefulLife(
+                    UsefulLifeTextBox.Text,
+                    out int usefulLifeInYears,
+                    out string usefulLifeError))
+            {
+                ShowValidation(
+                    usefulLifeError,
+                    UsefulLifeTextBox);
+                return;
+            }
+
+            DateTime? purchaseDate = PurchaseDateSelector.SelectedDate;
+            DateTime? warrantyDate = WarrantyDateSelector.SelectedDate;
+
+            if (!AssetFormValidator.ValidateDates(
+                    purchaseDate,
+                    warrantyDate,
+                    out string dateError))
+            {
+                ShowValidation(
+                    dateError,
+                    warrantyDate.HasValue &&
+                    purchaseDate.HasValue &&
+                    warrantyDate.Value.Date < purchaseDate.Value.Date
+                        ? WarrantyDateSelector
+                        : PurchaseDateSelector);
+                return;
+            }
+
             var workerResolution = ResolveWorkerSelection();
 
             if (!workerResolution.IsValid)
@@ -237,20 +287,17 @@ namespace LoginAppFramework
             else
                 Asset.ClearWorkerAssignment();
 
-            Asset.PurchaseDate =
-                PurchaseDateSelector.SelectedDate ?? DateTime.Today;
-
+            Asset.PurchaseCost = purchaseCost;
+            Asset.UsefulLifeInYears = usefulLifeInYears;
+            Asset.PurchaseDate = purchaseDate.Value;
             Asset.WarrantyExpirationDate =
-                WarrantyDateSelector.SelectedDate ?? DateTime.MinValue;
+                warrantyDate ?? DateTime.MinValue;
 
             if (StatusComboBox.SelectedItem != null)
                 Asset.Status = StatusComboBox.SelectedItem.ToString();
 
             Asset.Name = Asset.VesaitinAdi;
             Asset.SerialNumber = Asset.ITAvadanliqlarininSeriyaNomresi;
-
-            if (Asset.UsefulLifeInYears <= 0)
-                Asset.UsefulLifeInYears = 0;
 
             Asset.CustomFields.Clear();
 
@@ -276,7 +323,11 @@ namespace LoginAppFramework
             foreach (Control control in new Control[]
             {
                 AssetNameTextBox,
-                UserComboBox
+                UserComboBox,
+                PurchaseCostTextBox,
+                UsefulLifeTextBox,
+                PurchaseDateSelector,
+                WarrantyDateSelector
             })
             {
                 control.ClearValue(Control.BorderBrushProperty);
@@ -295,6 +346,86 @@ namespace LoginAppFramework
                 (Brush)FindResource("DangerBrush");
             control.BorderThickness = new Thickness(2);
             control.Focus();
+        }
+
+        private void PurchaseCostTextBox_PreviewTextInput(
+            object sender,
+            TextCompositionEventArgs e)
+        {
+            if (sender is not TextBox textBox)
+                return;
+
+            string proposed = BuildProposedText(textBox, e.Text);
+            e.Handled =
+                !AssetFormValidator.IsPotentialPurchaseCostText(proposed);
+        }
+
+        private void UsefulLifeTextBox_PreviewTextInput(
+            object sender,
+            TextCompositionEventArgs e)
+        {
+            if (sender is not TextBox textBox)
+                return;
+
+            string proposed = BuildProposedText(textBox, e.Text);
+            e.Handled =
+                !AssetFormValidator.IsPotentialUsefulLifeText(proposed);
+        }
+
+        private void PurchaseCostTextBox_Pasting(
+            object sender,
+            DataObjectPastingEventArgs e)
+        {
+            if (sender is not TextBox textBox ||
+                !e.DataObject.GetDataPresent(DataFormats.Text))
+            {
+                e.CancelCommand();
+                return;
+            }
+
+            string pasted = e.DataObject.GetData(DataFormats.Text) as string;
+            string proposed = BuildProposedText(textBox, pasted ?? string.Empty);
+
+            if (!AssetFormValidator.IsPotentialPurchaseCostText(proposed))
+                e.CancelCommand();
+        }
+
+        private void UsefulLifeTextBox_Pasting(
+            object sender,
+            DataObjectPastingEventArgs e)
+        {
+            if (sender is not TextBox textBox ||
+                !e.DataObject.GetDataPresent(DataFormats.Text))
+            {
+                e.CancelCommand();
+                return;
+            }
+
+            string pasted = e.DataObject.GetData(DataFormats.Text) as string;
+            string proposed = BuildProposedText(textBox, pasted ?? string.Empty);
+
+            if (!AssetFormValidator.IsPotentialUsefulLifeText(proposed))
+                e.CancelCommand();
+        }
+
+        private static string BuildProposedText(
+            TextBox textBox,
+            string insertedText)
+        {
+            string current = textBox.Text ?? string.Empty;
+            int selectionStart = Math.Clamp(
+                textBox.SelectionStart,
+                0,
+                current.Length);
+
+            int selectionLength = Math.Clamp(
+                textBox.SelectionLength,
+                0,
+                current.Length - selectionStart);
+
+            return current
+                .Remove(selectionStart, selectionLength)
+                .Insert(selectionStart, insertedText ?? string.Empty);
         }
 
         private void CategoryComboBox_SelectionChanged(
@@ -317,6 +448,8 @@ namespace LoginAppFramework
                         out int defaultYears))
                     {
                         Asset.UsefulLifeInYears = defaultYears;
+                        UsefulLifeTextBox.Text =
+                            defaultYears.ToString(CultureInfo.InvariantCulture);
                     }
                 }
             }

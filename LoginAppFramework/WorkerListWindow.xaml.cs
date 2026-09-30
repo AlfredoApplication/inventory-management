@@ -10,7 +10,7 @@ using System.Windows.Threading;
 
 namespace LoginAppFramework
 {
-    public partial class WorkerListWindow : Window
+    public partial class WorkerListWindow : Window, INavigationRefreshable
     {
         private readonly WorkerListWindowViewModel _viewModel;
         private readonly DispatcherTimer _selectionTimer;
@@ -88,6 +88,21 @@ namespace LoginAppFramework
                 LoadingOverlay.Visibility = Visibility.Collapsed;
                 ApplyRoleBasedPermissions();
             }
+        }
+
+        public Task RefreshForNavigationAsync()
+        {
+            int? selectedWorkerId = _selectedWorker?.GetModel().Id;
+
+            _viewModel.Refresh();
+
+            if (selectedWorkerId.HasValue)
+                SelectWorkerById(selectedWorkerId.Value);
+            else
+                UpdateDetailView();
+
+            ApplyRoleBasedPermissions();
+            return Task.CompletedTask;
         }
 
         private async void Manager_AssetDoubleClicked(object sender, Asset asset)

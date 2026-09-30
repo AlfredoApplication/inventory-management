@@ -14,7 +14,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Threading;
 namespace LoginAppFramework
 {
-    public partial class AssetWindow : Window
+    public partial class AssetWindow : Window, INavigationRefreshable
     {
         private readonly AssetListWindowViewModel _viewModel;
         private AssetCheckableViewModel _selectedAssetVM;
@@ -111,6 +111,22 @@ namespace LoginAppFramework
                 LoadingOverlay.Visibility = Visibility.Collapsed;
                 ApplyRoleBasedPermissions();
             }
+        }
+
+        public Task RefreshForNavigationAsync()
+        {
+            int? selectedAssetId = _selectedAssetVM?.Asset.Id;
+
+            _viewModel.RefreshPreservingFilters();
+            InitializeColumnFilters();
+
+            if (selectedAssetId.HasValue)
+                SelectAssetById(selectedAssetId.Value);
+            else
+                UpdateDetailView();
+
+            ApplyRoleBasedPermissions();
+            return Task.CompletedTask;
         }
 
         #region Action Buttons (QR, Import, Export)

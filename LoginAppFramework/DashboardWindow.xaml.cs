@@ -10,7 +10,7 @@ using LiveCharts.Wpf;
 
 namespace LoginAppFramework
 {
-    public partial class DashboardWindow : Window
+    public partial class DashboardWindow : Window, INavigationRefreshable
     {
         private List<Asset> _allAssets;
         private List<Worker> _allWorkers;
@@ -24,9 +24,18 @@ namespace LoginAppFramework
         }
 
         private async void Window_Loaded(object _, RoutedEventArgs e)
+            => await LoadDashboardDataAsync(showLoading: true);
+
+        public Task RefreshForNavigationAsync()
+            => LoadDashboardDataAsync(showLoading: false);
+
+        private async Task LoadDashboardDataAsync(bool showLoading)
         {
-            LoadingOverlay.Visibility = Visibility.Visible;
-            await Task.Delay(20);
+            if (showLoading)
+            {
+                LoadingOverlay.Visibility = Visibility.Visible;
+                await Task.Delay(20);
+            }
 
             try
             {
@@ -47,7 +56,8 @@ namespace LoginAppFramework
             }
             finally
             {
-                LoadingOverlay.Visibility = Visibility.Collapsed;
+                if (showLoading)
+                    LoadingOverlay.Visibility = Visibility.Collapsed;
             }
         }
 
