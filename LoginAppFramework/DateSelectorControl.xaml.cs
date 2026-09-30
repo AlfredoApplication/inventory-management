@@ -6,6 +6,7 @@ namespace LoginAppFramework
 {
     public partial class DateSelectorControl : UserControl
     {
+        public event EventHandler SelectedDateChanged;
         public static readonly DependencyProperty SelectedDateProperty =
             DependencyProperty.Register(
                 nameof(SelectedDate),
@@ -59,7 +60,12 @@ namespace LoginAppFramework
             DependencyPropertyChangedEventArgs e)
         {
             if (d is DateSelectorControl control)
+            {
                 control.UpdateVisualState();
+                control.SelectedDateChanged?.Invoke(
+                    control,
+                    EventArgs.Empty);
+            }
         }
 
         private void CalendarButton_Click(object sender, RoutedEventArgs e)
